@@ -33,7 +33,8 @@
   #include <netdb.h>
 #endif
 
-#include <pcrecpp.h>
+#define PCRE2_CODE_UNIT_WIDTH 8
+#include <pcre2.h>
 #include <unistd.h>
 
 #ifndef WIN32
@@ -403,14 +404,39 @@ int InterpreterDBG::receiveCmd(bool nonBlocking) {
 void InterpreterDBG::processBreakpointCMD(string& bpcommand) {
  //cerr << "process breakpoint " << bpcommand << endl;
 
-  string cmd;
-  string file;
-  int line;
-  pcrecpp::RE re("breakpoint cmd=(add|remove).*file=\"([^\"]*)\".*line=(\\d+)");
-  if(!re.FullMatch(bpcommand, &cmd, &file, &line)) {
-    //cerr << PACKAGE << ": comando invalido (2): \"" << cmd << "\"" << endl;
+  pcre2_code *re;
+  pcre2_match_data *md;
+  PCRE2_UCHAR *str;
+  PCRE2_SPTR pat, subj;
+  PCRE2_SIZE offset;
+  int line, rc;
+
+  pat = reinterpret_cast<PCRE2_SPTR>("breakpoint cmd=(add|remove).*file=\"([^\"]*)\".*line=(\\d+)");
+  subj = reinterpret_cast<PCRE2_SPTR>(bpcommand.c_str());
+  re = pcre2_compile(pat, PCRE2_ZERO_TERMINATED, 0, &rc, &offset, nullptr);
+  if(offset != 0) {
     return;
   }
+
+  md = pcre2_match_data_create_from_pattern(re, nullptr);
+  rc = pcre2_match(re, subj, bpcommand.length(), 0, 0, md, nullptr);
+  pcre2_code_free(re);
+  if(rc != 4) {
+    //cerr << PACKAGE << ": comando invalido (2): \"" << cmd << "\"" << endl;
+    pcre2_match_data_free(md);
+    return;
+  }
+
+  pcre2_substring_get_bynumber(md, 1, &str, &offset);
+  string cmd(reinterpret_cast<char *>(str));
+  pcre2_substring_free(str);
+  pcre2_substring_get_bynumber(md, 2, &str, &offset);
+  string file(reinterpret_cast<char *>(str));
+  pcre2_substring_free(str);
+  pcre2_substring_get_bynumber(md, 3, &str, &offset);
+  line = atoi((const char *)str);
+  pcre2_substring_free(str);
+  pcre2_match_data_free(md);
 
   //cerr << PACKAGE << ": capturado:" << cmd << ":" << file << ":" << line << endl;
 

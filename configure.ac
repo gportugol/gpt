@@ -109,10 +109,10 @@ dnl------------------------------
 
 # AC_MSG_CHECKING(for pcre)
 
-AC_CHECK_PROG(has_pcre, pcre-config, yes)
+AC_CHECK_PROG(has_pcre, pcre2-config, yes)
 
 if test "x$has_pcre" = "xyes"; then
-  PCRE_CONFIG="pcre-config"
+  PCRE_CONFIG="pcre2-config"
 else
   AC_MSG_ERROR(
   [
@@ -123,8 +123,8 @@ fi
 
 #pcrecpp
 
-PCRE_INC=`${PCRE_CONFIG} --cglags`
-PCRE_LIB="-L`${PCRE_CONFIG} --prefix`/lib -lpcrecpp"
+PCRE_INC=`${PCRE_CONFIG} --cflags`
+PCRE_LIB=`${PCRE_CONFIG} --libs8`
 AC_SUBST(PCRE_INC)
 AC_SUBST(PCRE_LIB)
 
