@@ -1,0 +1,46 @@
+name: Unit test
+
+on:
+  push:
+    branches:
+      - "*"
+  pull_request:
+    branches:
+      - "*"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y build-essential autoconf automake libtool pkg-config libantlr-dev libpcre2-dev nasm
+
+      - name: Generate configure script
+        run: autoreconf -i
+
+      - name: Configure
+        run: ./configure --prefix=/usr/local
+
+      - name: Build
+        run: make -j$(nproc)
+
+      - name: Run unit test script
+        working-directory: test
+        run: |
+          set +e
+          ./run_test.sh
+          code=$?
+          echo "Exit code from test script: $code"
+          if [ $code -ne 0 ]; then
+            echo "❌ Test script failed with exit code $code"
+            exit 1
+          else
+            echo "✅ All tests passed!"
+            exit 0
+          fi
