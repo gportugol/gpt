@@ -32,3 +32,124 @@ jobs:
 
       - name: Test binary
         run: src/gpt -i exemplos/olamundo.gpt
+
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup MSYS2 Environment
+        uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          msystem: MINGW64
+          path-type: inherit
+          install: >-
+            autoconf
+            automake
+            libtool
+            make
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-gcc-libs
+            mingw-w64-x86_64-pcre2
+            pkg-config
+            tar
+            unzip
+            wget
+            zip
+
+      - name: Cache JDK 25
+        id: cache-jdk
+        uses: actions/cache@v3
+        with:
+          path: D:\a\gpt\gpt\jdk-25.0.1
+          key: jdk-25.0.1-cache
+
+      - shell: msys2 {0}
+        name: Install Java JDK 25
+        if: steps.cache-jdk.outputs.cache-hit != 'true'
+        run: |
+          wget https://download.java.net/java/GA/jdk25.0.1/2fbf10d8c78e40bd87641c434705079d/8/GPL/openjdk-25.0.1_windows-x64_bin.zip
+          unzip openjdk-25.0.1_windows-x64_bin.zip
+          echo "PATH=$PATH:$(pwd)/jdk-25.0.1/bin" >> $GITHUB_ENV
+          export PATH=$PATH:$(pwd)/jdk-25.0.1/bin
+          java -version
+
+      - name: Cache ANTLR2 Build
+        id: cache-antlr
+        uses: actions/cache@v3
+        with:
+          path: D:/a/_temp/msys64/usr/local
+          key: antlr2.7.7-msys2-static
+
+      - shell: msys2 {0}
+        name: Build ANTLR 2.7.7 (if not cached)
+        if: steps.cache-antlr.outputs.cache-hit != 'true'
+        run: |
+          wget http://www.antlr2.org/download/antlr-2.7.7.tar.gz
+          tar xvfz antlr-2.7.7.tar.gz
+          cd antlr-2.7.7
+
+          sed -i '1i #ifdef _WIN32\n#include <string.h>\n#define strcasecmp _stricmp\n#endif' lib/cpp/antlr/CharScanner.hpp
+          sed -i 's/struct CharScannerLiteralsLess : public binary_function<string, string, bool>/struct CharScannerLiteralsLess { bool operator()(const std::string& x,const std::string& y) const { return strcasecmp(x.c_str(), y.c_str())<0; } };/g' lib/cpp/antlr/CharScanner.hpp
+
+          export CXXFLAGS="-O2 -std=gnu++14 -static -static-libgcc -static-libstdc++"
+          export LDFLAGS="-static -static-libgcc -static-libstdc++"
+
+          autoreconf -fi
+          ./configure --prefix=/usr/local
+          make -j$(nproc)
+          make install
+
+          ln -s /usr/local/bin/antlr /usr/local/bin/runantlr || true
+
+      - shell: msys2 {0}
+        name: Build GPT Project
+        run: |
+          export PATH="/usr/local/bin:$PATH"
+          export CXXFLAGS="-O2 -std=gnu++14 -static -static-libgcc -static-libstdc++"
+          export LDFLAGS="-static -static-libgcc -static-libstdc++"
+          autoreconf -i
+          ./configure --prefix=/usr/local
+          make -j$(nproc)
+          make install
+
+      - shell: msys2 {0}
+        name: Install NASM
+        run: |
+          wget https://www.nasm.us/pub/nasm/releasebuilds/0.99.06/nasm-0.99.06-win32.zip
+          unzip nasm-0.99.06-win32.zip
+          cp nasm-0.99.06/nasm.exe /mingw64/bin/
+
+      - shell: msys2 {0}
+        name: Test GPT Binary (-i mode)
+        run: |
+          src/gpt -i exemplos/olamundo.gpt
+
+      - shell: msys2 {0}
+        name: Test GPT Binary (-o mode)
+        run: |
+          src/gpt -o olamundo.exe exemplos/olamundo.gpt
+          ./olamundo.exe
+
+      - shell: msys2 {0}
+        name: Package Windows Binary
+        run: |
+          make install DESTDIR=$PWD/release
+          mkdir -p dist
+          mv release/usr/local/* dist/
+          cp /mingw64/bin/nasm.exe dist/bin/
+          ldd /usr/local/bin/gpt | grep "mingw" | awk '{print $3}' | while read dll; do
+              if [ -f "$dll" ]; then
+                  echo "Copying $dll"
+                  cp "$dll" dist/bin/
+              fi
+          done
+
+      - name: Upload Windows ZIP Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gpt-windows
+          path: dist/*

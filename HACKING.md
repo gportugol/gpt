@@ -1,239 +1,213 @@
 # Desenvolvendo
 
-## Instalando dependências em GNU/Linux
+Este documento descreve como configurar o ambiente de desenvolvimento local do
+GPT usando as mesmas etapas utilizadas no pipeline do [GitHub
+Actions](.github/workflows/build.yml) para GNU/Linux e Windows.
 
-Para desenvolver o GPT é necessário instalar os seguintes softwares:
+Dependências:
 
 - g++
 - make
-- automake (v1.9 ou superior)
 - autoconf
+- automake
 - libtool
-- antlr (v2.6.x ou superior)
-- pcre e pcrecpp
+- pkg-config
+- libantlr-dev (ANTLR 2.x)
+- libpcre2-dev
 - nasm
+- wget
 
-Para satisfazer estas dependências no (K)Ubuntu ou Debian, pode-se executar o
-seguinte comando:
+## Baixar o fonte
 
-```bash
-apt install build-essential autoconf automake libtool pkg-config \
+```shell
+git clone https://github.com/gportugol/gpt.git
+```
+
+## GNU/Linux
+
+O GPT pode ser compilado nativamente em distribuições GNU/Linux, como o
+Debian/Ubuntu, usando os pacotes:
+
+### 1. Instalar dependências no Debian/Ubuntu
+
+```shell
+sudo apt install -y \
+  build-essential autoconf automake libtool pkg-config \
   libantlr-dev libpcre2-dev nasm
 ```
 
-## Instalando dependências em MS Windows
+### 2. Configurar e compilar no Debian/Ubuntu
 
-Utilizamos os softwares MingW/MSYS para o desenvolvimento do projeto neste
-sistema operacional. Eis um passo-a-passo para ter o ambiente de desenvolvimento
-operacional:
-
-1. Instale um SDK do Java
-
-2. Instale o MingW:
-
-   Exemplo:
-   - Baixe o installer "mingw-get":
-     <http://sourceforge.net/downloads/mingw/Automated%20MinGW%20Installer/mingw-get/mingw-get-0.1-mingw32-alpha-2-bin.tar.gz>
-   - Descompacte em `c:\mingw` (ou no driver escolhido)
-   - No prompt de comando execute:
-
-     ```powershell
-     cd c:\mingw
-     path=c:\mingw\bin;%path%
-     mingw-get.exe install mingwrt w32api binutils gcc g++ mingw32-make
-     ```
-
-     Isso deverá instalar os pacotes necessários do MingW
-
-3. Instale o MSYS
-
-   Exemplo:
-   - Baixe e instale:
-     <http://downloads.sourceforge.net/mingw/MSYS-1.0.11.exe>
-
-4. Instale o MSYS DTK (necessário para ter o autoconf & cia):
-
-   Exemplo:
-   - Baixe e instale:
-     <http://downloads.sourceforge.net/mingw/msysDTK-1.0.1.exe>
-
-5. Instale o ANTLR v2.x a partir do fonte
-
-   Exemplo:
-   - Baixe o pacote `antlr-2.7.7.tar.gz` em `c:\msys\1.0\home\<usuario>`:
-     <http://www.antlr2.org/download/antlr-2.7.7.tar.gz>
-
-   - Execute o shell do MSYS
-   - Descompacte, compile e instale o antlr:
-
-     ```powershell
-     tar xvfz antlr-2.7.7.tar.gz
-     cd antlr-2.7.7; ./configure && make && make install
-     ```
-
-   - Crie um link simbólico para o antlr:
-
-     ```powershell
-     ln -s /usr/local/bin/antlr /usr/local/bin/runantlr
-     ```
-
-6. Instale a biblioteca PCRE
-
-   Exemplo:
-   - Baixe o pacote `pcre-8.10.tar.gz` em `c:\msys\1.0\home\<usuario>`:
-     <ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/pcre-8.10.tar.gz>
-
-   - Execute o shell do MSYS
-   - Descompacte, compile e instale o pcre:
-
-     ```powershell
-     tar xvfz pcre-8.10.tar.gz
-     cd pcre-8.10; ./configure && make && make install
-     ```
-
-   Agora, com os compiladores e bibliotecas presentes e o MSYS como shell, o
-   código fonte do GPT pode ser compilado.
-
-7. Instale o NASM <http://www.nasm.us> para usar o GPT como compilador.
-
-## Iniciando o desenvolvimento
-
-Se você estiver utilizando o código fonte do repositório, é necessário fazer o
-setup do sistema de construção com o seguinte comando:
-
-```bash
-make -f Makefile.cvs
+```shell
+autoreconf -i
+./configure --prefix=/usr/local
+make -j$(nproc)
 ```
 
-ou
+### 3. Testar no Debian/Ubuntu
 
-```bash
-autoconf
+#### Interpretador no Debian/Ubuntu
+
+```shell
+src/gpt -i exemplos/olamundo.gpt
 ```
 
-Isto criará os `Makefile.in` necessários e o shell script `configure` utilizado
-para criar os Makefiles usados pelo programa `make` para automatizar a
-compilação do projeto.
+#### Compilador no Debian/Ubuntu
 
-Se estiver utilizando o código fonte de uma versão específica (obtida por meio
-de um pacote tar.gz, por exemplo), o script `configure` já estará disponível.
-
-**NOTA:** se estiver obtendo erros nos arquivos `Makefile.am` ao executar `make
--f Makefile.cvs`, verifique a versão do automake sendo utilizada:
-
-```bash
-automake --version
+```shell
+src/gpt -o olamundo exemplos/olamundo.gpt
+./olamundo
 ```
 
-Se o comando acima informar uma versão inferior à 1.9, desinstale esta versão,
-execute manualmente o automake1.9 ou faça as devidas configurações para que a
-versão correta seja utilizada.
+## Windows (MSYS2 / Mingw-w64)
 
-## Configurando e construindo
+O GPT é compilado no Windows usando MSYS2.
 
-Agora, basta seguir as instruções do arquivo `INSTALL`, executando o `configure`
-com as opções desejadas e, em seguida, executando `make` e `make install`, se
-quiser instalar os arquivos no sistema.
+### 1. Instalar MSYS2
 
-## Unit Testing
+Baixar em <https://www.msys2.org> e instalar o MSYS2
 
-- Todo código que pode se beneficiar de testes automatizados **deve** ter testes
-  automatizados.
-- Mensagens de commit para arquivos de teste são opcionais — use o bom senso.
+### 2. Instalar dependências
 
-(TODO: explicar a infraestrutura de testes quando houver)
+Abra o terminal **MSYS2 MinGW 64-bit**.
 
-## Documentando
-
-Os arquivos de documentação ficam no diretório `doc`.
-
-O manual está em `doc/manual` e é escrito em LaTeX. Em ambientes
-Debian/(K)Ubuntu, instale:
-
-- latex-make
-- texlive-latex-base
-- latex2html
-
-Os arquivos do manual ficam em `doc/manual`, e o arquivo principal é
-`manual.tex`.
-
-Compilar:
-
-```bash
-latex manual.tex
+```shell
+pacman -Syu --noconfirm
+pacman -S --noconfirm \
+  autoconf automake libtool make \
+  mingw-w64-x86_64-gcc mingw-w64-x86_64-gcc-libs \
+  mingw-w64-x86_64-pcre2 pkg-config \
+  tar unzip wget
 ```
 
-Gerar PDF:
+### 3. Instalar Java (necessário para ANTLR 2.x)
 
-```bash
+```shell
+wget https://download.java.net/java/GA/jdk25.0.1/2fbf10d8c78e40bd87641c434705079d/8/GPL/openjdk-25.0.1_windows-x64_bin.zip
+unzip openjdk-25.0.1_windows-x64_bin.zip
+export PATH=$PATH:$(pwd)/jdk-25.0.1/bin
+```
+
+### 4. Compilar ANTLR 2.7.7 no Windows (com patches aplicados)
+
+O ANTLR 2 é muito antigo e não compila corretamente no `Mingw64` sem correções.
+Precisamos aplicar dois patches usando o `sed`.
+
+#### Baixar e extrair
+
+```shell
+wget http://www.antlr2.org/download/antlr-2.7.7.tar.gz
+tar xvfz antlr-2.7.7.tar.gz
+cd antlr-2.7.7
+```
+
+#### Patch 1 — incluir \_stricmp no Windows
+
+Insere no topo de `CharScanner.hpp`:
+
+```shell
+sed -i \
+  '1i \
+  #ifdef _WIN32\n\
+  #include <string.h>\n\
+  #define strcasecmp _stricmp\n\
+  #endif' \
+  lib/cpp/antlr/CharScanner.hpp
+```
+
+#### Patch 2 — substituir binary_function obsoleto
+
+```shell
+sed -i \
+  's/struct CharScannerLiteralsLess : public binary_function<string, string, bool>/\
+  struct CharScannerLiteralsLess { \
+    bool operator()(const std::string& x, const std::string& y) const { \
+      return strcasecmp(x.c_str(), y.c_str()) < 0; \
+    } \
+  };/g' \
+  lib/cpp/antlr/CharScanner.hpp
+```
+
+Esses patches corrigem:
+
+- Incompatibilidade com `binary_function` removido no C++17
+- Ausência de `strcasecmp` no Windows
+
+#### Compilar o ANTLR com flags estáticas
+
+```shell
+export CXXFLAGS="-O2 -std=gnu++14 -static -static-libgcc -static-libstdc++"
+export LDFLAGS="-static -static-libgcc -static-libstdc++"
+
+autoreconf -fi
+./configure --prefix=/usr/local
+make -j$(nproc)
+make install
+```
+
+Criar o alias usado pelo GPT:
+
+```shell
+ln -s /usr/local/bin/antlr /usr/local/bin/runantlr || true
+```
+
+### 5. Instalar o NASM
+
+```shell
+wget https://www.nasm.us/pub/nasm/releasebuilds/0.99.06/nasm-0.99.06-win32.zip
+unzip nasm-0.99.06-win32.zip
+cp nasm-0.99.06/nasm.exe /mingw64/bin/
+```
+
+### 6. Compilar o GPT no Windows
+
+```shell
+export CXXFLAGS="-O2 -std=gnu++14 -static -static-libgcc -static-libstdc++"
+export LDFLAGS="-static -static-libgcc -static-libstdc++"
+
+autoreconf -i
+./configure --prefix=/usr/local
+make -j$(nproc)
+make install
+```
+
+### 7. Testar no Windows
+
+#### Interpretador no Windows
+
+```shell
+gpt.exe -i exemplos/olamundo.gpt
+```
+
+#### Compilador no Windows
+
+```shell
+gpt.exe -o olamundo.exe exemplos/olamundo.gpt
+./olamundo.exe
+```
+
+## Documentação
+
+Documentação na pasta [doc](doc) e o manual (LaTeX) em [doc/manual](doc/manual).
+
+### Instalar dependências no Debian/Ubuntu
+
+```shell
+sudo apt install -y latex-make texlive-latex-base latex2html
+```
+
+### Compilar o manual
+
+Para PDF:
+
+```shell
+cd doc/manual
 pdflatex manual.tex
 ```
 
-Gerar HTML:
+Para HTML:
 
-```bash
+```shell
+cd doc/manual
 latex2html manual.tex
 ```
-
-## Distribuindo
-
-Para a distribuição de uma nova versão do GPT, siga os passos:
-
-1. **Atualizar documentação**
-   - Modificar a versão no manual
-
-2. **Checar se todos os arquivos estão no repositório**
-
-   ```bash
-   svn status
-   ```
-
-3. **Testar a versão do SVN em outros ambientes**
-
-4. **Mudar a versão no arquivo `configure.ac`**
-   - Atualizar parâmetros de `AC_INIT` e `AM_INIT_AUTOMAKE`
-   - Executar:
-
-     ```bash
-     autoconf && automake
-     ```
-
-5. **Atualizar NEWS**
-   - O arquivo deve ser atualizado manualmente.
-
-6. **Atualizar ChangeLog**
-   - Instalar `php-cli`
-   - Executar:
-
-     ```bash
-      php stuff/svn2cl.php > ChangeLog
-     ```
-
-7. **Criar pacotes**
-   - **tar.gz**
-
-     ```bash
-     make distclean; mkdir build; cd build; \
-     ../configure && make && make distcheck
-     ```
-
-   - **debian**
-     (TODO)
-
-   - **MS Windows**
-     - Usar o Inno Setup (<http://www.jrsoftware.org/isdl.php>)
-     - A configuração está em `/gpt/packages/win_setup/`
-     - Verificar terminação de linha nos arquivos de texto
-
-8. **Commit e tag**
-
-   ```bash
-   svn commit -m "Congelando a versao 1.1"
-   svn copy https://username@svn.berlios.de/svnroot/repos/gpt/trunk/gpt \
-           https://username@svn.berlios.de/svnroot/repos/gpt/tags/gpt-1.1 \
-    -m "Release 1.1"
-   ```
-
-9. **Upload e publicação**
-   - Fazer upload dos arquivos para gpt.berlios.de
-   - Atualizar o site e publicar as novidades
