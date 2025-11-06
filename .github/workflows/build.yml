@@ -1,4 +1,4 @@
-name: Build binary
+name: Build GPT Binary
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
       - "*"
 
 jobs:
-  build:
+  build-linux:
     runs-on: ubuntu-latest
 
     steps:
@@ -19,7 +19,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt update
-          sudo apt install -y build-essential autoconf automake libtool pkg-config libantlr-dev libpcre2-dev nasm
+          sudo apt install -y build-essential autoconf automake libtool pkg-config libantlr-dev libpcre2-dev nasm wget
 
       - name: Generate configure script
         run: autoreconf -i
@@ -27,8 +27,96 @@ jobs:
       - name: Configure
         run: ./configure --prefix=/usr/local
 
-      - name: Build
+      - name: Build (Linux)
         run: make -j$(nproc)
 
-      - name: Test binary
+      - name: Test GPT binary
         run: src/gpt -i exemplos/olamundo.gpt
+
+  msys2-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Setup MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          msystem: MINGW32
+          path-type: inherit
+          install: >-
+            autoconf
+            automake
+            libtool
+            make
+            mingw-w64-i686-gcc
+            mingw-w64-i686-gcc-libs
+            mingw-w64-i686-pcre2
+            pkg-config
+            tar
+            unzip
+            wget
+
+      - name: Cache JDK 25
+        id: cache-jdk
+        uses: actions/cache@v3
+        with:
+          path: jdk-25.0.1
+          key: jdk-25.0.1-cache
+
+      - shell: msys2 {0}
+        name: Instalar Java JDK 25
+        if: steps.cache-jdk.outputs.cache-hit != 'true'
+        run: |
+          wget https://download.java.net/java/GA/jdk25.0.1/2fbf10d8c78e40bd87641c434705079d/8/GPL/openjdk-25.0.1_windows-x64_bin.zip
+          unzip openjdk-25.0.1_windows-x64_bin.zip
+          echo "JDK instalado"
+
+      - shell: msys2 {0}
+        name: Exportar PATH do JDK
+        run: |
+          echo "PATH=$PATH:$(pwd)/jdk-25.0.1/bin" >> $GITHUB_ENV
+          export PATH=$PATH:$(pwd)/jdk-25.0.1/bin
+          java -version
+
+      - name: Cache ANTLR2 build
+        id: cache-antlr
+        uses: actions/cache@v3
+        with:
+          path: /usr/local
+          key: antlr2.7.7-msys2-static
+
+      - shell: msys2 {0}
+        name: Compilar ANTLR 2.7.7 (somente se não existir cache)
+        if: steps.cache-antlr.outputs.cache-hit != 'true'
+        run: |
+          wget http://www.antlr2.org/download/antlr-2.7.7.tar.gz
+          tar xvfz antlr-2.7.7.tar.gz
+          cd antlr-2.7.7
+
+          sed -i '1i #ifdef _WIN32\n#include <string.h>\n#define strcasecmp _stricmp\n#endif' lib/cpp/antlr/CharScanner.hpp
+          sed -i 's/struct CharScannerLiteralsLess : public binary_function<string, string, bool>/struct CharScannerLiteralsLess { bool operator()(const std::string& x,const std::string& y) const { return strcasecmp(x.c_str(), y.c_str())<0; } };/g' lib/cpp/antlr/CharScanner.hpp
+
+          export CXXFLAGS="-O2 -std=gnu++14 -static -static-libgcc -static-libstdc++"
+          export LDFLAGS="-static -static-libgcc -static-libstdc++"
+
+          autoreconf -fi
+          ./configure --prefix=/usr/local
+          make -j$(nproc)
+          make install
+
+          ln -s /usr/local/bin/antlr /usr/local/bin/runantlr || true
+
+      - shell: msys2 {0}
+        name: Compilar projeto
+        run: |
+          autoreconf -i
+          ./configure --prefix=/usr/local
+          make -j$(nproc)
+          make install
+      - shell: msys2 {0}
+        name: Test GPT binary
+        run: |
+          src/gpt -i exemplos/olamundo.gpt

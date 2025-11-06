@@ -40,7 +40,7 @@ operacional:
      ```powershell
      cd c:\mingw
      path=c:\mingw\bin;%path%
-     mingw-get.exe install mingwrt w32api binutils gcc g++ mingw32-make
+     mingw-get.exe install mingwrt w32api binutils gcc g++ mingw32-make mingw32-binutils
      ```
 
      Isso deverá instalar os pacotes necessários do MingW
@@ -66,14 +66,20 @@ operacional:
    - Execute o shell do MSYS
    - Descompacte, compile e instale o antlr:
 
-     ```powershell
+     ```shell
      tar xvfz antlr-2.7.7.tar.gz
      cd antlr-2.7.7; ./configure && make && make install
      ```
 
+     Talvez tenha que setar o path:
+
+     ```shell
+     export PATH=/c/MinGW/bin:$PATH
+     ```
+
    - Crie um link simbólico para o antlr:
 
-     ```powershell
+     ```shell
      ln -s /usr/local/bin/antlr /usr/local/bin/runantlr
      ```
 
@@ -101,7 +107,7 @@ operacional:
 Se você estiver utilizando o código fonte do repositório, é necessário fazer o
 setup do sistema de construção com o seguinte comando:
 
-```bash
+```shell
 make -f Makefile.cvs
 ```
 
