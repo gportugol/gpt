@@ -44,16 +44,16 @@ jobs:
         uses: msys2/setup-msys2@v2
         with:
           update: true
-          msystem: MINGW32
+          msystem: MINGW64
           path-type: inherit
           install: >-
             autoconf
             automake
             libtool
             make
-            mingw-w64-i686-gcc
-            mingw-w64-i686-gcc-libs
-            mingw-w64-i686-pcre2
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-gcc-libs
+            mingw-w64-x86_64-pcre2
             pkg-config
             tar
             unzip
