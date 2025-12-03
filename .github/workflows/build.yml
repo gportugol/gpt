@@ -58,6 +58,7 @@ jobs:
             tar
             unzip
             wget
+            zip
 
       - name: Cache JDK 25
         id: cache-jdk
@@ -112,6 +113,8 @@ jobs:
       - shell: msys2 {0}
         name: Compilar projeto
         run: |
+          export CXXFLAGS="-O2 -std=gnu++14 -static -static-libgcc -static-libstdc++"
+          export LDFLAGS="-static -static-libgcc -static-libstdc++"
           autoreconf -i
           ./configure --prefix=/usr/local
           make -j$(nproc)
@@ -120,3 +123,31 @@ jobs:
         name: Test GPT binary
         run: |
           src/gpt -i exemplos/olamundo.gpt
+
+      - shell: msys2 {0}
+        name: Prepare Windows Binary ZIP
+        run: |
+          echo "Criando pasta release..."
+          mkdir -p release/bin
+
+          echo "Copiando executável instalado..."
+          cp /usr/local/bin/gpt release/bin/gpt.exe
+
+          echo "Copiando NASM..."
+          wget https://www.nasm.us/pub/nasm/releasebuilds/0.99.06/nasm-0.99.06-win32.zip
+          unzip nasm-0.99.06-win32.zip
+          cp nasm-0.99.06/nasm.exe release/bin/
+
+          echo "Detectando DLLs necessárias..."
+          ldd /usr/local/bin/gpt | grep "mingw" | awk '{print $3}' | while read dll; do
+              if [ -f "$dll" ]; then
+                  echo "Copiando $dll"
+                  cp "$dll" release/bin/
+              fi
+          done
+
+      - name: Upload Windows ZIP Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gpt-windows
+          path: release/bin
