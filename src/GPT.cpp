@@ -110,7 +110,7 @@ void GPT::showVersion() {
   stringstream s;
   s << "GPT - Compilador G-Portugol\n"
           "Versão  : " << VERSION << "\n"
-          "Website : http://gpt.berlios.de\n"
+          "Website : https://gportugol.github.io\n"
           "Copyright (C) 2003-2009 Thiago Silva <tsilva@sourcecraft.info>\n\n";
   GPTDisplay::self()->showMessage(s);
 }

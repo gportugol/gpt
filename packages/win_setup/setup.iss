@@ -6,7 +6,7 @@
 [Setup]
 AppName=G-Portugol
 AppVerName=G-Portugol versão 1.0.1
-AppPublisherURL=http://gpt.berlios.de
+AppPublisherURL=https://gportugol.github.io
 AppCopyright=Copyright (C) 2003-2008 Thiago Silva
 LicenseFile=..\..\COPYING
 DefaultDirName={sd}\gpt
