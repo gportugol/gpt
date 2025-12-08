@@ -39,6 +39,26 @@ recursos podem estar faltando. Portanto, convido-lhes a participar, enviando
 sugestões, críticas, códigos-fonte, patches, ideias e algoritmos que não são
 processados corretamente pelo GPT.
 
+## Disponível no Debian e no Ubuntu
+
+O **GPT** está disponível nos repositórios [oficiais do
+Debian](https://tracker.debian.org/pkg/gpt) e nos repositórios [oficias do
+Ubuntu](https://launchpad.net/ubuntu/+source/gpt). Isso permite que sua
+instalação seja feita de forma simples usando o gerenciador de pacotes **APT**.
+
+Para instalar o GPT, execute:
+
+```bash
+sudo apt install gpt
+```
+
+Após a instalação, o comando `gpt` estará disponível no terminal, permitindo
+compilar, traduzir, executar e depurar programas escritos em G-Portugol.
+
+```bash
+gpt -i /usr/share/doc/gpt/examples/olamundo.gpt
+```
+
 ## Manual do G-Portugol
 
 Um manual completo de uso do G-Portugol está disponível na wiki do projeto. Ele
