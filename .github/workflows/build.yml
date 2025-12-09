@@ -1,17 +1,15 @@
 name: Build GPT Binary
-
 on:
-  push:
-    branches:
-      - "*"
-  pull_request:
-    branches:
-      - "*"
+  workflow_call:
+    inputs:
+      target:
+        required: true
+        type: string
 
 jobs:
   build-linux:
+    if: ${{ inputs.target == 'linux' || inputs.target == 'all' }}
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -49,6 +47,7 @@ jobs:
           path: dist/*
 
   build-windows:
+    if: ${{ inputs.target == 'windows' || inputs.target == 'all' }}
     runs-on: windows-latest
 
     steps:

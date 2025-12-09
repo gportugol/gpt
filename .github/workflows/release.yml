@@ -1,0 +1,50 @@
+name: Release GPT
+on:
+  release:
+    types: [created]
+
+jobs:
+  build-for-release:
+    uses: ./.github/workflows/build.yml
+    with:
+      target: all
+
+  upload-release-assets:
+    needs: build-for-release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: gpt-windows
+          path: release/windows
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: gpt-linux
+          path: release/linux
+
+      - name: Repack Windows zip
+        run: |
+          cd release
+          TAG=${{ github.event.release.tag_name }}
+          mv windows "gpt-${TAG}"
+          zip -r "gpt-win-x86_64.zip" "gpt-${TAG}"
+          rm -rf "gpt-${TAG}"
+
+      - name: Repack Linux tar.gz
+        run: |
+          cd release
+          TAG=${{ github.event.release.tag_name }}
+          mv linux "gpt-${TAG}"
+          tar -czf "gpt-linux-x86_64.tar.gz" "gpt-${TAG}"
+          rm -rf "gpt-${TAG}"
+
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            release/gpt-win-x86_64.zip
+            release/gpt-linux-x86_64.tar.gz
+
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_RELEASE_TOKEN }}
