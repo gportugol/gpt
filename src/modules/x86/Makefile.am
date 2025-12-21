@@ -1,4 +1,4 @@
-INCLUDES = -I$(top_srcdir)/. -I$(top_srcdir)/src/modules \
+AM_CPPFLAGS = -I$(top_srcdir)/. -I$(top_srcdir)/src/modules \
 	-I$(top_srcdir)/src/modules/x86 $(ANTLR_INC) $(all_includes)
 METASOURCES = AUTO
 

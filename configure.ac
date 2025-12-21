@@ -2,14 +2,15 @@
 #aclocal do cygwin fica feliz somente
 #tiver quebra de linha no format UNIX
 
-AC_PREREQ(2.60)
+AC_PREREQ([2.71])
 
-AC_INIT(gpt, 1.1)
-AM_INIT_AUTOMAKE(gpt, 1.1)
-AC_CONFIG_HEADER([config.h])
+AC_INIT([gpt],[1.1])
+AM_INIT_AUTOMAKE([foreign subdir-objects])
+AC_CONFIG_MACRO_DIRS([m4])
+AC_CONFIG_HEADERS([config.h])
 AC_LANG(C++)
 AC_PROG_CXX
-AM_PROG_LIBTOOL
+LT_INIT
 
 
 dnl------------------------------
@@ -17,7 +18,7 @@ dnl debug options
 dnl------------------------------
 
 AC_ARG_ENABLE(debug,
-        AC_HELP_STRING([--enable-debug=ARG],[enables debug symbols (yes|no|full) [default=no]]),
+        AS_HELP_STRING([--enable-debug=ARG],[enables debug symbols (yes|no|full) [default=no]]),
 [
   case $enableval in
     yes)
@@ -135,8 +136,7 @@ dnl the libs and headers
 dnl------------------------------
 
 AC_ARG_ENABLE([install-devel],
-    [AC_HELP_STRING([--enable-install-devel],
-                    [instala bibliotecas e headers])],
+    [AS_HELP_STRING([--enable-install-devel],[instala bibliotecas e headers])],
     [INSTALL_DEVEL="yes"],
     [INSTALL_DEVEL="no"]
 )
@@ -148,7 +148,7 @@ dnl------------------------------
 dnl the end
 dnl------------------------------
 
-AC_OUTPUT(Makefile
+AC_CONFIG_FILES([Makefile
         src/Makefile
         doc/Makefile
         doc/man/Makefile
@@ -160,7 +160,8 @@ AC_OUTPUT(Makefile
         src/modules/interpreter/Makefile
         src/modules/c_translator/Makefile
         src/modules/x86/Makefile
-      )
+      ])
+AC_OUTPUT
 
 AC_MSG_NOTICE([
 Sumario:

@@ -1,4 +1,4 @@
-INCLUDES = -I$(top_srcdir)/. -I$(top_srcdir)/src/parser \
+AM_CPPFLAGS = -I$(top_srcdir)/. -I$(top_srcdir)/src/parser \
 	-I$(top_srcdir)/src/modules -I$(top_srcdir)/src/modules/parser \
 	$(ANTLR_INC) $(all_includes)
 

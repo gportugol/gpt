@@ -1,4 +1,4 @@
-INCLUDES = -I$(top_srcdir)/. -I$(top_srcdir)/src/modules \
+AM_CPPFLAGS = -I$(top_srcdir)/. -I$(top_srcdir)/src/modules \
 	-I$(top_srcdir)/src/modules/c_translator $(ANTLR_INC) $(all_includes)
 
 noinst_LTLIBRARIES = libctranslator.la

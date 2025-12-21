@@ -1,4 +1,4 @@
-INCLUDES = -I$(top_srcdir) -I$(top_srcdir)/src/parser -Iparser $(ANTLR_INC) $(all_includes)
+AM_CPPFLAGS = -I$(top_srcdir) -I$(top_srcdir)/src/parser -Iparser $(ANTLR_INC) $(all_includes)
 
 SUBDIRS = parser c_translator interpreter x86
 
