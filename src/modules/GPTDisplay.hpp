@@ -21,36 +21,34 @@
 #ifndef GPTDISPLAY_HPP
 #define GPTDISPLAY_HPP
 
-#include <map>
 #include <list>
-#include <string>
+#include <map>
 #include <sstream>
 #include <stdlib.h>
+#include <string>
 
 using namespace std;
 
 class UniqueErrorException {
 public:
-  UniqueErrorException(const string& msg, int line)
-    : _msg(msg), _line(line) {  }
+  UniqueErrorException(const string &msg, int line) : _msg(msg), _line(line) {}
 
   ~UniqueErrorException() {}
 
-   string message() {return _msg;}
-   int line()       {return _line;}
+  string message() { return _msg; }
+  int line() { return _line; }
+
 private:
   string _msg;
   int _line;
 };
-
-
 
 class GPTDisplay {
 public:
   const int MAX_ERRORS;
 
   class ErrorMsg {
-    public:
+  public:
     ErrorMsg() : line(0), hasTip(false), cd(0) {}
     int line;
     bool hasTip;
@@ -62,24 +60,23 @@ public:
 
   ~GPTDisplay();
 
-  static GPTDisplay* self();
+  static GPTDisplay *self();
 
-
-  void showError(stringstream& s);
-  void showError(const string&);
-  void showMessage(stringstream& s);
+  void showError(stringstream &s);
+  void showError(const string &);
+  void showMessage(stringstream &s);
 
   void stopOnError(bool);
 
-  void addFileName(const string&);
+  void addFileName(const string &);
 
-  int add(const string& msg, int line);
-  void addTip(const string& msg, int line, int cd);
+  int add(const string &msg, int line);
+  void addTip(const string &msg, int line, int cd);
 
-  void setCurrentFile(const string& file);
+  void setCurrentFile(const string &file);
   string getCurrentFile();
-//   void addInternalError(const string&);
-//   void addInternalError(const stringstream&);
+  //   void addInternalError(const string&);
+  //   void addInternalError(const stringstream&);
 
   ErrorMsg getFirstError();
 
@@ -91,28 +88,29 @@ public:
   void showTips(bool);
 
   void clear();
+
 private:
   GPTDisplay();
 
-  static GPTDisplay* _self;
+  static GPTDisplay *_self;
 
-  string toOEM(const string& str);
-  string toLatin1(const string&);
-  
-  void showError(ErrorMsg&);
-  void showTip(ErrorMsg&);
+  string toOEM(const string &str);
+  string toLatin1(const string &);
 
-  void processAndAdd(const string&, int);
-  void processTipAndAdd(const string& msg, int line, int cd);
+  void showError(ErrorMsg &);
+  void showTip(ErrorMsg &);
 
-  int  _totalErrors;
+  void processAndAdd(const string &, int);
+  void processTipAndAdd(const string &msg, int line, int cd);
+
+  int _totalErrors;
   bool _stopOnError;
   bool _showTips;
 
   typedef map<string, int> file_map_t;
   file_map_t _file_map;
-//  typedef map<int, list<ErrorMsg> > errors_map_t;
-  typedef map<int, map<int, list<ErrorMsg> > > errors_map_t;
+  //  typedef map<int, list<ErrorMsg> > errors_map_t;
+  typedef map<int, map<int, list<ErrorMsg>>> errors_map_t;
   errors_map_t _errors;
 
   string _currentFile;

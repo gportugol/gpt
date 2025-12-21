@@ -21,12 +21,12 @@
 #ifndef NET_HPP
 #define NET_HPP
 #include <list>
-#include <string>
-#include <sstream>
 #include <map>
+#include <sstream>
+#include <string>
 
 #ifdef WIN32
-  #include <winsock.h>
+#include <winsock.h>
 #endif
 
 using namespace std;
@@ -36,42 +36,45 @@ class Variable;
 
 class InterpreterDBG {
 public:
-
   enum { CMDStepInto, CMDStepOver, CMDStepOut, CMDContinue, CMDNull };
 
   void init(string host, int port);
 
   void checkData();
 
-  void sendInfo(int line, Variables& v, list<pair<string, pair<string, int> > >& stk);
+  void sendInfo(int line, Variables &v,
+                list<pair<string, pair<string, int>>> &stk);
 
   int getCmd();
 
-  static InterpreterDBG* self();
+  static InterpreterDBG *self();
 
   void closeSock();
 
-  bool breakOn(const string& file, int line);
-  
+  bool breakOn(const string &file, int line);
+
 private:
   InterpreterDBG();
 
-  static InterpreterDBG* singleton;
+  static InterpreterDBG *singleton;
 
-  void sendStackInfo(list<pair<string, pair<string, int> > >& stk);
-  void sendVariables(map<string, Variable> globals, list<pair<string, pair<string, int> > >& stk, bool globalScope);
+  void sendStackInfo(list<pair<string, pair<string, int>>> &stk);
+  void sendVariables(map<string, Variable> globals,
+                     list<pair<string, pair<string, int>>> &stk,
+                     bool globalScope);
   int receiveCmd(bool nonBlocking = false);
 
   string receiveIncomingData(bool nonBlocking = false);
 
-  void processBreakpointCMD(string& cmd);
-  void addBreakpoint(string& cmd);
+  void processBreakpointCMD(string &cmd);
+  void addBreakpoint(string &cmd);
 
-  void sendData(stringstream& s);
-  void removeBreakpoint(string& cmd);
+  void sendData(stringstream &s);
+  void removeBreakpoint(string &cmd);
 
   string matrixValuesNodes(unsigned int level, int dimsize,
-    map<string, string>& values, list<int>& dims, int type, string vindex = "");
+                           map<string, string> &values, list<int> &dims,
+                           int type, string vindex = "");
 
 #ifndef WIN32
   int clientsock;
@@ -79,7 +82,7 @@ private:
   SOCKET clientsock;
 #endif
 
-  map<string, list<int> > breakpoints;
+  map<string, list<int>> breakpoints;
   int currentCmd;
 };
 

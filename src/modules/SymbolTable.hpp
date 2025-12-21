@@ -23,45 +23,47 @@
 
 #include "Symbol.hpp"
 
-#include <map>
 #include <list>
+#include <map>
 #include <string>
 
 using namespace std;
 
 class SymbolTableException {
 public:
-  SymbolTableException(const string& msg_) : msg(msg_) {}
+  SymbolTableException(const string &msg_) : msg(msg_) {}
 
-  const string& getMessage() { return msg;}
-  
+  const string &getMessage() { return msg; }
+
   string msg;
 };
 
-class SymbolTable{
+class SymbolTable {
 public:
-  static string GlobalScope;//@global
+  static string GlobalScope; //@global
 
   SymbolTable();
   ~SymbolTable();
 
-  void declareVar(const string& scope, const string& lexeme, int line, int type);
+  void declareVar(const string &scope, const string &lexeme, int line,
+                  int type);
 
-  void declareVar(const string& scope, const string& lexeme, int line, int type
-      , const list<int>& dimensions);
+  void declareVar(const string &scope, const string &lexeme, int line, int type,
+                  const list<int> &dimensions);
 
-  void insertSymbol(Symbol& s, const string& scope);
+  void insertSymbol(Symbol &s, const string &scope);
 
-  Symbol& getSymbol(const string& scope, const string& lexeme, bool searchGlobal = false);
+  Symbol &getSymbol(const string &scope, const string &lexeme,
+                    bool searchGlobal = false);
 
-  list<Symbol> getSymbols(const string& scope);
+  list<Symbol> getSymbols(const string &scope);
 
 protected:
   void registrarLeia();
   void registrarImprima();
 
   int currentCod;
-  map<string,list<Symbol> > symbols;//map<scope, symbols>
+  map<string, list<Symbol>> symbols; // map<scope, symbols>
 };
 
 #endif

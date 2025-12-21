@@ -27,48 +27,45 @@
 #include "PortugolAST.hpp"
 #include "SymbolTable.hpp"
 
-
 using namespace std;
 using namespace antlr;
 
-
-class GPT{
+class GPT {
 public:
   ~GPT();
 
-  static GPT* self();
+  static GPT *self();
 
   void reportDicas(bool value);
   void printParseTree(bool value);
-//   void usePipe(bool value);
+  //   void usePipe(bool value);
   void setOutputFile(string str);
 
   void showHelp();
   void showVersion();
 
-  bool compile(const list<string>& ifnames, bool genBinary = true);
-  bool translate2C(const list<string>& ifnames);
-  int interpret(const list<string>& ifnames, const string& host, int port);
-  
+  bool compile(const list<string> &ifnames, bool genBinary = true);
+  bool translate2C(const list<string> &ifnames);
+  int interpret(const list<string> &ifnames, const string &host, int port);
+
 private:
   GPT();
 
-  static GPT* _self;
-  
+  static GPT *_self;
+
   string createTmpFile();
-  
-  bool parse(list<pair<string,istream*> >&);
 
-  bool prologue(const list<string>& ifname);
+  bool parse(list<pair<string, istream *>> &);
 
-//   bool _usePipe;
+  bool prologue(const list<string> &ifname);
+
+  //   bool _usePipe;
   bool _printParseTree;
   bool _useOutputFile;
   string _outputfile;
 
   RefPortugolAST _astree;
-  SymbolTable    _stable;
-  
+  SymbolTable _stable;
 };
 
 #endif

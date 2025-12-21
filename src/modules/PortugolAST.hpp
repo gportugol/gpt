@@ -30,9 +30,9 @@ using namespace antlr;
 class PortugolAST : public CommonAST {
 public:
   PortugolAST();
-  PortugolAST( RefToken t );
-  PortugolAST( const CommonAST& other );
-  PortugolAST( const PortugolAST& other );
+  PortugolAST(RefToken t);
+  PortugolAST(const CommonAST &other);
+  PortugolAST(const PortugolAST &other);
 
   ~PortugolAST();
 
@@ -42,33 +42,26 @@ public:
   void setEndLine(int endLine);
   int getEndLine();
 
-  void setEvalType(int type) {
-    eval_type = type;
-  }
-  int getEvalType() {
-    return eval_type;
-  }
+  void setEvalType(int type) { eval_type = type; }
+  int getEvalType() { return eval_type; }
 
-  void setFilename(const string& fname) {
-    filename = fname;
-  }
+  void setFilename(const string &fname) { filename = fname; }
 
-  string getFilename() {
-    return filename;
-  }
+  string getFilename() { return filename; }
 
-  virtual RefAST clone( void ) const;
+  virtual RefAST clone(void) const;
 
-  virtual void initialize( RefToken t );
- 
-  virtual const char* typeName( void ) const;
+  virtual void initialize(RefToken t);
+
+  virtual const char *typeName(void) const;
 
   static RefAST factory();
-  static const char* const TYPE_NAME;
+  static const char *const TYPE_NAME;
+
 protected:
   int line;
   int endLine;
-  int eval_type; //evaluated type of expression
+  int eval_type; // evaluated type of expression
   string filename;
 };
 

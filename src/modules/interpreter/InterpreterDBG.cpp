@@ -20,17 +20,17 @@
 
 #include "config.h"
 
+#include "GPTDisplay.hpp"
 #include "InterpreterDBG.hpp"
 #include "InterpreterEval.hpp"
-#include "GPTDisplay.hpp"
 
 #ifdef WIN32
-  #include <winsock.h>
+#include <winsock.h>
 #else
-  #include <sys/socket.h>
-  #include <netinet/in.h>
-  #include <signal.h>
-  #include <netdb.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <signal.h>
+#include <sys/socket.h>
 #endif
 
 #define PCRE2_CODE_UNIT_WIDTH 8
@@ -38,12 +38,10 @@
 #include <unistd.h>
 
 #ifndef WIN32
-  void sigPipeHandler(int signum) {
-    InterpreterDBG::self()->closeSock();
-  }
+void sigPipeHandler(int signum) { InterpreterDBG::self()->closeSock(); }
 #endif
 
-InterpreterDBG* InterpreterDBG::singleton = NULL;
+InterpreterDBG *InterpreterDBG::singleton = NULL;
 
 InterpreterDBG::InterpreterDBG() {
   currentCmd = CMDNull;
@@ -54,15 +52,16 @@ InterpreterDBG::InterpreterDBG() {
 #endif
 }
 
-InterpreterDBG* InterpreterDBG::self() {
-  if(!singleton) {
+InterpreterDBG *InterpreterDBG::self() {
+  if (!singleton) {
     singleton = new InterpreterDBG;
   }
   return singleton;
 }
 
 void InterpreterDBG::init(string host, int port) {
-  if(host.length() == 0) return;
+  if (host.length() == 0)
+    return;
 
 #ifndef WIN32
   struct sockaddr_in name;
@@ -70,38 +69,37 @@ void InterpreterDBG::init(string host, int port) {
   struct hostent *hostinfo = NULL;
 
   name.sin_family = AF_INET;
-  name.sin_port = htons (port);
-  hostinfo = gethostbyname (host.c_str());
+  name.sin_port = htons(port);
+  hostinfo = gethostbyname(host.c_str());
 
-  if (hostinfo == NULL)
-  {
-    //cerr << "client: unknow host : "  << hostname << endl;
+  if (hostinfo == NULL) {
+    // cerr << "client: unknow host : "  << hostname << endl;
     return;
   }
 
-  name.sin_addr = *(struct in_addr *) hostinfo->h_addr;
+  name.sin_addr = *(struct in_addr *)hostinfo->h_addr;
 
   clientsock = socket(PF_INET, SOCK_STREAM, 0);
-  if(clientsock < 0) {
+  if (clientsock < 0) {
     stringstream s;
     s << PACKAGE << ": não foi possível criar socket\n";
     GPTDisplay::self()->showError(s);
     return;
   }
 
-  if(connect(clientsock, (struct sockaddr*) &name,sizeof(name)) != 0) {
-    //cerr << PACKAGE << ": unable to connect" << endl;
-    //unable to connect
+  if (connect(clientsock, (struct sockaddr *)&name, sizeof(name)) != 0) {
+    // cerr << PACKAGE << ": unable to connect" << endl;
+    // unable to connect
     closeSock();
   } else {
-    if(SIG_ERR == signal(SIGPIPE, sigPipeHandler)) {
+    if (SIG_ERR == signal(SIGPIPE, sigPipeHandler)) {
       stringstream s;
       s << PACKAGE << ": erro interno em InterpreterDBG::init" << endl;
       GPTDisplay::self()->showError(s);
     }
   }
 #else
-  WORD wVersionRequested = MAKEWORD(1,1);
+  WORD wVersionRequested = MAKEWORD(1, 1);
   WSADATA wsaData;
 
   //
@@ -109,29 +107,26 @@ void InterpreterDBG::init(string host, int port) {
   //
   WSAStartup(wVersionRequested, &wsaData);
 
-  if (wsaData.wVersion != wVersionRequested)
-  {
-    //cerr << PACKAGE << ": weong winsock version" << endl;
+  if (wsaData.wVersion != wVersionRequested) {
+    // cerr << PACKAGE << ": weong winsock version" << endl;
     return;
   }
 
   LPHOSTENT lpHostEntry;
 
   lpHostEntry = gethostbyname(host.c_str());
-    if (lpHostEntry == NULL)
-    {
-        return;
-    }
+  if (lpHostEntry == NULL) {
+    return;
+  }
 
   //
   // Create a TCP/IP stream socket
   //
 
-  clientsock = socket(AF_INET,       // Address family
-              SOCK_STREAM,     // Socket type
-              IPPROTO_TCP);    // Protocol
-  if (clientsock == INVALID_SOCKET)
-  {
+  clientsock = socket(AF_INET,      // Address family
+                      SOCK_STREAM,  // Socket type
+                      IPPROTO_TCP); // Protocol
+  if (clientsock == INVALID_SOCKET) {
     return;
   }
 
@@ -142,14 +137,14 @@ void InterpreterDBG::init(string host, int port) {
 
   saServer.sin_family = AF_INET;
   saServer.sin_addr = *((LPIN_ADDR)*lpHostEntry->h_addr_list);
-                    // ^ Server's address
+  // ^ Server's address
   saServer.sin_port = htons(port); // Port number from command line
 
   //
   // connect to the server
   //
-  if (connect(clientsock, (LPSOCKADDR)&saServer, sizeof(struct sockaddr)) == SOCKET_ERROR)
-  {
+  if (connect(clientsock, (LPSOCKADDR)&saServer, sizeof(struct sockaddr)) ==
+      SOCKET_ERROR) {
     closesocket(clientsock);
     clientsock = INVALID_SOCKET;
     return;
@@ -157,18 +152,17 @@ void InterpreterDBG::init(string host, int port) {
 #endif
 }
 
-
-void InterpreterDBG::checkData()
-{
-  //processar comandos recebidos pelo cliente (ie. add/remove breakpoints)
-  //NO blocking mode!! read if data exists only
+void InterpreterDBG::checkData() {
+  // processar comandos recebidos pelo cliente (ie. add/remove breakpoints)
+  // NO blocking mode!! read if data exists only
   int cmd = receiveCmd(true);
-  if(cmd != CMDNull) {
+  if (cmd != CMDNull) {
     currentCmd = cmd;
   }
 }
 
-void InterpreterDBG::sendInfo(int line, Variables& v, list<pair<string, pair<string, int> > >& stk) {
+void InterpreterDBG::sendInfo(int line, Variables &v,
+                              list<pair<string, pair<string, int>>> &stk) {
 
   sendStackInfo(stk);
 
@@ -176,10 +170,9 @@ void InterpreterDBG::sendInfo(int line, Variables& v, list<pair<string, pair<str
   sendVariables(v.getLocals(), stk, false);
 }
 
-int InterpreterDBG::getCmd()
-{
+int InterpreterDBG::getCmd() {
   int ret;
-  if(currentCmd == CMDNull) {
+  if (currentCmd == CMDNull) {
     ret = receiveCmd();
   } else {
     ret = currentCmd;
@@ -189,60 +182,70 @@ int InterpreterDBG::getCmd()
   return ret;
 }
 
-void InterpreterDBG::sendStackInfo(list<pair<string, pair<string, int> > >& stk) {
-  if(clientsock < 0) return;
+void InterpreterDBG::sendStackInfo(list<pair<string, pair<string, int>>> &stk) {
+  if (clientsock < 0)
+    return;
 
   stringstream s;
   s << "<stackinfo>";
   int id = 0;
-  for(list<pair<string, pair<string, int> > >::reverse_iterator it = stk.rbegin(); it != stk.rend(); ++it) {
-    s << "<entry id=\"" << id++
-      << "\" file=\"" << (*it).first
-      << "\" function=\"" << (*it).second.first
-      << "\" line=\"" << (*it).second.second << "\"/>";
+  for (list<pair<string, pair<string, int>>>::reverse_iterator it =
+           stk.rbegin();
+       it != stk.rend(); ++it) {
+    s << "<entry id=\"" << id++ << "\" file=\"" << (*it).first
+      << "\" function=\"" << (*it).second.first << "\" line=\""
+      << (*it).second.second << "\"/>";
   }
   s << "</stackinfo>";
 
   sendData(s);
 }
 
-void InterpreterDBG::sendVariables(map<string, Variable> globals, list<pair<string, pair<string, int> > >& stk, bool globalScope) {
-  if(clientsock < 0) return;
+void InterpreterDBG::sendVariables(map<string, Variable> globals,
+                                   list<pair<string, pair<string, int>>> &stk,
+                                   bool globalScope) {
+  if (clientsock < 0)
+    return;
 
   stringstream s;
-  s << "<vars for=\"" << (globalScope?"$global":"$local")
-    << "\" scope=\"" << (globalScope?stk.front().second.first:stk.back().first) << "\">";
+  s << "<vars for=\"" << (globalScope ? "$global" : "$local") << "\" scope=\""
+    << (globalScope ? stk.front().second.first : stk.back().first) << "\">";
 
   bool primitive;
-  for(map<string, Variable>::iterator it = globals.begin(); it != globals.end(); ++it) {
+  for (map<string, Variable>::iterator it = globals.begin();
+       it != globals.end(); ++it) {
     primitive = it->second.isPrimitive;
-    s << "<var name=\"" << it->first << "\" type=\"" << Symbol::typeToString(it->second.type)
-      << "\" primitive=\"" << (primitive?"true":"false") << "\"";
-    if(primitive) {
+    s << "<var name=\"" << it->first << "\" type=\""
+      << Symbol::typeToString(it->second.type) << "\" primitive=\""
+      << (primitive ? "true" : "false") << "\"";
+    if (primitive) {
       s << " value=\"" << it->second.primitiveValue << "\"/>";
     } else {
       stringstream vv;
       s << "><values>";
 
-//       for(list<int>::iterator dit = it->second.dimensions.begin(); dit != it->second.dimensions.end(); ++dit) {
-        s << matrixValuesNodes(0, it->second.dimensions.size(), it->second.values, it->second.dimensions, it->second.type);
-//         level++;
-//       }
+      //       for(list<int>::iterator dit = it->second.dimensions.begin(); dit
+      //       != it->second.dimensions.end(); ++dit) {
+      s << matrixValuesNodes(0, it->second.dimensions.size(), it->second.values,
+                             it->second.dimensions, it->second.type);
+      //         level++;
+      //       }
       s << "</values></var>";
 
-/*    s << ">"
-      << "<dimensions>";
-      int level = 0;
-      for(list<int>::iterator dit = it->second.dimensions.begin(); dit != it->second.dimensions.end(); ++dit) {
-        s << "<dimension level=\"" << level << "\" size=\"" << (*dit) << "\"/>";
-        level++;
-      }
-      s << "</dimensions><values>";
+      /*    s << ">"
+            << "<dimensions>";
+            int level = 0;
+            for(list<int>::iterator dit = it->second.dimensions.begin(); dit !=
+         it->second.dimensions.end(); ++dit) { s << "<dimension level=\"" <<
+         level << "\" size=\"" << (*dit) << "\"/>"; level++;
+            }
+            s << "</dimensions><values>";
 
-      for(map<string, string>::iterator vit = it->second.values.begin(); vit != it->second.values.end(); vit++) {
-        s << "<value index=\"" <<   vit->first << "\" value=\"" << vit->second << "\"/>";
-      }
-      s << "</values></var>";*/
+            for(map<string, string>::iterator vit = it->second.values.begin();
+         vit != it->second.values.end(); vit++) { s << "<value index=\"" <<
+         vit->first << "\" value=\"" << vit->second << "\"/>";
+            }
+            s << "</values></var>";*/
     }
   }
   s << "</vars>";
@@ -251,64 +254,65 @@ void InterpreterDBG::sendVariables(map<string, Variable> globals, list<pair<stri
 }
 
 string InterpreterDBG::matrixValuesNodes(unsigned int level, int dimsize,
-    map<string, string>& values, list<int>& dims, int type, string vindex /*= "" */)
-{
+                                         map<string, string> &values,
+                                         list<int> &dims, int type,
+                                         string vindex /*= "" */) {
   list<int>::iterator lsize;
   unsigned int idx = 0;
-  for(lsize = dims.begin(); lsize != dims.end(); lsize++, idx++) {
-    if(idx == level) {
+  for (lsize = dims.begin(); lsize != dims.end(); lsize++, idx++) {
+    if (idx == level) {
       break;
     }
   }
 
-
   stringstream s;
   stringstream vs;
-  for(int i = 0; i < (*lsize); i++) {
+  for (int i = 0; i < (*lsize); i++) {
     vs.str("");
     vs << vindex;
-    if(vindex.length()==0) {
+    if (vindex.length() == 0) {
       vs << i;
     } else {
       vs << ":" << i;
     }
 
-    if(level == (dims.size()-1))  {
+    if (level == (dims.size() - 1)) {
       string val = values[vs.str()];
-      if(val.length()==0) {
-        switch(type) {
-          case TIPO_INTEIRO:
-          case TIPO_REAL:
-          case TIPO_CARACTERE:
-          case TIPO_LOGICO:
-            val = "0";
-            break;
+      if (val.length() == 0) {
+        switch (type) {
+        case TIPO_INTEIRO:
+        case TIPO_REAL:
+        case TIPO_CARACTERE:
+        case TIPO_LOGICO:
+          val = "0";
+          break;
         }
       }
-      s << "<var name=\"" << i << "\" primitive=\"true\" value=\"" << val << "\"/>";
+      s << "<var name=\"" << i << "\" primitive=\"true\" value=\"" << val
+        << "\"/>";
     } else {
 
-
       s << "<var name=\"" << i << "\" primitive=\"false\"><values>";
-      s << matrixValuesNodes(level+1, dimsize, values, dims, type, vs.str());
+      s << matrixValuesNodes(level + 1, dimsize, values, dims, type, vs.str());
       s << "</values></var>";
     }
   }
   return s.str();
 }
 
-void InterpreterDBG::sendData(stringstream& s) {
-  if(clientsock < 0) return;
+void InterpreterDBG::sendData(stringstream &s) {
+  if (clientsock < 0)
+    return;
   string str = s.str();
   s.rdbuf()->str("");
   s << str.length() << '\0' << str;
-  if(send(clientsock, s.str().c_str(), sizeof(char)* (s.str().length()+1), 0) < 0) {//error
-    if(clientsock > 0) {
-      //cerr << PACKAGE << ": erro ao enviar dados." << endl;
-    } //else, server closed con
+  if (send(clientsock, s.str().c_str(), sizeof(char) * (s.str().length() + 1),
+           0) < 0) { // error
+    if (clientsock > 0) {
+      // cerr << PACKAGE << ": erro ao enviar dados." << endl;
+    } // else, server closed con
   }
 }
-
 
 string InterpreterDBG::receiveIncomingData(bool nonBlocking) {
   char buffer[1024];
@@ -319,78 +323,80 @@ string InterpreterDBG::receiveIncomingData(bool nonBlocking) {
   string cmd;
   int msg_size;
 
-  //retrieve msg size!
+  // retrieve msg size!
   int idx = 0;
   int rec;
-  while(true) {
+  while (true) {
 
-    #ifndef WIN32
-      if(nonBlocking) {
-        rec = recv(clientsock, &buffer[idx], sizeof(char), MSG_DONTWAIT);
-      } else {
-        rec = recv(clientsock, &buffer[idx], sizeof(char), 0);
-      }
-
-      if(nonBlocking && (rec==0)) {
-        return "";
-      }
-    #else
-      //todo[win]: this code is there just to compile on windows, it should be non-blocking
+#ifndef WIN32
+    if (nonBlocking) {
+      rec = recv(clientsock, &buffer[idx], sizeof(char), MSG_DONTWAIT);
+    } else {
       rec = recv(clientsock, &buffer[idx], sizeof(char), 0);
-    #endif
+    }
+
+    if (nonBlocking && (rec == 0)) {
+      return "";
+    }
+#else
+    // todo[win]: this code is there just to compile on windows, it should be
+    // non-blocking
+    rec = recv(clientsock, &buffer[idx], sizeof(char), 0);
+#endif
 
     received += rec;
 
-    if((rec == 0) || (rec < 1)) {
+    if ((rec == 0) || (rec < 1)) {
       return cmd;
     }
 
-    if(buffer[idx] == '\0') {
+    if (buffer[idx] == '\0') {
       break;
     }
     idx++;
   }
 
-//  cerr << "MESSAGE SIZE: " << buffer << ", received : " << received << endl;
+  //  cerr << "MESSAGE SIZE: " << buffer << ", received : " << received << endl;
 
   msg_size = atoi(buffer) * sizeof(char);
 
   received = recv(clientsock, buffer, msg_size, 0);
-  if(received < 0) {
+  if (received < 0) {
     cerr << PACKAGE << ": erro ao receber dados." << endl;
     return cmd;
-  } else if((received == 0) || (received < msg_size)) {
-//    cerr << "insuficient! received: " << received << ", msg_size: " << msg_size << endl;
+  } else if ((received == 0) || (received < msg_size)) {
+    //    cerr << "insuficient! received: " << received << ", msg_size: " <<
+    //    msg_size << endl;
     closeSock();
     return cmd;
   }
 
-//  cmd.assign(buffer, received);
+  //  cmd.assign(buffer, received);
   cmd = buffer;
-//  cerr << "MESSAGE : " << cmd << ", assigned: " << received << endl;
+  //  cerr << "MESSAGE : " << cmd << ", assigned: " << received << endl;
 
   return cmd;
 }
 
 int InterpreterDBG::receiveCmd(bool nonBlocking) {
-  if(clientsock < 0) {
+  if (clientsock < 0) {
     return CMDContinue;
   }
 
   string cmd = receiveIncomingData(nonBlocking);
 
   int ret;
-  if(cmd.empty() && nonBlocking) {
+  if (cmd.empty() && nonBlocking) {
     ret = CMDNull;
-  } else if(cmd == "step_into") {
+  } else if (cmd == "step_into") {
     ret = CMDStepInto;
-  } else if(cmd == "step_over") {
+  } else if (cmd == "step_over") {
     ret = CMDStepOver;
-  } else if(cmd == "step_out") {
+  } else if (cmd == "step_out") {
     ret = CMDStepOut;
-  } else if(cmd == "continue") {
+  } else if (cmd == "continue") {
     ret = CMDContinue;
-  } else if(cmd.find("breakpoint") != string::npos) {
+  } else if (cmd.find("breakpoint") != string::npos) {
     processBreakpointCMD(cmd);
     ret = receiveCmd(nonBlocking);
   } else {
@@ -401,8 +407,8 @@ int InterpreterDBG::receiveCmd(bool nonBlocking) {
   return ret;
 }
 
-void InterpreterDBG::processBreakpointCMD(string& bpcommand) {
- //cerr << "process breakpoint " << bpcommand << endl;
+void InterpreterDBG::processBreakpointCMD(string &bpcommand) {
+  // cerr << "process breakpoint " << bpcommand << endl;
 
   pcre2_code *re;
   pcre2_match_data *md;
@@ -411,18 +417,19 @@ void InterpreterDBG::processBreakpointCMD(string& bpcommand) {
   PCRE2_SIZE offset;
   int line, rc;
 
-  pat = reinterpret_cast<PCRE2_SPTR>("breakpoint cmd=(add|remove).*file=\"([^\"]*)\".*line=(\\d+)");
+  pat = reinterpret_cast<PCRE2_SPTR>(
+      "breakpoint cmd=(add|remove).*file=\"([^\"]*)\".*line=(\\d+)");
   subj = reinterpret_cast<PCRE2_SPTR>(bpcommand.c_str());
   re = pcre2_compile(pat, PCRE2_ZERO_TERMINATED, 0, &rc, &offset, nullptr);
-  if(offset != 0) {
+  if (offset != 0) {
     return;
   }
 
   md = pcre2_match_data_create_from_pattern(re, nullptr);
   rc = pcre2_match(re, subj, bpcommand.length(), 0, 0, md, nullptr);
   pcre2_code_free(re);
-  if(rc != 4) {
-    //cerr << PACKAGE << ": comando invalido (2): \"" << cmd << "\"" << endl;
+  if (rc != 4) {
+    // cerr << PACKAGE << ": comando invalido (2): \"" << cmd << "\"" << endl;
     pcre2_match_data_free(md);
     return;
   }
@@ -438,26 +445,31 @@ void InterpreterDBG::processBreakpointCMD(string& bpcommand) {
   pcre2_substring_free(str);
   pcre2_match_data_free(md);
 
-  //cerr << PACKAGE << ": capturado:" << cmd << ":" << file << ":" << line << endl;
+  // cerr << PACKAGE << ": capturado:" << cmd << ":" << file << ":" << line <<
+  // endl;
 
-  if(cmd == "add") {
+  if (cmd == "add") {
     breakpoints[file].push_back(line);
-    //cerr << PACKAGE << ": adding \"" << file << ":" << line << " -- " << cmd << "\"" << endl;
-  } else if(cmd == "remove") {
+    // cerr << PACKAGE << ": adding \"" << file << ":" << line << " -- " << cmd
+    // << "\"" << endl;
+  } else if (cmd == "remove") {
     breakpoints[file].remove(line);
-    //cerr << PACKAGE << ": removing \"" << file << ":" << line << " -- " << cmd << "\"" << endl;
+    // cerr << PACKAGE << ": removing \"" << file << ":" << line << " -- " <<
+    // cmd << "\"" << endl;
   } else {
-    cerr << PACKAGE << ": breakpoint cmd invalido \"" << bpcommand << "\"" << endl;
+    cerr << PACKAGE << ": breakpoint cmd invalido \"" << bpcommand << "\""
+         << endl;
     return;
   }
 }
 
-bool InterpreterDBG::breakOn(const string& file, int line) {
-  //cerr << "Breakon file:" << file << " * line:" << line << endl;
-  for(list<int>::iterator it = breakpoints[file].begin(); it != breakpoints[file].end(); ++it) {
-    //cerr << "---breakon checkin on " << file << " * line:" << (*it) << endl;
-    if((*it) == line) {
-      //cerr << "found! breakon BREAK on " << *it << endl;
+bool InterpreterDBG::breakOn(const string &file, int line) {
+  // cerr << "Breakon file:" << file << " * line:" << line << endl;
+  for (list<int>::iterator it = breakpoints[file].begin();
+       it != breakpoints[file].end(); ++it) {
+    // cerr << "---breakon checkin on " << file << " * line:" << (*it) << endl;
+    if ((*it) == line) {
+      // cerr << "found! breakon BREAK on " << *it << endl;
       return true;
     }
   }

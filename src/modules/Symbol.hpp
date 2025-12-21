@@ -19,19 +19,20 @@
  ***************************************************************************/
 #ifndef SYMBOL_HPP
 #define SYMBOL_HPP
-#include <string>
 #include <list>
+#include <string>
 
 using namespace std;
 
 enum {
-  TIPO_NULO,    //void
+  TIPO_NULO, // void
   TIPO_INTEIRO,
   TIPO_REAL,
   TIPO_CARACTERE,
   TIPO_LITERAL,
-  TIPO_LOGICO,    
-  TIPO_ALL   //para funcoes *mix* que fazem cast automatico de primitivos (ex: leia())
+  TIPO_LOGICO,
+  TIPO_ALL // para funcoes *mix* que fazem cast automatico de primitivos (ex:
+           // leia())
 };
 
 class SymbolType {
@@ -41,91 +42,91 @@ public:
 
   void setPrimitiveType(int type);
   int primitiveType() const;
-  
+
   void setPrimitive(bool);
   bool isPrimitive() const;
 
-  void setDimensions(const list<int>&);
-  list<int>& dimensions();
+  void setDimensions(const list<int> &);
+  list<int> &dimensions();
 
   string toString() const;
+
 protected:
   bool _isPrimitive;
-  int _primitiveType;  
-  list<int>    _dimensions; //conjunto/matrizASTRef  
+  int _primitiveType;
+  list<int> _dimensions; // conjunto/matrizASTRef
 };
 
 class ParameterSig {
 public:
-  ParameterSig()
-  : variable_params(false)  {}
+  ParameterSig() : variable_params(false) {}
 
-  void add(const string& name, int type) {
+  void add(const string &name, int type) {
     SymbolType s(type);
-    params.push_back(pair<string, SymbolType>(name,s));
+    params.push_back(pair<string, SymbolType>(name, s));
   }
 
-  void add(const string& name, SymbolType& t) {
-/*    SymbolType s(p.first);
-    s.setPrimitive(false);
-    s.setDimensions(p.second);*/
-    params.push_back(pair<string, SymbolType>(name,t));
+  void add(const string &name, SymbolType &t) {
+    /*    SymbolType s(p.first);
+        s.setPrimitive(false);
+        s.setDimensions(p.second);*/
+    params.push_back(pair<string, SymbolType>(name, t));
   }
 
   int paramType(int idx) {
-    if(isVariable()) {
+    if (isVariable()) {
       return TIPO_ALL;
     }
-  
+
     int c = 0;
-    for(list<pair<string,SymbolType> >::iterator it = params.begin(); it != params.end(); it++, c++) {
-      if(c == idx) {
+    for (list<pair<string, SymbolType>>::iterator it = params.begin();
+         it != params.end(); it++, c++) {
+      if (c == idx) {
         return (*it).second.primitiveType();
       }
     }
-    return TIPO_NULO; //throw exception?
+    return TIPO_NULO; // throw exception?
   }
 
-  list< pair<string,SymbolType> >& symbolList() { return params; }
-  bool isVariable() { return variable_params;}
-  void setVariable(bool val) { variable_params = val;}
+  list<pair<string, SymbolType>> &symbolList() { return params; }
+  bool isVariable() { return variable_params; }
+  void setVariable(bool val) { variable_params = val; }
+
 protected:
-  bool variable_params; //f(...)
-  list<pair<string, SymbolType> > params;   //parâmetros de funcao    <name, type>
+  bool variable_params;                  // f(...)
+  list<pair<string, SymbolType>> params; // parâmetros de funcao    <name, type>
 };
 
 class Symbol {
 public:
   Symbol();
-  
-  Symbol(const string& scope_, const string& lexeme_, int line_, bool isfunction_);
 
-  Symbol(const string& scope_, const string& lexeme_, int line_, bool isfunction_, int type_);
+  Symbol(const string &scope_, const string &lexeme_, int line_,
+         bool isfunction_);
 
-  Symbol(const string& scope_, const string& lexeme_, int line_, bool isfunction_, int type_,
-    const list<int>& dimensions);
+  Symbol(const string &scope_, const string &lexeme_, int line_,
+         bool isfunction_, int type_);
+
+  Symbol(const string &scope_, const string &lexeme_, int line_,
+         bool isfunction_, int type_, const list<int> &dimensions);
 
   bool isValid() const;
-     
+
   static string typeToString(int type);
 
+  // attrs
 
-  //attrs
-
-  
   int cd;
   string scope;
   string lexeme;
   int line;
-  
-  SymbolType type;  
 
-  
+  SymbolType type;
+
   bool isFunction;
   bool isBuiltin;
-  
+
   ParameterSig param;
-  
 };
 
 #endif

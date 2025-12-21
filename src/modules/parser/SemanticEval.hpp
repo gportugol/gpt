@@ -21,13 +21,13 @@
 #ifndef SEMANTICEVAL_HPP
 #define SEMANTICEVAL_HPP
 
-#include "SymbolTable.hpp"
 #include "PortugolAST.hpp"
+#include "SymbolTable.hpp"
 
-#include <string>
-#include <map>
 #include <list>
+#include <map>
 #include <stdlib.h>
+#include <string>
 
 //---------- helpers ------------
 
@@ -38,119 +38,115 @@ public:
 
   void setPrimitiveType(int type);
   int primitiveType() const;
-  
+
   void setPrimitive(bool);
   bool isPrimitive() const;
 
-  void setDimensions(const list<int>&);
-  list<int>& dimensions();
-  
+  void setDimensions(const list<int> &);
+  list<int> &dimensions();
+
   bool isNumeric(bool integerOnly = false) const;
-  bool isCompatibleWidth(ExpressionValue& other) const;
-  bool isCompatibleWidth(SymbolType& other) const;
+  bool isCompatibleWidth(ExpressionValue &other) const;
+  bool isCompatibleWidth(SymbolType &other) const;
 
   string toString() const;
 
-  void set(SymbolType&);
+  void set(SymbolType &);
 
-  void setID(const string&);
+  void setID(const string &);
   string id();
-  
+
 protected:
   bool matchesType(bool other_isprimitive) const;
-  bool matchesDimensions(list<int>& other_dimensions) const;
+  bool matchesDimensions(list<int> &other_dimensions) const;
   bool matchesPrimitiveType(int other_type) const;
 
   bool _isPrimitive;
   int _primitiveType;
-  list<int> _dimensions; //conjunto/matriz
+  list<int> _dimensions; // conjunto/matriz
   string _id;
 };
 
-
 class Funcao {
 public:
-  void setId(RefPortugolAST t) {
-    id = t;
-  }
-  void addParams(pair<int, list<RefPortugolAST> >& p) {		
-		for(list<RefPortugolAST>::iterator it = p.second.begin(); it != p.second.end(); ++it) {
-			SymbolType t(p.first);
-			params.push_back(pair<RefPortugolAST, SymbolType>(*it, t));
-		}
-  }
-
-  void addParams(pair< pair<int, list<int> >, list<RefPortugolAST> >& m) {
-		for(list<RefPortugolAST>::iterator it = m.second.begin(); it != m.second.end(); ++it) {
-			SymbolType t(m.first.first);
-			t.setPrimitive(false);
-			t.setDimensions(m.first.second);
-			params.push_back(pair<RefPortugolAST, SymbolType>(*it, t));
-		}
+  void setId(RefPortugolAST t) { id = t; }
+  void addParams(pair<int, list<RefPortugolAST>> &p) {
+    for (list<RefPortugolAST>::iterator it = p.second.begin();
+         it != p.second.end(); ++it) {
+      SymbolType t(p.first);
+      params.push_back(pair<RefPortugolAST, SymbolType>(*it, t));
+    }
   }
 
-//   void setReturnType(pair<int, list<int> > type) {
-//     return_type.setPrimitive(false);
-//     return_type.setPrimitiveType(type.first);
-//     return_type.setDimensions(type.second);
-//   }
-
-  void setReturnType(int type) {
-    return_type.setPrimitiveType(type);
+  void addParams(pair<pair<int, list<int>>, list<RefPortugolAST>> &m) {
+    for (list<RefPortugolAST>::iterator it = m.second.begin();
+         it != m.second.end(); ++it) {
+      SymbolType t(m.first.first);
+      t.setPrimitive(false);
+      t.setDimensions(m.first.second);
+      params.push_back(pair<RefPortugolAST, SymbolType>(*it, t));
+    }
   }
 
+  //   void setReturnType(pair<int, list<int> > type) {
+  //     return_type.setPrimitive(false);
+  //     return_type.setPrimitiveType(type.first);
+  //     return_type.setDimensions(type.second);
+  //   }
+
+  void setReturnType(int type) { return_type.setPrimitiveType(type); }
 
   RefPortugolAST id;
   SymbolType return_type;
 
-	list<pair<RefPortugolAST, SymbolType> > params; //pair<lexeme, type>
-//   list< pair<int, list<RefPortugolAST> > > prim_params;
-//   list< pair< pair<int, list<int> >, list<RefPortugolAST> > > mt_params;
-
+  list<pair<RefPortugolAST, SymbolType>> params; // pair<lexeme, type>
+  //   list< pair<int, list<RefPortugolAST> > > prim_params;
+  //   list< pair< pair<int, list<int> >, list<RefPortugolAST> > > mt_params;
 };
 
 //---------------------------------------------------------------------//
 
 class SemanticEval {
 public:
-  SemanticEval(SymbolTable& st);
+  SemanticEval(SymbolTable &st);
 
-  SymbolTable& getSymbolTable();
+  SymbolTable &getSymbolTable();
 
-  void setCurrentScope(const string&);
+  void setCurrentScope(const string &);
 
-	void declareVar(int type, RefPortugolAST prim);
-	void declareVar(int type, list<int> dims, RefPortugolAST mt);
+  void declareVar(int type, RefPortugolAST prim);
+  void declareVar(int type, list<int> dims, RefPortugolAST mt);
 
-  void declareVars(pair<int, list<RefPortugolAST> >& prims);
-  void declareVars(pair< pair<int, list<int> >, list<RefPortugolAST> >& ms);
- 
+  void declareVars(pair<int, list<RefPortugolAST>> &prims);
+  void declareVars(pair<pair<int, list<int>>, list<RefPortugolAST>> &ms);
 
-  void evaluateAttribution(ExpressionValue&  lv, ExpressionValue& rv, int line);
+  void evaluateAttribution(ExpressionValue &lv, ExpressionValue &rv, int line);
 
-  ExpressionValue  evaluateLValue(RefPortugolAST id, list<ExpressionValue>& dim);
+  ExpressionValue evaluateLValue(RefPortugolAST id, list<ExpressionValue> &dim);
 
-  void evaluateBooleanExpr(ExpressionValue& ev, int line);
-  void evaluateParaExpr(ExpressionValue& ev, int line, const string& term);  
-  ExpressionValue evaluateExpr(ExpressionValue& left, ExpressionValue& right, RefPortugolAST op);
-  ExpressionValue evaluateExpr(ExpressionValue& ev, RefPortugolAST unary_op);  
+  void evaluateBooleanExpr(ExpressionValue &ev, int line);
+  void evaluateParaExpr(ExpressionValue &ev, int line, const string &term);
+  ExpressionValue evaluateExpr(ExpressionValue &left, ExpressionValue &right,
+                               RefPortugolAST op);
+  ExpressionValue evaluateExpr(ExpressionValue &ev, RefPortugolAST unary_op);
 
-  void evaluateReturnCmd(ExpressionValue& ev, int line);
+  void evaluateReturnCmd(ExpressionValue &ev, int line);
 
-  void declareFunction(Funcao& f);
-  ExpressionValue  evaluateFCall(RefPortugolAST f, list<ExpressionValue>& args);  
-//   void evaluateAllFCalls();
-  
-  void evaluatePasso(int line, const string& str);
+  void declareFunction(Funcao &f);
+  ExpressionValue evaluateFCall(RefPortugolAST f, list<ExpressionValue> &args);
+  //   void evaluateAllFCalls();
+
+  void evaluatePasso(int line, const string &str);
+
 protected:
+  bool evalVariableRedeclaration(const string &scope, RefPortugolAST id);
 
-  bool evalVariableRedeclaration(const string& scope, RefPortugolAST id);
+  ExpressionValue evaluateNumTypes(ExpressionValue &left,
+                                   ExpressionValue &right);
 
-  ExpressionValue evaluateNumTypes(ExpressionValue& left, ExpressionValue& right);  
-
-  SymbolTable& stable;
+  SymbolTable &stable;
   string currentScope;
-  list<pair<RefPortugolAST,list<ExpressionValue> > > fcallsList;
+  list<pair<RefPortugolAST, list<ExpressionValue>>> fcallsList;
 };
 
 #endif

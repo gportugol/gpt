@@ -18,23 +18,18 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-
 #include "SymbolTable.hpp"
 #include <iostream>
 
 string SymbolTable::GlobalScope = "@global";
 
-SymbolTable::SymbolTable()
-  : currentCod(0)
-{
-  //builtin functions
+SymbolTable::SymbolTable() : currentCod(0) {
+  // builtin functions
   registrarLeia();
   registrarImprima();
 }
 
-SymbolTable::~SymbolTable()
-{
-}
+SymbolTable::~SymbolTable() {}
 
 void SymbolTable::registrarLeia() {
   Symbol f(SymbolTable::GlobalScope, "leia", 0, true, TIPO_ALL);
@@ -48,45 +43,46 @@ void SymbolTable::registrarImprima() {
   f.cd = currentCod++;
   f.param.setVariable(true);
   f.isBuiltin = true;
-  insertSymbol(f, SymbolTable::GlobalScope);  
+  insertSymbol(f, SymbolTable::GlobalScope);
 }
 
-void SymbolTable::declareVar(const string& scope, const string& lexeme, int line, int type) {
+void SymbolTable::declareVar(const string &scope, const string &lexeme,
+                             int line, int type) {
   Symbol s(scope, lexeme, line, false, type);
   s.cd = currentCod++;
   symbols[scope].push_back(s);
 }
 
-void SymbolTable::declareVar(const string& scope, const string& lexeme, int line, int type
-      , const list<int>& dimensions) {
+void SymbolTable::declareVar(const string &scope, const string &lexeme,
+                             int line, int type, const list<int> &dimensions) {
 
   Symbol s(scope, lexeme, line, false, type, dimensions);
-  s.cd = currentCod++;
-  symbols[scope].push_back(s);  
-}
-
-
-void SymbolTable::insertSymbol(Symbol& s, const string& scope) {
   s.cd = currentCod++;
   symbols[scope].push_back(s);
 }
 
-Symbol& SymbolTable::getSymbol(const string& scope, const string& lexeme, bool searchGlobal) {
+void SymbolTable::insertSymbol(Symbol &s, const string &scope) {
+  s.cd = currentCod++;
+  symbols[scope].push_back(s);
+}
+
+Symbol &SymbolTable::getSymbol(const string &scope, const string &lexeme,
+                               bool searchGlobal) {
 
   list<Symbol>::iterator it;
   list<Symbol>::iterator end = symbols[scope].end();
 
-  for(it = symbols[scope].begin(); it != end; ++it) {
-    if((*it).lexeme == lexeme) {
+  for (it = symbols[scope].begin(); it != end; ++it) {
+    if ((*it).lexeme == lexeme) {
       return (*it);
     }
   }
 
   end = symbols[SymbolTable::GlobalScope].end();
 
-  if(searchGlobal) {
-    for(it = symbols[SymbolTable::GlobalScope].begin(); it != end; ++it) {
-      if((*it).lexeme == lexeme) {
+  if (searchGlobal) {
+    for (it = symbols[SymbolTable::GlobalScope].begin(); it != end; ++it) {
+      if ((*it).lexeme == lexeme) {
         return (*it);
       }
     }
@@ -95,6 +91,6 @@ Symbol& SymbolTable::getSymbol(const string& scope, const string& lexeme, bool s
   throw SymbolTableException("no symbol found");
 }
 
-list<Symbol> SymbolTable::getSymbols(const string& scope) {
+list<Symbol> SymbolTable::getSymbols(const string &scope) {
   return symbols[scope];
 }

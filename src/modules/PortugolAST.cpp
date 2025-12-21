@@ -18,77 +18,42 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-
 #include "PortugolAST.hpp"
 #include "GPTDisplay.hpp"
 #include <iostream>
 
-const char* const PortugolAST::TYPE_NAME = "PortugolAST";
+const char *const PortugolAST::TYPE_NAME = "PortugolAST";
 
-PortugolAST::PortugolAST()
-    : CommonAST(), line(-1), endLine(-1)
-{
+PortugolAST::PortugolAST() : CommonAST(), line(-1), endLine(-1) {}
 
-}
+PortugolAST::PortugolAST(RefToken t) : CommonAST(t), line(t->getLine()) {}
 
-PortugolAST::PortugolAST( RefToken t )
-    : CommonAST(t), line( t->getLine() )
-{
-}
+PortugolAST::PortugolAST(const CommonAST &other) : CommonAST(other), line(-1) {}
 
-PortugolAST::PortugolAST( const CommonAST& other )
-    : CommonAST(other), line(-1)
-{
+PortugolAST::PortugolAST(const PortugolAST &other)
+    : CommonAST(other), line(other.line) {}
 
-}
+PortugolAST::~PortugolAST() {}
 
-PortugolAST::PortugolAST( const PortugolAST& other )
-    : CommonAST(other), line(other.line)
-{
-
-}
-
-PortugolAST::~PortugolAST()
-{}
-
-RefAST PortugolAST::clone( void ) const
-{
-  PortugolAST *ast = new PortugolAST( *this );
+RefAST PortugolAST::clone(void) const {
+  PortugolAST *ast = new PortugolAST(*this);
   return RefAST(ast);
 }
 
-const char* PortugolAST::typeName( void ) const
-{
-  return PortugolAST::TYPE_NAME;
-}
+const char *PortugolAST::typeName(void) const { return PortugolAST::TYPE_NAME; }
 
-void PortugolAST::initialize( RefToken t )
-{
+void PortugolAST::initialize(RefToken t) {
   setFilename(GPTDisplay::self()->getCurrentFile());
   CommonAST::initialize(t);
   setLine(t->getLine());
 }
 
-void PortugolAST::setLine(int line_) {
-  line = line_;
-}
+void PortugolAST::setLine(int line_) { line = line_; }
 
-int PortugolAST::getLine() {
-  return line;
-}
+int PortugolAST::getLine() { return line; }
 
-void PortugolAST::setEndLine(int line)
-{
-  endLine = line;
-}
+void PortugolAST::setEndLine(int line) { endLine = line; }
 
-int PortugolAST::getEndLine()
-{
-  return endLine;
-}
+int PortugolAST::getEndLine() { return endLine; }
 
-
-RefAST PortugolAST::factory()
-{
-  return RefAST(new PortugolAST);
-}
+RefAST PortugolAST::factory() { return RefAST(new PortugolAST); }

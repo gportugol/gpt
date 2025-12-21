@@ -22,85 +22,77 @@
 #define X86_HPP
 
 #include "SymbolTable.hpp"
-#include <string>
-#include <sstream>
 #include <list>
 #include <map>
+#include <sstream>
+#include <string>
 
 using namespace std;
 
 class X86SubProgram {
 public:
   X86SubProgram();
-  X86SubProgram(const X86SubProgram&);
+  X86SubProgram(const X86SubProgram &);
   ~X86SubProgram();
 
-  void declareLocal(const string&, int = 0, bool minit = true);
-  void declareParam(const string&, int type, int = 0);
+  void declareLocal(const string &, int = 0, bool minit = true);
+  void declareParam(const string &, int type, int = 0);
 
-  void writeTEXT(const string&);
+  void writeTEXT(const string &);
 
-  void init(const string&, int = 0);
+  void init(const string &, int = 0);
   string name();
 
   string source();
 
 private:
-  void writeMatrixInitCode(const string& varname, int size);
-  void writeMatrixCopyCode(const string& param, int type, int msize);
+  void writeMatrixInitCode(const string &varname, int size);
+  void writeMatrixCopyCode(const string &param, int type, int msize);
 
-  const  int   SizeofDWord;
-  int          _param_offset;
-  int          _local_offset;
-  string       _name;
-  list<string> _params; 
+  const int SizeofDWord;
+  int _param_offset;
+  int _local_offset;
+  string _name;
+  list<string> _params;
   list<string> _locals;
 
   stringstream _head; //%definitions
-  stringstream _init; //init commands
-  stringstream _end;  //cleanup commands
-  stringstream _txt;  //body
+  stringstream _init; // init commands
+  stringstream _end;  // cleanup commands
+  stringstream _txt;  // body
 };
-
-
-
 
 class X86 {
 public:
-  enum {
-    VAR_GLOBAL,
-    VAR_PARAM,
-    VAR_LOCAL
-  };
+  enum { VAR_GLOBAL, VAR_PARAM, VAR_LOCAL };
 
   static string EntryPoint;
-  static string makeID(const string&);  
+  static string makeID(const string &);
 
-  X86(SymbolTable&);
+  X86(SymbolTable &);
   ~X86();
 
-
-  void init(const string&);
+  void init(const string &);
   string source();
 
-  void writeBSS(const string&);
-  void writeDATA(const string&);
-  void writeTEXT(const string&);
+  void writeBSS(const string &);
+  void writeDATA(const string &);
+  void writeTEXT(const string &);
 
-  void createScope(const string&);
+  void createScope(const string &);
   string currentScope();
 
-  void declarePrimitive(int decl_type, const string& name, int type);
+  void declarePrimitive(int decl_type, const string &name, int type);
   void declareMatrix(int decl_type, int type, string name, list<string> dims);
 
   string addGlobalLiteral(string str);
-  string translateFuncLeia(const string& id, int type);
-  string translateFuncImprima(const string& id, int type);
+  string translateFuncLeia(const string &id, int type);
+  string translateFuncImprima(const string &id, int type);
   string createLabel(bool local, string tmpl);
 
   void writeExit();
 
-  void writeAttribution(int e1, int e2, pair<pair<int, bool>, string>&);
+  void writeAttribution(int e1, int e2, pair<pair<int, bool>, string> &);
   void writeOuExpr();
   void writeEExpr();
   void writeBitOuExpr();
@@ -120,24 +112,25 @@ public:
   void writeUnaryNeg(int etype);
   void writeUnaryNot();
   void writeUnaryBitNotExpr();
-  void writeLiteralExpr(const string& src);
-  void writeLValueExpr(pair< pair<int, bool>, string>&);
+  void writeLiteralExpr(const string &src);
+  void writeLValueExpr(pair<pair<int, bool>, string> &);
 
   void writeCast(int e1, int e2);
 
-  string toChar(const string&);
-  string toReal(const string&);
+  string toChar(const string &);
+  string toReal(const string &);
+
 private:
   string toNasmString(string str);
 
-  SymbolTable& _stable;
+  SymbolTable &_stable;
 
-  string       _currentScope;  
+  string _currentScope;
 
   stringstream _head;
   stringstream _bss;
-  stringstream _data;  
-  stringstream _lib;  
+  stringstream _data;
+  stringstream _lib;
 
   map<string, X86SubProgram> _subprograms;
 };

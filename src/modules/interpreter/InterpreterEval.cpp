@@ -22,62 +22,54 @@
 
 #include "InterpreterEval.hpp"
 #ifndef WIN32
-  #include "InterpreterDBG.hpp"
+#include "InterpreterDBG.hpp"
 #endif
 #include "GPTDisplay.hpp"
 
-void ExprValue::setValue(string str) {
-  value = str;
-}
-void ExprValue::setValue(const stringstream& s) {
-  value = s.str();
-}
+void ExprValue::setValue(string str) { value = str; }
+void ExprValue::setValue(const stringstream &s) { value = s.str(); }
 
 bool ExprValue::ifTrue() {
-  if(type == TIPO_LITERAL) {
-    return (value.length() > 0)?true:false;
+  if (type == TIPO_LITERAL) {
+    return (value.length() > 0) ? true : false;
   } else {
-    return (atof(value.c_str()))?true:false;
+    return (atof(value.c_str())) ? true : false;
   }
 }
 
 //-------------------------------------------------------------------------------
 
-
-
-bool Variable::checkBounds(list<string>& d) {
+bool Variable::checkBounds(list<string> &d) {
   list<int>::iterator it = dimensions.begin();
   list<string>::iterator ot = d.begin();
 
   int num;
-  for( ; it != dimensions.end(); ++it, ++ot) {
+  for (; it != dimensions.end(); ++it, ++ot) {
     num = atoi((*ot).c_str());
 
-    if((num < 0) || (num >= (*it))) {
+    if ((num < 0) || (num >= (*it))) {
       return false;
     }
   }
   return true;
 }
 
-string Variable::getValue(list<string>& d) {
+string Variable::getValue(list<string> &d) {
   stringstream sub;
   string colon;
-  for(list<string>::iterator it = d.begin(); it != d.end(); ++it) {
+  for (list<string>::iterator it = d.begin(); it != d.end(); ++it) {
     sub << colon << *it;
     colon = ":";
   }
   return values[sub.str()];
 }
 
-void Variable::setValue(string value) {
-  primitiveValue = castVal(value);
-}
+void Variable::setValue(string value) { primitiveValue = castVal(value); }
 
-void Variable::setValue(list<string>& d, string value) {
+void Variable::setValue(list<string> &d, string value) {
   stringstream sub;
   string colon;
-  for(list<string>::iterator it = d.begin(); it != d.end(); ++it) {
+  for (list<string>::iterator it = d.begin(); it != d.end(); ++it) {
     sub << colon << *it;
     colon = ":";
   }
@@ -87,60 +79,51 @@ void Variable::setValue(list<string>& d, string value) {
 
 string Variable::castVal(string value) {
   stringstream ss;
-  switch(type) {
-    case TIPO_INTEIRO:
-      ss << atoi(value.c_str());
-      return ss.str();
-    case TIPO_LOGICO:
-      if((value.length() == 0)||(value == "falso") || (value == "0")) {
-        return "0";
-      } else {
-        return "1";
-      }
-    default:
-      return value;
+  switch (type) {
+  case TIPO_INTEIRO:
+    ss << atoi(value.c_str());
+    return ss.str();
+  case TIPO_LOGICO:
+    if ((value.length() == 0) || (value == "falso") || (value == "0")) {
+      return "0";
+    } else {
+      return "1";
+    }
+  default:
+    return value;
   }
 }
 
-
 //------------------------------------------------------------------------
 
-
-
-void LValue::addMatrixIndex(ExprValue& e) {
-  dims.push_back(e.value);
-}
+void LValue::addMatrixIndex(ExprValue &e) { dims.push_back(e.value); }
 
 string LValue::dimsToString() {
   stringstream sub;
-  for(list<string>::iterator it = dims.begin(); it != dims.end(); ++it) {
+  for (list<string>::iterator it = dims.begin(); it != dims.end(); ++it) {
     sub << "[" << *it << "]";
   }
   return sub.str();
 }
 
-
-
 //------------------------------------------------------------------------
 
-
-
-void Variables::init(map<string, Variable>& vars) {
+void Variables::init(map<string, Variable> &vars) {
   currentVars = new map<string, Variable>;
   *currentVars = vars;
   globalVars = currentVars;
 }
 
-void Variables::pushLocalContext(map<string, Variable>& vars) {
+void Variables::pushLocalContext(map<string, Variable> &vars) {
   varstates.push_back(currentVars);
   currentVars = new map<string, Variable>;
   *currentVars = vars;
 }
 
-Variable& Variables::get(const string& name) {
+Variable &Variables::get(const string &name) {
   stringstream s;
-  if(currentVars->find(name) == currentVars->end()) {
-    if(globalVars->find(name) == globalVars->end()) {
+  if (currentVars->find(name) == currentVars->end()) {
+    if (globalVars->find(name) == globalVars->end()) {
       stringstream s;
       s << "BUG: variável " << name << " não encontrada." << endl;
       GPTDisplay::self()->showError(s);
@@ -159,31 +142,24 @@ void Variables::popContext() {
   varstates.pop_back();
 }
 
-map<string, Variable>& Variables::getLocals() {
-  return *currentVars;
-}
+map<string, Variable> &Variables::getLocals() { return *currentVars; }
 
-map<string, Variable>& Variables::getGlobals() {
-  return *globalVars;
-}
-
-
+map<string, Variable> &Variables::getGlobals() { return *globalVars; }
 
 //------------------------------------------------------------------------
 
-InterpreterEval::InterpreterEval(SymbolTable& st, string host, int port)
-  : stable(st), dbg_host(host), dbg_port(port), currentLine(-1)
-    , currentSkip(false), globalSkip(false)
-{
+InterpreterEval::InterpreterEval(SymbolTable &st, string host, int port)
+    : stable(st), dbg_host(host), dbg_port(port), currentLine(-1),
+      currentSkip(false), globalSkip(false) {
   skipStack.push(false);
 }
 
-void InterpreterEval::init(const string& file) {
+void InterpreterEval::init(const string &file) {
   list<Symbol> globals = stable.getSymbols(SymbolTable::GlobalScope);
 
   map<string, Variable> vars;
-  for(list<Symbol>::iterator it = globals.begin(); it != globals.end(); ++it) {
-    if((*it).isFunction) {
+  for (list<Symbol>::iterator it = globals.begin(); it != globals.end(); ++it) {
+    if ((*it).isFunction) {
       continue;
     }
     Variable v;
@@ -192,7 +168,7 @@ void InterpreterEval::init(const string& file) {
     v.isPrimitive = (*it).type.isPrimitive();
     v.dimensions = (*it).type.dimensions();
 
-    if(v.isPrimitive && (v.type != TIPO_LITERAL)) {
+    if (v.isPrimitive && (v.type != TIPO_LITERAL)) {
       v.primitiveValue = "0";
     }
     vars[v.name] = v;
@@ -208,23 +184,21 @@ void InterpreterEval::init(const string& file) {
 #endif
 }
 
-
-
-ExprValue InterpreterEval::evaluateOu(ExprValue& left, ExprValue& right) {
+ExprValue InterpreterEval::evaluateOu(ExprValue &left, ExprValue &right) {
   ExprValue v;
   v.type = TIPO_LOGICO;
 
-  bool l,r;
-  if(left.type == TIPO_LITERAL) {
-    l = (left.value.length() != 0)?true:false;
+  bool l, r;
+  if (left.type == TIPO_LITERAL) {
+    l = (left.value.length() != 0) ? true : false;
   } else {
-    l = atof(left.value.c_str())?true:false;
+    l = atof(left.value.c_str()) ? true : false;
   }
 
-  if(right.type == TIPO_LITERAL) {
-    r = (right.value.length() != 0)?true:false;
+  if (right.type == TIPO_LITERAL) {
+    r = (right.value.length() != 0) ? true : false;
   } else {
-    r = atof(right.value.c_str())?true:false;
+    r = atof(right.value.c_str()) ? true : false;
   }
 
   stringstream s;
@@ -233,23 +207,22 @@ ExprValue InterpreterEval::evaluateOu(ExprValue& left, ExprValue& right) {
   return v;
 }
 
-ExprValue InterpreterEval::evaluateE(ExprValue& left, ExprValue& right) {
+ExprValue InterpreterEval::evaluateE(ExprValue &left, ExprValue &right) {
   ExprValue v;
   v.type = TIPO_LOGICO;
 
-  bool l,r;
-  if(left.type == TIPO_LITERAL) {
-    l = (left.value.length() != 0)?true:false;
+  bool l, r;
+  if (left.type == TIPO_LITERAL) {
+    l = (left.value.length() != 0) ? true : false;
   } else {
-    l = atof(left.value.c_str())?true:false;
+    l = atof(left.value.c_str()) ? true : false;
   }
 
-  if(right.type == TIPO_LITERAL) {
-    r = (right.value.length() != 0)?true:false;
+  if (right.type == TIPO_LITERAL) {
+    r = (right.value.length() != 0) ? true : false;
   } else {
-    r = atof(right.value.c_str())?true:false;
+    r = atof(right.value.c_str()) ? true : false;
   }
-
 
   stringstream s;
   s << (l && r);
@@ -257,7 +230,7 @@ ExprValue InterpreterEval::evaluateE(ExprValue& left, ExprValue& right) {
   return v;
 }
 
-ExprValue InterpreterEval::evaluateBitOu(ExprValue& left, ExprValue& right) {
+ExprValue InterpreterEval::evaluateBitOu(ExprValue &left, ExprValue &right) {
   ExprValue v;
   v.type = TIPO_INTEIRO;
 
@@ -267,7 +240,7 @@ ExprValue InterpreterEval::evaluateBitOu(ExprValue& left, ExprValue& right) {
   return v;
 }
 
-ExprValue InterpreterEval::evaluateBitXou(ExprValue& left, ExprValue& right) {
+ExprValue InterpreterEval::evaluateBitXou(ExprValue &left, ExprValue &right) {
   ExprValue v;
   v.type = TIPO_INTEIRO;
 
@@ -277,7 +250,7 @@ ExprValue InterpreterEval::evaluateBitXou(ExprValue& left, ExprValue& right) {
   return v;
 }
 
-ExprValue InterpreterEval::evaluateBitE(ExprValue& left, ExprValue& right) {
+ExprValue InterpreterEval::evaluateBitE(ExprValue &left, ExprValue &right) {
   ExprValue v;
   v.type = TIPO_INTEIRO;
 
@@ -287,18 +260,19 @@ ExprValue InterpreterEval::evaluateBitE(ExprValue& left, ExprValue& right) {
   return v;
 }
 
-ExprValue InterpreterEval::evaluateIgual(ExprValue& left, ExprValue& right) {
+ExprValue InterpreterEval::evaluateIgual(ExprValue &left, ExprValue &right) {
   ExprValue v;
   v.type = TIPO_LOGICO;
 
   bool res;
 
-  if((left.type == TIPO_LITERAL) || (right.type == TIPO_LITERAL)) {
+  if ((left.type == TIPO_LITERAL) || (right.type == TIPO_LITERAL)) {
     res = left.value == right.value;
   } else {
-    if((left.type == TIPO_REAL) || (right.type == TIPO_REAL)) {
-      res = atof(left.value.c_str()) == atof(right.value.c_str());//"0" == "0.000"
-    } else { //caractere, inteiro, logico
+    if ((left.type == TIPO_REAL) || (right.type == TIPO_REAL)) {
+      res = atof(left.value.c_str()) ==
+            atof(right.value.c_str()); //"0" == "0.000"
+    } else {                           // caractere, inteiro, logico
       res = atoi(left.value.c_str()) == atoi(right.value.c_str());
     }
   }
@@ -309,18 +283,19 @@ ExprValue InterpreterEval::evaluateIgual(ExprValue& left, ExprValue& right) {
   return v;
 }
 
-ExprValue InterpreterEval::evaluateDif(ExprValue& left, ExprValue& right) {
+ExprValue InterpreterEval::evaluateDif(ExprValue &left, ExprValue &right) {
   ExprValue v;
   v.type = TIPO_LOGICO;
 
   bool res;
 
-  if((left.type == TIPO_LITERAL) || (right.type == TIPO_LITERAL)) {
+  if ((left.type == TIPO_LITERAL) || (right.type == TIPO_LITERAL)) {
     res = left.value != right.value;
   } else {
-    if((left.type == TIPO_REAL) || (right.type == TIPO_REAL)) {
-      res = atof(left.value.c_str()) != atof(right.value.c_str());//"0" == "0.000"
-    } else { //caractere, inteiro, logico
+    if ((left.type == TIPO_REAL) || (right.type == TIPO_REAL)) {
+      res = atof(left.value.c_str()) !=
+            atof(right.value.c_str()); //"0" == "0.000"
+    } else {                           // caractere, inteiro, logico
       res = atoi(left.value.c_str()) != atoi(right.value.c_str());
     }
   }
@@ -331,18 +306,19 @@ ExprValue InterpreterEval::evaluateDif(ExprValue& left, ExprValue& right) {
   return v;
 }
 
-ExprValue InterpreterEval::evaluateMaior(ExprValue& left, ExprValue& right) {
+ExprValue InterpreterEval::evaluateMaior(ExprValue &left, ExprValue &right) {
   ExprValue v;
   v.type = TIPO_LOGICO;
 
   bool res;
 
-  if((left.type == TIPO_LITERAL) || (right.type == TIPO_LITERAL)) {
+  if ((left.type == TIPO_LITERAL) || (right.type == TIPO_LITERAL)) {
     res = left.value.length() > right.value.length();
   } else {
-    if((left.type == TIPO_REAL) || (right.type == TIPO_REAL)) {
-      res = atof(left.value.c_str()) > atof(right.value.c_str());//"0" == "0.000"
-    } else { //caractere, inteiro, logico
+    if ((left.type == TIPO_REAL) || (right.type == TIPO_REAL)) {
+      res =
+          atof(left.value.c_str()) > atof(right.value.c_str()); //"0" == "0.000"
+    } else { // caractere, inteiro, logico
       res = atoi(left.value.c_str()) > atoi(right.value.c_str());
     }
   }
@@ -353,18 +329,19 @@ ExprValue InterpreterEval::evaluateMaior(ExprValue& left, ExprValue& right) {
   return v;
 }
 
-ExprValue InterpreterEval::evaluateMaiorEq(ExprValue& left, ExprValue& right) {
+ExprValue InterpreterEval::evaluateMaiorEq(ExprValue &left, ExprValue &right) {
   ExprValue v;
   v.type = TIPO_LOGICO;
 
   bool res;
 
-  if((left.type == TIPO_LITERAL) || (right.type == TIPO_LITERAL)) {
+  if ((left.type == TIPO_LITERAL) || (right.type == TIPO_LITERAL)) {
     res = left.value.length() >= right.value.length();
   } else {
-    if((left.type == TIPO_REAL) || (right.type == TIPO_REAL)) {
-      res = atof(left.value.c_str()) >= atof(right.value.c_str());//"0" == "0.000"
-    } else { //caractere, inteiro, logico
+    if ((left.type == TIPO_REAL) || (right.type == TIPO_REAL)) {
+      res = atof(left.value.c_str()) >=
+            atof(right.value.c_str()); //"0" == "0.000"
+    } else {                           // caractere, inteiro, logico
       res = atoi(left.value.c_str()) >= atoi(right.value.c_str());
     }
   }
@@ -375,18 +352,19 @@ ExprValue InterpreterEval::evaluateMaiorEq(ExprValue& left, ExprValue& right) {
   return v;
 }
 
-ExprValue InterpreterEval::evaluateMenor(ExprValue& left, ExprValue& right) {
+ExprValue InterpreterEval::evaluateMenor(ExprValue &left, ExprValue &right) {
   ExprValue v;
   v.type = TIPO_LOGICO;
 
   bool res;
 
-  if((left.type == TIPO_LITERAL) || (right.type == TIPO_LITERAL)) {
+  if ((left.type == TIPO_LITERAL) || (right.type == TIPO_LITERAL)) {
     res = left.value.length() < right.value.length();
   } else {
-    if((left.type == TIPO_REAL) || (right.type == TIPO_REAL)) {
-      res = atof(left.value.c_str()) < atof(right.value.c_str());//"0" == "0.000"
-    } else { //caractere, inteiro, logico
+    if ((left.type == TIPO_REAL) || (right.type == TIPO_REAL)) {
+      res =
+          atof(left.value.c_str()) < atof(right.value.c_str()); //"0" == "0.000"
+    } else { // caractere, inteiro, logico
       res = atoi(left.value.c_str()) < atoi(right.value.c_str());
     }
   }
@@ -397,18 +375,19 @@ ExprValue InterpreterEval::evaluateMenor(ExprValue& left, ExprValue& right) {
   return v;
 }
 
-ExprValue InterpreterEval::evaluateMenorEq(ExprValue& left, ExprValue& right) {
+ExprValue InterpreterEval::evaluateMenorEq(ExprValue &left, ExprValue &right) {
   ExprValue v;
   v.type = TIPO_LOGICO;
 
   bool res;
 
-  if((left.type == TIPO_LITERAL) || (right.type == TIPO_LITERAL)) {
+  if ((left.type == TIPO_LITERAL) || (right.type == TIPO_LITERAL)) {
     res = left.value.length() <= right.value.length();
   } else {
-    if((left.type == TIPO_REAL) || (right.type == TIPO_REAL)) {
-      res = atof(left.value.c_str()) <= atof(right.value.c_str());//"0" == "0.000"
-    } else { //caractere, inteiro, logico
+    if ((left.type == TIPO_REAL) || (right.type == TIPO_REAL)) {
+      res = atof(left.value.c_str()) <=
+            atof(right.value.c_str()); //"0" == "0.000"
+    } else {                           // caractere, inteiro, logico
       res = atoi(left.value.c_str()) <= atoi(right.value.c_str());
     }
   }
@@ -419,11 +398,11 @@ ExprValue InterpreterEval::evaluateMenorEq(ExprValue& left, ExprValue& right) {
   return v;
 }
 
-ExprValue InterpreterEval::evaluateMais(ExprValue& left, ExprValue& right) {
+ExprValue InterpreterEval::evaluateMais(ExprValue &left, ExprValue &right) {
   ExprValue v;
 
   stringstream s;
-  if((left.type == TIPO_REAL) || (right.type == TIPO_REAL)) {
+  if ((left.type == TIPO_REAL) || (right.type == TIPO_REAL)) {
     s << (atof(left.value.c_str()) + atof(right.value.c_str()));
     v.type = TIPO_REAL;
   } else {
@@ -435,11 +414,11 @@ ExprValue InterpreterEval::evaluateMais(ExprValue& left, ExprValue& right) {
   return v;
 }
 
-ExprValue InterpreterEval::evaluateMenos(ExprValue& left, ExprValue& right) {
+ExprValue InterpreterEval::evaluateMenos(ExprValue &left, ExprValue &right) {
   ExprValue v;
 
   stringstream s;
-  if((left.type == TIPO_REAL) || (right.type == TIPO_REAL)) {
+  if ((left.type == TIPO_REAL) || (right.type == TIPO_REAL)) {
     s << (atof(left.value.c_str()) - atof(right.value.c_str()));
     v.type = TIPO_REAL;
   } else {
@@ -451,20 +430,19 @@ ExprValue InterpreterEval::evaluateMenos(ExprValue& left, ExprValue& right) {
   return v;
 }
 
-
-ExprValue InterpreterEval::evaluateDiv(ExprValue& left, ExprValue& right) {
+ExprValue InterpreterEval::evaluateDiv(ExprValue &left, ExprValue &right) {
   ExprValue v;
 
-  if(atof(right.value.c_str()) == 0) {
+  if (atof(right.value.c_str()) == 0) {
     stringstream s;
     s << PACKAGE << ": Erro de execução próximo a linha " << currentLine
-        << " - Divisão por 0 é ilegal. Abortando..." << endl;
+      << " - Divisão por 0 é ilegal. Abortando..." << endl;
     GPTDisplay::self()->showError(s);
     exit(1);
   }
 
   stringstream s;
-  if((left.type == TIPO_REAL) || (right.type == TIPO_REAL)) {
+  if ((left.type == TIPO_REAL) || (right.type == TIPO_REAL)) {
     s << (atof(left.value.c_str()) / atof(right.value.c_str()));
     v.type = TIPO_REAL;
   } else {
@@ -476,11 +454,11 @@ ExprValue InterpreterEval::evaluateDiv(ExprValue& left, ExprValue& right) {
   return v;
 }
 
-ExprValue InterpreterEval::evaluateMultip(ExprValue& left, ExprValue& right) {
+ExprValue InterpreterEval::evaluateMultip(ExprValue &left, ExprValue &right) {
   ExprValue v;
 
   stringstream s;
-  if((left.type == TIPO_REAL) || (right.type == TIPO_REAL)) {
+  if ((left.type == TIPO_REAL) || (right.type == TIPO_REAL)) {
     s << (atof(left.value.c_str()) * atof(right.value.c_str()));
     v.type = TIPO_REAL;
   } else {
@@ -492,7 +470,7 @@ ExprValue InterpreterEval::evaluateMultip(ExprValue& left, ExprValue& right) {
   return v;
 }
 
-ExprValue InterpreterEval::evaluateMod(ExprValue& left, ExprValue& right) {
+ExprValue InterpreterEval::evaluateMod(ExprValue &left, ExprValue &right) {
   ExprValue v;
 
   stringstream s;
@@ -504,8 +482,7 @@ ExprValue InterpreterEval::evaluateMod(ExprValue& left, ExprValue& right) {
   return v;
 }
 
-
-ExprValue InterpreterEval::evaluateUnNeg(ExprValue& v) {
+ExprValue InterpreterEval::evaluateUnNeg(ExprValue &v) {
   stringstream s;
   s << -(atof(v.value.c_str()));
 
@@ -513,142 +490,145 @@ ExprValue InterpreterEval::evaluateUnNeg(ExprValue& v) {
   return v;
 }
 
-ExprValue InterpreterEval::evaluateUnPos(ExprValue& v) {
+ExprValue InterpreterEval::evaluateUnPos(ExprValue &v) {
   stringstream s;
   s << +(atof(v.value.c_str()));
   v.setValue(s);
   return v;
 }
 
-ExprValue InterpreterEval::evaluateUnNot(ExprValue& v) {
+ExprValue InterpreterEval::evaluateUnNot(ExprValue &v) {
   v.type = TIPO_LOGICO;
 
-  if(v.type == TIPO_LITERAL) {
-    v.value = (v.value.length()>0)?"0":"1";
+  if (v.type == TIPO_LITERAL) {
+    v.value = (v.value.length() > 0) ? "0" : "1";
   } else {
-    v.value = atof(v.value.c_str())?"0":"1";
+    v.value = atof(v.value.c_str()) ? "0" : "1";
   }
 
   return v;
 }
 
-ExprValue InterpreterEval::evaluateUnBNot(ExprValue& v) {
+ExprValue InterpreterEval::evaluateUnBNot(ExprValue &v) {
   stringstream s;
   s << ~(atoi(v.value.c_str()));
   v.setValue(s);
   return v;
 }
 
-
-ExprValue InterpreterEval::getLValueValue(LValue& l) {
+ExprValue InterpreterEval::getLValueValue(LValue &l) {
   ExprValue value;
 
   Variable var = variables.get(l.name);
   value.type = var.type;
-  if(var.isPrimitive) {
+  if (var.isPrimitive) {
     value.value = var.primitiveValue;
   } else {
-    if(l.dims.size()) { //if mat[x][x][x]...
-      if(var.checkBounds(l.dims)) {
+    if (l.dims.size()) { // if mat[x][x][x]...
+      if (var.checkBounds(l.dims)) {
         value.value = var.getValue(l.dims);
-//         value.values = var.values;
+        //         value.values = var.values;
       } else {
         stringstream s;
         s << PACKAGE << ": Erro de execução próximo a linha " << currentLine
-            << " - Overflow em \"" << l.name
-            << l.dimsToString() << "\". Abortando..." << endl;
+          << " - Overflow em \"" << l.name << l.dimsToString()
+          << "\". Abortando..." << endl;
         GPTDisplay::self()->showError(s);
         exit(1);
       }
-    } else { //if func(mat)
+    } else { // if func(mat)
       value.values = var.values;
     }
   }
   return value;
 }
 
-void InterpreterEval::execPasso(LValue& lvalue, int passo) {
-  //1: get the symbol
-  //3: set the v.value to the variable in the current scope
-  Variable& var = variables.get(lvalue.name);
+void InterpreterEval::execPasso(LValue &lvalue, int passo) {
+  // 1: get the symbol
+  // 3: set the v.value to the variable in the current scope
+  Variable &var = variables.get(lvalue.name);
 
   stringstream s;
-  if(var.isPrimitive) {
+  if (var.isPrimitive) {
     s << (atoi(var.primitiveValue.c_str()) + passo);
     var.primitiveValue = s.str();
   } else {
-    if(var.checkBounds(lvalue.dims)) {
+    if (var.checkBounds(lvalue.dims)) {
       string val = var.getValue(lvalue.dims);
       s << (atoi(val.c_str()) + passo);
       var.setValue(lvalue.dims, s.str());
     } else {
       stringstream err;
-      err << PACKAGE << ": Erro de execução próximo a linha " << currentLine << " - Overflow em \"" << lvalue.name
-          << lvalue.dimsToString() << "\". Abortando..." << endl;
+      err << PACKAGE << ": Erro de execução próximo a linha " << currentLine
+          << " - Overflow em \"" << lvalue.name << lvalue.dimsToString()
+          << "\". Abortando..." << endl;
       GPTDisplay::self()->showError(err);
       exit(1);
     }
   }
 }
 
-bool InterpreterEval::execLowerEq(LValue& lv, ExprValue& ate) {
+bool InterpreterEval::execLowerEq(LValue &lv, ExprValue &ate) {
   Variable var = variables.get(lv.name);
 
-  if(var.isPrimitive) {
+  if (var.isPrimitive) {
     return atoi(var.primitiveValue.c_str()) <= atoi(ate.value.c_str());
   } else {
-    if(var.checkBounds(lv.dims)) {
+    if (var.checkBounds(lv.dims)) {
       string val = var.getValue(lv.dims);
       return atoi(val.c_str()) <= atoi(ate.value.c_str());
     } else {
       stringstream s;
-      s << PACKAGE << ": Erro de execução próximo a linha " << currentLine << " - Overflow em \"" << lv.name
-          << lv.dimsToString() << "\". Abortando..." << endl;
+      s << PACKAGE << ": Erro de execução próximo a linha " << currentLine
+        << " - Overflow em \"" << lv.name << lv.dimsToString()
+        << "\". Abortando..." << endl;
       GPTDisplay::self()->showError(s);
       exit(1);
     }
   }
 }
 
-bool InterpreterEval::execBiggerEq(LValue& lv, ExprValue& ate) {
+bool InterpreterEval::execBiggerEq(LValue &lv, ExprValue &ate) {
   Variable var = variables.get(lv.name);
 
-  if(var.isPrimitive) {
+  if (var.isPrimitive) {
     return atoi(var.primitiveValue.c_str()) >= atoi(ate.value.c_str());
   } else {
-    if(var.checkBounds(lv.dims)) {
+    if (var.checkBounds(lv.dims)) {
       string val = var.getValue(lv.dims);
       return atoi(val.c_str()) <= atoi(ate.value.c_str());
     } else {
       stringstream s;
-      s << PACKAGE << ": Erro de execução próximo a linha " << currentLine << " - Overflow em \"" << lv.name
-          << lv.dimsToString() << "\". Abortando..." << endl;
+      s << PACKAGE << ": Erro de execução próximo a linha " << currentLine
+        << " - Overflow em \"" << lv.name << lv.dimsToString()
+        << "\". Abortando..." << endl;
       GPTDisplay::self()->showError(s);
       exit(1);
     }
   }
 }
 
-void InterpreterEval::execAttribution(LValue& lvalue, ExprValue& v) {
-  Variable& var = variables.get(lvalue.name);
+void InterpreterEval::execAttribution(LValue &lvalue, ExprValue &v) {
+  Variable &var = variables.get(lvalue.name);
 
-  if(var.isPrimitive) {
+  if (var.isPrimitive) {
     var.setValue(castLeiaChar(var, v));
   } else {
-    if(var.checkBounds(lvalue.dims)) {
+    if (var.checkBounds(lvalue.dims)) {
       var.setValue(lvalue.dims, v.value);
     } else {
       stringstream s;
-      s << PACKAGE << ": Erro de execução próximo a linha " << currentLine << " - Overflow em \"" << lvalue.name
-          << lvalue.dimsToString() << "\". Abortando..." << endl;
+      s << PACKAGE << ": Erro de execução próximo a linha " << currentLine
+        << " - Overflow em \"" << lvalue.name << lvalue.dimsToString()
+        << "\". Abortando..." << endl;
       GPTDisplay::self()->showError(s);
       exit(1);
     }
   }
 }
 
-string InterpreterEval::castLeiaChar(Variable& var, ExprValue& v) {
-  if((var.type == TIPO_CARACTERE) && (v.type == TIPO_LITERAL)) {
+string InterpreterEval::castLeiaChar(Variable &var, ExprValue &v) {
+  if ((var.type == TIPO_CARACTERE) && (v.type == TIPO_LITERAL)) {
 
     /*************************
       caractere c := leia();
@@ -658,14 +638,14 @@ string InterpreterEval::castLeiaChar(Variable& var, ExprValue& v) {
       se entrar com "abc"? opces:
         1: var.value = 0
           manter uniformidade com por ex:
-            "inteiro i = leia(); //"abc", resultado: i == 0 (interpretado), i=1243249 (compilado/C)
-        2: var.value = 'a'
-          eh o que acontece em modo compilado/C (scanf(%c))
+            "inteiro i = leia(); //"abc", resultado: i == 0 (interpretado),
+    i=1243249 (compilado/C) 2: var.value = 'a' eh o que acontece em modo
+    compilado/C (scanf(%c))
     *******************************/
 
-/*    if(v.value.length() > 1) {
-      return "0";
-    }*/
+    /*    if(v.value.length() > 1) {
+          return "0";
+        }*/
 
     stringstream s;
     s << (int)v.value[0];
@@ -675,20 +655,22 @@ string InterpreterEval::castLeiaChar(Variable& var, ExprValue& v) {
   }
 }
 
-void InterpreterEval::beginFunctionCall(const string& file, const string& funcname, list<ExprValue>& args, int line) {
-  //setup local vars
+void InterpreterEval::beginFunctionCall(const string &file,
+                                        const string &funcname,
+                                        list<ExprValue> &args, int line) {
+  // setup local vars
 
   list<Symbol> globals = stable.getSymbols(funcname);
 
   map<string, Variable> vars;
-  for(list<Symbol>::iterator it = globals.begin(); it != globals.end(); ++it) {
+  for (list<Symbol>::iterator it = globals.begin(); it != globals.end(); ++it) {
     Variable v;
     v.name = (*it).lexeme;
     v.type = (*it).type.primitiveType();
     v.isPrimitive = (*it).type.isPrimitive();
-    v.dimensions =  (*it).type.dimensions();
+    v.dimensions = (*it).type.dimensions();
 
-    if(v.isPrimitive && (v.type != TIPO_LITERAL)) {
+    if (v.isPrimitive && (v.type != TIPO_LITERAL)) {
       v.primitiveValue = "0";
     }
 
@@ -696,17 +678,17 @@ void InterpreterEval::beginFunctionCall(const string& file, const string& funcna
   }
   variables.pushLocalContext(vars);
 
-  //init params
-  Symbol func = stable.getSymbol(SymbolTable::GlobalScope,funcname);
-  list< pair<string,SymbolType> >& params = func.param.symbolList();
+  // init params
+  Symbol func = stable.getSymbol(SymbolTable::GlobalScope, funcname);
+  list<pair<string, SymbolType>> &params = func.param.symbolList();
 
-  list< pair<string,SymbolType> >::iterator pit = params.begin();
+  list<pair<string, SymbolType>>::iterator pit = params.begin();
   list<ExprValue>::iterator ait = args.begin();
 
-  while((ait != args.end()) && (pit != params.end())) {
+  while ((ait != args.end()) && (pit != params.end())) {
     Symbol pv = stable.getSymbol(funcname, (*pit).first);
-    Variable& var = variables.get(pv.lexeme);
-    if(var.isPrimitive) {
+    Variable &var = variables.get(pv.lexeme);
+    if (var.isPrimitive) {
       var.primitiveValue = (*ait).value;
     } else {
       var.values = (*ait).values;
@@ -715,7 +697,7 @@ void InterpreterEval::beginFunctionCall(const string& file, const string& funcna
     ++ait;
     ++pit;
   }
-  
+
   context_t ctx = context_t(funcname, line);
   stack_entry_t entry = stack_entry_t(file, ctx);
   program_stack.push_back(entry);
@@ -730,34 +712,34 @@ void InterpreterEval::endFunctionCall() {
   skipStack.pop();
 }
 
-bool InterpreterEval::isBuiltInFunction(const string& fname) {
+bool InterpreterEval::isBuiltInFunction(const string &fname) {
   return stable.getSymbol(SymbolTable::GlobalScope, fname).isBuiltin;
 }
 
-ExprValue InterpreterEval::execBuiltInFunction(const string& fname, list<ExprValue>& args) {
+ExprValue InterpreterEval::execBuiltInFunction(const string &fname,
+                                               list<ExprValue> &args) {
   ExprValue v;
-  if(fname == "leia") {
+  if (fname == "leia") {
     return executeLeia();
-  } else if(fname == "imprima") {
+  } else if (fname == "imprima") {
     executeImprima(args);
-    return v;//empty value
+    return v; // empty value
   } else {
     stringstream s;
-    s << PACKAGE << ":BUG: No built-in function called \"" << fname << "\"" << endl;
+    s << PACKAGE << ":BUG: No built-in function called \"" << fname << "\""
+      << endl;
     GPTDisplay::self()->showError(s);
     return v;
   }
 }
 
-void InterpreterEval::setReturnExprValue(ExprValue& v) {
-  retExpr = v;
-}
+void InterpreterEval::setReturnExprValue(ExprValue &v) { retExpr = v; }
 
-ExprValue InterpreterEval::getReturnExprValue(const string& fname) {
+ExprValue InterpreterEval::getReturnExprValue(const string &fname) {
   Symbol func = stable.getSymbol(SymbolTable::GlobalScope, fname);
-  
-  if((func.type.primitiveType() != TIPO_REAL) && (retExpr.type == TIPO_REAL)) {
-    //trunca o valor inteiro
+
+  if ((func.type.primitiveType() != TIPO_REAL) && (retExpr.type == TIPO_REAL)) {
+    // trunca o valor inteiro
     stringstream s;
     s << atoi(retExpr.value.c_str());
     retExpr.setValue(s);
@@ -767,102 +749,100 @@ ExprValue InterpreterEval::getReturnExprValue(const string& fname) {
   return retExpr;
 }
 
-int InterpreterEval::getReturning(){
-  return atoi(retExpr.value.c_str());
-}
+int InterpreterEval::getReturning() { return atoi(retExpr.value.c_str()); }
 
 //----------- Debugger -------------------------
 
-void InterpreterEval::nextCmd(const string& file, int line) {
+void InterpreterEval::nextCmd(const string &file, int line) {
   program_stack.back().second.second = line;
 
   currentLine = line;
 #ifndef WIN32
   InterpreterDBG::self()->checkData();
 
-  if(InterpreterDBG::self()->breakOn(file, line)) {
-    //goto no-skip state
+  if (InterpreterDBG::self()->breakOn(file, line)) {
+    // goto no-skip state
     skipStack.pop();
     skipStack.push(false);
     globalSkip = false;
   }
 
-  if((!skipStack.top() && !globalSkip)) {
+  if ((!skipStack.top() && !globalSkip)) {
     stringstream s;
     int cmd;
 
     InterpreterDBG::self()->sendInfo(currentLine, variables, program_stack);
     cmd = InterpreterDBG::self()->getCmd();
-    switch(cmd) {
-      case InterpreterDBG::CMDStepInto:
-        currentSkip = false;
-        break;
-      case InterpreterDBG::CMDStepOver:
-        currentSkip = true;
-        break;
-      case InterpreterDBG::CMDStepOut:
-        if(skipStack.size() == 1) {
-          globalSkip = true;
-        }
-        skipStack.pop();
-        skipStack.push(true);
-        break;
-      case InterpreterDBG::CMDContinue:
+    switch (cmd) {
+    case InterpreterDBG::CMDStepInto:
+      currentSkip = false;
+      break;
+    case InterpreterDBG::CMDStepOver:
+      currentSkip = true;
+      break;
+    case InterpreterDBG::CMDStepOut:
+      if (skipStack.size() == 1) {
         globalSkip = true;
-        break;
-      default:
-        s << PACKAGE << ": BUG: unknown cmd." << endl;
-        GPTDisplay::self()->showError(s);
-        break;
+      }
+      skipStack.pop();
+      skipStack.push(true);
+      break;
+    case InterpreterDBG::CMDContinue:
+      globalSkip = true;
+      break;
+    default:
+      s << PACKAGE << ": BUG: unknown cmd." << endl;
+      GPTDisplay::self()->showError(s);
+      break;
     }
   }
 #endif
 }
 
-//private
+// private
 
 ExprValue InterpreterEval::executeLeia() {
   ExprValue ret;
   ret.type = TIPO_LITERAL;
-//   cin >> ret.value;
+  //   cin >> ret.value;
   std::getline(cin, ret.value);
-//   ret.value.getline();
+  //   ret.value.getline();
   return ret;
 }
 
-void InterpreterEval::executeImprima(list<ExprValue>& args) {
+void InterpreterEval::executeImprima(list<ExprValue> &args) {
   ios_base::fmtflags old = cout.flags(ios_base::fixed);
   int oldp = cout.precision(2);
 
   stringstream s;
-  for(list<ExprValue>::iterator it = args.begin(); it != args.end(); ++it) {
+  for (list<ExprValue>::iterator it = args.begin(); it != args.end(); ++it) {
     ExprValue ss = (*it);
-    switch((*it).type) {
-      case TIPO_INTEIRO:
-        cout << (int) atoi((*it).value.c_str());
-        break;
-      case TIPO_REAL:        
-        cout << (float) atof((*it).value.c_str());
-        break;
-      case TIPO_CARACTERE:
-        cout << (char) atoi((*it).value.c_str());
-        break;
-      case TIPO_LOGICO:
-        if(atoi((*it).value.c_str())) {
-          cout << "verdadeiro";
-        } else {
-          cout << "falso";
-        }
-        break;
-      case TIPO_LITERAL:
-      	if(!(*it).value.empty()) {	
-          cout << (*it).value.c_str();
-        } else {
-          cout << "(nulo)";
-        }
-        break;
-      default:
-        cout << (*it).value;
+    switch ((*it).type) {
+    case TIPO_INTEIRO:
+      cout << (int)atoi((*it).value.c_str());
+      break;
+    case TIPO_REAL:
+      cout << (float)atof((*it).value.c_str());
+      break;
+    case TIPO_CARACTERE:
+      cout << (char)atoi((*it).value.c_str());
+      break;
+    case TIPO_LOGICO:
+      if (atoi((*it).value.c_str())) {
+        cout << "verdadeiro";
+      } else {
+        cout << "falso";
+      }
+      break;
+    case TIPO_LITERAL:
+      if (!(*it).value.empty()) {
+        cout << (*it).value.c_str();
+      } else {
+        cout << "(nulo)";
+      }
+      break;
+    default:
+      cout << (*it).value;
     }
   }
   cout << endl;
