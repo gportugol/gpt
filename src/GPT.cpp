@@ -220,6 +220,7 @@ bool GPT::compile(const list<string> &ifnames, bool genBinary) {
   } catch (SymbolTableException &e) {
     s << PACKAGE << ": erro interno: " << e.getMessage() << endl;
     GPTDisplay::self()->showError(s);
+    return false;
   }
 }
 
@@ -258,12 +259,13 @@ bool GPT::translate2C(const list<string> &ifnames) {
   } catch (SymbolTableException &e) {
     s << PACKAGE << ": erro interno: " << e.getMessage() << endl;
     GPTDisplay::self()->showError(s);
+    return false;
   }
 }
 
 int GPT::interpret(const list<string> &ifnames, const string &host, int port) {
   if (!prologue(ifnames)) {
-    return false;
+    return 0;
   }
 
   InterpreterWalker interpreter(_stable, host, port);
