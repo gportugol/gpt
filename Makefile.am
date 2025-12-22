@@ -4,7 +4,7 @@ AUTOMAKE_OPTIONS = foreign 1.4
 
 SUBDIRS = src doc exemplos lib
 
-EXTRA_DIST = INSTALL.default ChangeLog HACKING.md THANKS README.en.md README.md
+EXTRA_DIST = INSTALL.default CHANGELOG.md HACKING.md THANKS README.en.md README.md
 
 uninstall-devel:
 	rm -rf $(includedir)/${PACKAGE} 
