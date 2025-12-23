@@ -26,7 +26,7 @@ header {
 }
 
 options {
-  language="Cpp";  
+  language="Cpp";
 }
 
 class PortugolParser extends Parser("BasePortugolParser");
@@ -37,7 +37,7 @@ options {
   genHashLines=false;//no #line
 }
 
-{  
+{
   public:
     RefPortugolAST getPortugolAST()
     {
@@ -52,7 +52,7 @@ algoritmo
 
   exception //nem "variaveis" nem "inicio"
   catch[antlr::NoViableAltException e] {
-    reportParserError(e.getLine(), 
+    reportParserError(e.getLine(),
       "\"variáveis\" ou \"início\" após declaração de algoritmo", getTokenDescription(e.token));
   }
 
@@ -86,7 +86,7 @@ declaracao_algoritmo
   }
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-var_decl_block  
+var_decl_block
 {RefToken tk;}
   : tvars:T_KW_VARIAVEIS^ (var_decl {tk = lastToken;} semi:T_SEMICOL!)+ T_KW_FIM_VARIAVEIS!
   ;
@@ -95,7 +95,7 @@ var_decl_block
 
   exception //nenhum T_IDENTIFICADOR (var_decl)
   catch[antlr::NoViableAltException e] {
-    
+
     int cd;
     if(e.getLine() == tvars->getLine()) {
       cd = reportParserError(e.getLine(), expecting_variable, "", tvars->getText());
@@ -103,12 +103,12 @@ var_decl_block
     } else {
       cd = reportParserError(tvars->getLine(), expecting_variable, "", tvars->getText());
       printTip("Pelo menos uma variável deve ser declarada", tvars->getLine(), cd);
-    }    
-  
+    }
+
     BitSet b;
     b.add(T_KW_INICIO);
     b.add(T_KW_FUNCAO);
-    consumeUntil(b); 
+    consumeUntil(b);
   }
 
   catch[antlr::MismatchedTokenException e] {
@@ -127,7 +127,7 @@ var_decl_block
     } else {
       reportParserError(e.getLine(), getTokenNames()[e.expecting], getTokenDescription(e.token));
     }
-  
+
     BitSet b;
     b.add(T_KW_VARIAVEIS);
     b.add(T_KW_INICIO);
@@ -149,12 +149,12 @@ var_decl!
   //Nota: T_IDENTIFICADOR ja foi checado
   exception
   catch[antlr::MismatchedTokenException e] {
-  
+
     if(e.expecting == T_COLON) {
       if((e.token->getType() != EOF_) && (e.getLine() == lastId->getLine())) {
         int cd;
         cd = reportParserError(e.getLine(), getTokenNames()[e.expecting], getTokenDescription(e.token));
-  
+
         if(e.token->getType() == T_IDENTIFICADOR) {
           printTip(string("Coloque uma vírgula entre as variáveis \"")
               + lastId->getText() + "\" e \"" + e.token->getText() + "\"", e.getLine(), cd);
@@ -170,7 +170,7 @@ var_decl!
     lastToken = LT(1);
     consumeUntil(T_SEMICOL);
   }
-  
+
   catch[antlr::NoViableAltException e] { //no datatype
     if(e.getLine() == colon->getLine()) {
       reportParserError(e.getLine(), expecting_datatype,  getTokenDescription(e.token));
@@ -224,19 +224,19 @@ tp_prim
 tp_matriz!
 {RefToken lst;}
   : mt:T_KW_MATRIZ dim:dimensoes {lst=lastToken;}T_KW_DE tipo:tp_prim_pl
-    {#tp_matriz = #(tipo, dim);#tp_matriz->setLine(mt->getLine());} 
+    {#tp_matriz = #(tipo, dim);#tp_matriz->setLine(mt->getLine());}
   ;
 
   exception
   catch[antlr::MismatchedTokenException e] {
     if(lst->getType() == T_FECHAC) {
-      if(e.getLine() == mt->getLine()) {    
+      if(e.getLine() == mt->getLine()) {
         reportParserError(e.getLine(), getTokenNames()[e.expecting], getTokenDescription(e.token));
       } else {
         reportParserError(mt->getLine(), getTokenNames()[e.expecting], "", lst->getText());
       }
     }//else: dimensoes deu erro. Nao reporte nada aqui.
-    
+
     consumeUntil(T_SEMICOL);
   }
 
@@ -250,7 +250,7 @@ dimensoes
   : (
       abre:T_ABREC!
         {lst=abre;}
-      size:T_INT_LIT 
+      size:T_INT_LIT
         {lst=size;}
       fecha:T_FECHAC!
         {lst=fecha;}
@@ -259,7 +259,7 @@ dimensoes
 
   exception
   catch[antlr::MismatchedTokenException e] {
-    
+
     if(e.getLine() == lst->getLine()) {
       reportParserError(e.getLine(), getTokenNames()[e.expecting], "", lst->getText());//getTokenDescription(e.token));
     } else {
@@ -310,19 +310,19 @@ stm_block!
     if(e.expecting == T_KW_FIM) {
       int cd = reportParserError(e.getLine(), expecting_stm_or_fim, getTokenDescription(e.token));
       if(e.token->getType() == T_IDENTIFICADOR) {
-        printTip(string("Verifique o uso de \"[]\" (caso \"") + e.token->getText() + 
+        printTip(string("Verifique o uso de \"[]\" (caso \"") + e.token->getText() +
                        "\" seja um conjunto/matriz), do operador \":=\" (caso seja um comando de atribuição)"
                        " e do uso de parêntesis (caso \"" + e.token->getText() +
                        "\" seja uma chamada de função)", e.getLine(), cd);
 
-/*        printTip(string("se \"") + e.token->getText() 
+/*        printTip(string("se \"") + e.token->getText()
           + "\" é uma variável, verifique o uso de \"[]\" caso seja um vetor/matriz adicione o operador de atribuição " + getTokenNames()[T_ATTR]
           + " logo após. Se for uma função, adicione " +  getTokenNames()[T_ABREP] , e.getLine(), cd);*/
-      } 
+      }
     } else {
       reportParserError(e.getLine(), getTokenNames()[e.expecting], getTokenDescription(e.token));
     }
-  
+
     BitSet b;
     b.add(EOF_);
     b.add(T_KW_FUNCAO);
@@ -358,7 +358,7 @@ stm_list
         reportParserError(tk->getLine(), getTokenNames()[e.expecting], "", tk->getText());
       }
     }
-  
+
     BitSet b;
     b.add(T_KW_FIM_SE);
     b.add(T_KW_FIM_ENQUANTO);
@@ -371,7 +371,7 @@ stm_list
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 stm_ret!
-  : t:T_KW_RETORNE^ 
+  : t:T_KW_RETORNE^
     (
       e:expr {#stm_ret = #(t,e);}
       | /*emtpy*/ {#stm_ret = #(t,[TI_NULL,"null!"]);}
@@ -411,7 +411,7 @@ array_sub
             //do predicado em stm_list
   catch[antlr::MismatchedTokenException e] {
     reportParserError(tk->getLine(), getTokenNames()[e.expecting], "", tk->getText());
-  
+
     //consumeUntil: para tudo o que vem depois de lvalue
     BitSet b;
     b.add(T_ATTR);
@@ -439,11 +439,11 @@ lvalue!
       reportParserError(e.getLine(), expecting_variable, getTokenDescription(e.token));
     } else {
       reportParserError(lst->getLine(), expecting_variable, "", lst->getText());
-    }  
+    }
     //tudo o que vem depois de lvalue
     BitSet b;
     b.add(T_ATTR);
-    b.add(T_KW_DE);  
+    b.add(T_KW_DE);
     //+tudo o que vem depois de expr
     b.add(T_SEMICOL);
     b.add(T_FECHAC);
@@ -486,7 +486,7 @@ stm_se
         reportParserError(e.getLine(), expecting_stm_or_fimse, getTokenDescription(e.token));
       } else {
         reportParserError(tk->getLine(), expecting_stm_or_fimse, "", tk->getText());
-      }  
+      }
     }
     //tudo o que vem depois de stm_list
     BitSet b;
@@ -510,7 +510,7 @@ stm_se
       reportParserError(e.getLine(), expecting_stm_or_fimse, getTokenDescription(e.token));
     } else {
       reportParserError(tk->getLine(), expecting_stm_or_fimse, "", tk->getText());
-    }  
+    }
     //tudo o que vem depois de stm_list
     BitSet b;
     b.add(T_IDENTIFICADOR);
@@ -548,7 +548,7 @@ stm_enquanto
         reportParserError(e.getLine(), expecting_stm_or_fimenq, getTokenDescription(e.token));
       } else {
         reportParserError(tk->getLine(), expecting_stm_or_fimenq, "", tk->getText());
-      }  
+      }
     }
     //tudo o que vem depois de stm_list
     BitSet b;
@@ -589,7 +589,7 @@ stm_repita
         reportParserError(e.getLine(), expecting_stm_or_ate, getTokenDescription(e.token));
       } else {
         reportParserError(tk->getLine(), expecting_stm_or_ate, "", tk->getText());
-      }  
+      }
     }
 
     //tudo o que vem depois de stm_list
@@ -613,16 +613,16 @@ stm_repita
 
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-stm_para 
+stm_para
 {RefToken tk;}
-  : T_KW_PARA^ 
-    lvalue {tk=lastToken;} 
-    T_KW_DE! {tk=lastToken;} 
+  : T_KW_PARA^
+    lvalue {tk=lastToken;}
+    T_KW_DE! {tk=lastToken;}
     expr {tk=lastToken;}
     T_KW_ATE!
-    expr {tk=lastToken;} 
-    passo {tk=lastToken;} 
-    T_KW_FACA! {tk=lastToken;} 
+    expr {tk=lastToken;}
+    passo {tk=lastToken;}
+    T_KW_FACA! {tk=lastToken;}
     stm_list {tk=lastToken;}
     T_KW_FIM_PARA!
   ;
@@ -640,7 +640,7 @@ stm_para
         reportParserError(e.getLine(), expecting_stm_or_fimpara, getTokenDescription(e.token));
       } else {
         reportParserError(tk->getLine(), expecting_stm_or_fimpara, "", tk->getText());
-      }  
+      }
     }
     //tudo o que vem depois de stm_list
     BitSet b;
@@ -676,9 +676,9 @@ passo
     } else {
       reportParserError(tk->getLine(), getTokenNames()[T_INT_LIT], "", tk->getText());
       consumeUntil(T_KW_FACA);
-    }  
+    }
   }
-  
+
   catch[antlr::MismatchedTokenException e] {
     if(e.getLine() == tk->getLine()) {
       reportParserError(e.getLine(), getTokenNames()[e.expecting], getTokenDescription(e.token));
@@ -704,8 +704,8 @@ expr
   catch[ANTLR_USE_NAMESPACE(antlr)NoViableAltException e] {
     //nothing
   }
-  
-expr_e 
+
+expr_e
 options {
   defaultErrorHandler=false; //noviable should be caught on expr
 }
@@ -719,7 +719,7 @@ options {
   : expr_bit_xou (T_BIT_OU^ expr_bit_xou)*
   ;
 
-expr_bit_xou 
+expr_bit_xou
 options {
   defaultErrorHandler=false; //noviable should be caught on expr
 }
@@ -732,14 +732,14 @@ options {
 }
   : expr_igual (T_BIT_E^ expr_igual)*
   ;
-  
+
 expr_igual
 options {
   defaultErrorHandler=false; //noviable should be caught on expr
 }
   : expr_relacional (T_IGUAL^ expr_relacional|T_DIFERENTE^ expr_relacional)*
   ;
-        
+
 expr_relacional
 options {
   defaultErrorHandler=false; //noviable should be caught on expr
@@ -754,7 +754,7 @@ options {
   : expr_multip (T_MAIS^ expr_multip| T_MENOS^ expr_multip)*
   ;
 
-expr_multip 
+expr_multip
 options {
   defaultErrorHandler=false; //noviable should be caught on expr
 }
@@ -775,18 +775,18 @@ op_unario!
       | n:T_KW_NOT  {#op_unario = #[TI_UN_NOT,"não"];#op_unario->setLine(n->getLine());}
       | b:T_BIT_NOT {#op_unario = #[TI_UN_BNOT,"~"];#op_unario->setLine(b->getLine());}
     )?
-  ; 
+  ;
 
-  exception  //op_unario faz um lookahead e lanca noViable 
+  exception  //op_unario faz um lookahead e lanca noViable
             //se LA(1) nao servir em nenhuma alternativa de expr_elemento
   catch[ANTLR_USE_NAMESPACE(antlr)NoViableAltException e] {
-  
+
     if(lastToken->getLine() == e.getLine()) {
-      reportParserError(e.getLine(), expecting_expression, getTokenDescription(e.token), lastToken->getText());  
+      reportParserError(e.getLine(), expecting_expression, getTokenDescription(e.token), lastToken->getText());
     } else {
       reportParserError(lastToken->getLine(), expecting_expression, "", lastToken->getText());
     }
-  
+
     //proximos tokens possiveis (nao-opicionais) apos expr
     BitSet b;
     b.add(T_SEMICOL);
@@ -800,10 +800,10 @@ op_unario!
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 expr_elemento
-  : (T_IDENTIFICADOR T_ABREP)=> fcall  
+  : (T_IDENTIFICADOR T_ABREP)=> fcall
   | lvalue
   | literal
-  |! t:T_ABREP e:expr T_FECHAP 
+  |! t:T_ABREP e:expr T_FECHAP
     {
       #expr_elemento = #([TI_PARENTHESIS,"!par"], e);
       #expr_elemento->setLine(t->getLine());
@@ -823,17 +823,17 @@ expr_elemento
 
 fcall!
 {RefToken tk;}
-  : id:T_IDENTIFICADOR T_ABREP a:fargs {tk=lastToken;} T_FECHAP 
+  : id:T_IDENTIFICADOR T_ABREP a:fargs {tk=lastToken;} T_FECHAP
       {
         #fcall = #([TI_FCALL,"fcall!"], id, a);
         #fcall->setLine(id->getLine());
         #fcall->setFilename(GPTDisplay::self()->getCurrentFile());
       }
-  ; 
+  ;
 
   exception //T_FECHAP
   catch[antlr::MismatchedTokenException e] {
-  
+
     if(tk->getLine() == e.getLine()) {
       int cd = reportParserError(e.getLine(), getTokenNames()[e.expecting], getTokenDescription(e.token));
       if((e.token->getType() == T_IDENTIFICADOR)
@@ -844,9 +844,9 @@ fcall!
         printTip(string("Coloque uma vírgula antes de \"") + e.token->getText() + "\"",e.getLine(),cd);
       }
     } else {
-      reportParserError(tk->getLine(), getTokenNames()[e.expecting], "", tk->getText());  
+      reportParserError(tk->getLine(), getTokenNames()[e.expecting], "", tk->getText());
     }
-  
+
     //tudo o que vem depois de expr
     BitSet b;
     b.add(T_SEMICOL);
@@ -866,9 +866,9 @@ fargs
 
   exception
   catch[ANTLR_USE_NAMESPACE(antlr)NoViableAltException e] {
-  
+
     if(lst->getLine() == e.getLine()) {
-      reportParserError(e.getLine(), expecting_expression, getTokenDescription(e.token));  
+      reportParserError(e.getLine(), expecting_expression, getTokenDescription(e.token));
     } else {
       reportParserError(lst->getLine(), expecting_expression, "", lst->getText());
     }
@@ -882,7 +882,7 @@ literal
   | T_INT_LIT
   | T_REAL_LIT
   | T_CARAC_LIT
-  | T_KW_VERDADEIRO 
+  | T_KW_VERDADEIRO
   | T_KW_FALSO
   ;
 
@@ -890,7 +890,7 @@ literal
 
 func_decls!
 {RefToken tk;}
-  : f:T_KW_FUNCAO id:T_IDENTIFICADOR T_ABREP params:fparams {tk=lastToken;}T_FECHAP ret:rettype 
+  : f:T_KW_FUNCAO id:T_IDENTIFICADOR T_ABREP params:fparams {tk=lastToken;}T_FECHAP ret:rettype
     fvars:fvar_decl
     block:stm_block
 
@@ -910,7 +910,7 @@ func_decls!
         reportParserError(f->getLine(), expecting_function_name, "", f->getText());
       }
       consumeUntil(T_ABREP);
-    } else if(e.expecting == T_ABREP) { 
+    } else if(e.expecting == T_ABREP) {
       if(id->getLine() == e.getLine()) {
         reportParserError(e.getLine(), getTokenNames()[e.expecting], getTokenDescription(e.token));
       } else {
@@ -947,7 +947,7 @@ rettype
   catch[antlr::NoViableAltException e] {
 //     cerr << "rettype:NoViableAltException\n";
 //     reportParserError(e.getLine(), getTokenNames()[T_KW_INICIO], getTokenDescription(e.token));
-//     consumeUntil(T_KW_FIM);    
+//     consumeUntil(T_KW_FIM);
   }
 
   catch[antlr::MismatchedTokenException e] {
@@ -976,10 +976,10 @@ fffvar_decl
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 fvar_decl!
-  : ( s:fffvar_decl 
+  : ( s:fffvar_decl
       {
         #fvar_decl = #([T_KW_VARIAVEIS,"variáveis!"],s);
-      } 
+      }
     )?
   ;
 

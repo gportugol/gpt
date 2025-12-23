@@ -8,7 +8,7 @@ variáveis
   r : real;
   l : lógico;
   c : caractere;
-  str : literal;  
+  str : literal;
   mat: matriz[2] de inteiros;
 fim-variáveis
 
@@ -18,7 +18,7 @@ início
   testar_expr_log();
 
   testar_matriz_carac();
-  testar_matriz_literais();  
+  testar_matriz_literais();
   testar_enquanto();
   testar_para();
   testar_repita();
@@ -50,7 +50,7 @@ início
     imprima("testar_inicializacao: r <> 0.0");
   fim-se
 
-  se l <> 0 então 
+  se l <> 0 então
     imprima("testar_inicializacao: l <> 0");
   fim-se
 
@@ -66,7 +66,7 @@ início
     imprima("testar_inicializacao: local <> 0");
   fim-se
 
-  para local de 0 até 1 faça  
+  para local de 0 até 1 faça
     se mat[local] <> 0 então
       imprima("testar_inicializacao: mat[",local,"] <> 0");
     fim-se
@@ -74,7 +74,7 @@ início
 
   se local <> 1 então
     imprima("testar_inicializacao: local <> 2");
-  fim-se  
+  fim-se
 fim
 
 função testar_expr_aritm()
@@ -93,10 +93,10 @@ início
   se não verdadeiro então
     imprima("testar_expr_aritm: se não verdadeiro");
   fim-se
-    
+
   se 2 + 2 então
     //ok
-  senão  
+  senão
     imprima("testar_expr_aritm: 2 + 2");
   fim-se
 
@@ -111,13 +111,13 @@ início
   se não (2 - 2) então
     //
   senão
-    imprima("testar_expr_aritm: se não (2-2)");  
+    imprima("testar_expr_aritm: se não (2-2)");
   fim-se
 
   se 10 + 2 * 3 <> 16 então
     imprima("testar_expr_aritm: 10 + 2 * 3 <> 16");
   fim-se
-  
+
   se 10 + 2 * 3 - 12 / 3 <> 12 então
     imprima("testar_expr_aritm: 10 + 2 * 3 - 12 / 3 <> 12");
   fim-se
@@ -125,7 +125,7 @@ início
   se (10 + 2) * (12 - 10) / 3 <> 8 então
     imprima("testar_expr_aritm: (10 + 2) * (12 - 10) / 3 <> 8");
   fim-se
-  
+
   se 0b101 <> 5 então
     imprima("testar_expr_aritm: 0b101 <> 5");
   fim-se
@@ -169,14 +169,14 @@ início
   se 5 / 2 <> 2 então
     imprima("testar_expr_aritm: 5 / 2 <> 2");
   fim-se
-  
+
   se 5.0 / 2 <> 2.5 então
     imprima("testar_expr_aritm: 5.0 / 2 <> 2.5");
   fim-se
 
   se 6.6 + 5.3 <> 11.9 então
     imprima("testar_expr_aritm: 6.6 + 5.3 <> 11.9");
-  fim-se  
+  fim-se
 
   se (6.6 + 5.3)/2 <> 5.95 então
     imprima("testar_expr_aritm: (6.6 + 5.3)/2 <> 5.95");
@@ -344,10 +344,10 @@ fim
 função testar_matriz_carac()
   gg: matriz[2][3] de caracteres;
   i,j: inteiro;
-início  
+início
 
   para i de 0 até 1 faça
-    para j de 0 até 2 faça      
+    para j de 0 até 2 faça
       se gg[i][j] <> '' ou  gg[i][j] <> 0 então
         imprima("testar_matriz_carac: gg[i][j] <> \"\"");
       fim-se
@@ -370,7 +370,7 @@ função matriz_carac_func(qq: matriz[2][3] de caracteres)
   i : inteiro;
   j : inteiro;
   c : inteiro;
-início  
+início
   cp[0] := 'a';
   cp[1] := 'b';
   cp[2] := 'c';
@@ -379,8 +379,8 @@ início
   cp[5] := 'f';
 
   para i de 0 até 1 faça
-    para j de 0 até 2 faça      
-      se qq[i][j] <> cp[c] então        
+    para j de 0 até 2 faça
+      se qq[i][j] <> cp[c] então
         imprima("matriz_carac_func: qq[i][j] <> cp[c]");
       fim-se
       c := c + 1;
@@ -443,11 +443,11 @@ função testar_enquanto()
 início
 
   enquanto não local faça
-    
+
     se z = 0 então
-      z := 1;    
+      z := 1;
     fim-se
-  
+
     se z = 1 então
       local := 1;
     fim-se
@@ -479,11 +479,11 @@ início
   se g <> 30 ou str <> 10 então
     imprima("testar_para: g <> 30 ou str <> 10");
   fim-se
-  
+
   g := 30;
   para str de 10 até 0 passo -2 faça
     g := g - str;
-  fim-para  
+  fim-para
 
   se g <> 0 ou str <> 0 então
     imprima("testar_para: g <> 0 ou str <> 0");
@@ -499,7 +499,7 @@ início
     z := z + 1;
     se z>10 então
       imprima("testar_repita: z <> 10. laço infinito");
-    fim-se  
+    fim-se
   até z=10;
 
   se z <> 10 então
@@ -579,11 +579,11 @@ função f(x:inteiro, r:real, m: matriz[2] de inteiros, c: caractere) : literal
   count : inteiro;
 início
   count := x + r + m[0] + m[1] + c + 0.5;
-  
+
   se count = 1 então
     retorne "ret";
   fim-se
-    
+
   se count <> 101 então
     imprima("f: count <> 101");
   fim-se
@@ -613,4 +613,3 @@ início
     imprima("f4: r <> 2");
   fim-se
 fim
-

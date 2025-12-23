@@ -25,9 +25,9 @@ header {
    #include "SymbolTable.hpp"
    #include "InterpreterEval.hpp"
    #include <string>
-// 
+//
 //   #include <list>
-//   
+//
    using namespace std;
 
 }
@@ -45,7 +45,7 @@ options {
   genHashLines=false;//no #line
 }
 
-{  
+{
   public:
     class ReturnException {};
 
@@ -56,7 +56,7 @@ options {
     bool _returning;
     InterpreterEval interpreter;
 
-    RefPortugolAST topnode;    
+    RefPortugolAST topnode;
 
     string parseLiteral(string str) {
       string::size_type idx = 0;
@@ -118,7 +118,7 @@ options {
       } else {
 				ret << (int) str[0];
         return ret.str();
-      }      
+      }
     }
 
     RefPortugolAST getFunctionNode(const string& name) {
@@ -134,12 +134,12 @@ options {
 /****************************** TREE WALKER *********************************************/
 
 /*
- ( algoritmo teste ) 
-  ( variáveis ( primitive! inteiro x ) ) 
-  ( início ( := x 10 ) ( fcall! f x 1 ) ( para x 1 10 ( fcall! imprima x ) ) ) 
-  ( f ( primitive! inteiro z ) ( primitive! inteiro r ) 
-    ( variáveis! ( primitive! caractere c ) ) 
-    ( início ( se ( < z 1 ) ( := c 1 ) ( retorne null! ) senão ( := c 2 ) ( fcall! f ( - z 1 ) r ) ) ( := c 3 ) ) 
+ ( algoritmo teste )
+  ( variáveis ( primitive! inteiro x ) )
+  ( início ( := x 10 ) ( fcall! f x 1 ) ( para x 1 10 ( fcall! imprima x ) ) )
+  ( f ( primitive! inteiro z ) ( primitive! inteiro r )
+    ( variáveis! ( primitive! caractere c ) )
+    ( início ( se ( < z 1 ) ( := c 1 ) ( retorne null! ) senão ( := c 2 ) ( fcall! f ( - z 1 ) r ) ) ( := c 3 ) )
   )
 
 */
@@ -147,13 +147,13 @@ algoritmo returns [int ret]
 {
   ret = 0;
   topnode = _t;
-  interpreter.init(_t->getFilename());  
+  interpreter.init(_t->getFilename());
   _t = _t->getNextSibling();
   if(_t->getType() == T_KW_VARIAVEIS) {
     _t = _t->getNextSibling(); //pula declaracao de algoritmo e variaveis
   }
 }
-  : inicio    
+  : inicio
     {
       if (_returning){
         ret = interpreter.getReturning();
@@ -165,7 +165,7 @@ inicio
   : #(t:T_KW_INICIO //(stm)*)
       {
         while((_t != antlr::nullAST)) {
-          if(!_returning) {            
+          if(!_returning) {
             stm(_t);
           }
           _t = _t->getNextSibling();
@@ -179,7 +179,7 @@ inicio
 stm
 {
   ExprValue retToDevNull;
-  interpreter.nextCmd(static_cast<RefPortugolAST>(_t->getFirstChild())->getFilename(), _t->getLine());  
+  interpreter.nextCmd(static_cast<RefPortugolAST>(_t->getFirstChild())->getFilename(), _t->getLine());
 }
   : stm_attr
   | retToDevNull=fcall
@@ -257,7 +257,7 @@ stm_se
   bool exec = false;
 }
   : #(se:T_KW_SE
-      e=expr   {exec = e.ifTrue();} 
+      e=expr   {exec = e.ifTrue();}
 
       conditional_statements[exec]
       {
@@ -292,10 +292,10 @@ stm_enquanto
   RefPortugolAST exprNode, first_stm, stmNode;
 }
   : #(enq:T_KW_ENQUANTO
-      {exprNode = _t;} e=expr {exec=e.ifTrue();} 
+      {exprNode = _t;} e=expr {exec=e.ifTrue();}
       {
         stmNode = first_stm = _t;
-        
+
         while(exec) {
           while(stmNode != antlr::nullAST) {
             stm(stmNode);
@@ -442,4 +442,3 @@ func_decls[list<ExprValue>& args, int line]
       }
     )
   ;
-

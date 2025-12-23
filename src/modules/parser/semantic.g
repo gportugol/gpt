@@ -26,12 +26,12 @@ header {
   #include "SymbolTable.hpp"
 
   #include <list>
-  
+
   using namespace std;
 }
 
 options {
-  language="Cpp";  
+  language="Cpp";
 }
 
 class SemanticWalker extends TreeParser;
@@ -56,13 +56,13 @@ options {
 
 algoritmo
 {
-  RefPortugolAST inicio_; 
+  RefPortugolAST inicio_;
   GPTDisplay::self()->setCurrentFile(_t->getFilename());
 }
   : {
       _t = _t->getNextSibling(); //pula declaracao de algoritmo
       evaluator.setCurrentScope(SymbolTable::GlobalScope);
-    } 
+    }
     (variaveis)?
 
     {
@@ -77,7 +77,7 @@ algoritmo
     {
       //volta para o bloco principal
       _t = inicio_;
-      evaluator.setCurrentScope(SymbolTable::GlobalScope);      
+      evaluator.setCurrentScope(SymbolTable::GlobalScope);
     }
 
     //analisa o bloco principal
@@ -85,7 +85,7 @@ algoritmo
 
     //analisa as funcoes
     (func_decl)*
-  { 
+  {
     evaluator.setCurrentScope(SymbolTable::GlobalScope);
 //     evaluator.evaluateAllFCalls();
   }
@@ -94,13 +94,13 @@ algoritmo
 variaveis
 {
   pair<int, list<RefPortugolAST> > prims;
-  pair< pair<int, list<int> >, list<RefPortugolAST> > ms;  
+  pair< pair<int, list<int> >, list<RefPortugolAST> > ms;
 }
   : #(v:T_KW_VARIAVEIS
       (
           prims=primitivo {evaluator.declareVars(prims);}
         | ms=matriz    {evaluator.declareVars(ms);}
-      )+ 
+      )+
     )
   ;
 
@@ -111,7 +111,7 @@ primitivo returns [pair<int, list<RefPortugolAST> >  p]
   : #(TI_VAR_PRIMITIVE type=tipo_prim {p.first = type;}
       (
         id:T_IDENTIFICADOR  {p.second.push_back(id);}
-      )+ 
+      )+
     )
   ;
 
@@ -132,7 +132,7 @@ matriz returns [pair< pair<int, list<int> >, list<RefPortugolAST> > m]
   ;
 
 tipo_matriz  returns [pair<int, list<int> > p]//pair<type, list<dimensions> >
-  : #(T_KW_INTEIROS 
+  : #(T_KW_INTEIROS
       {p.first = TIPO_INTEIRO;}
       (
         s1:T_INT_LIT
@@ -175,7 +175,7 @@ inicio
   ;
 
 stm
-{ 
+{
   ExpressionValue devnull;
 }
   : stm_attr
@@ -215,14 +215,14 @@ fcall returns [ExpressionValue rettype]
   ExpressionValue etype;
   list<ExpressionValue> args;//arg types
 }
-  : #(TI_FCALL id:T_IDENTIFICADOR 
+  : #(TI_FCALL id:T_IDENTIFICADOR
       (
         etype=expr
         {args.push_back(etype);}
       )*
     )
     {
-      rettype = evaluator.evaluateFCall(id, args); //check if f() exists, check for arguments.      
+      rettype = evaluator.evaluateFCall(id, args); //check if f() exists, check for arguments.
     }
   ;
 stm_ret
@@ -259,11 +259,11 @@ stm_para
   ExpressionValue lv, de, ate;
 
 }
-  : #(p:T_KW_PARA 
-        lv=lvalue {evaluator.evaluateParaExpr(lv, p->getLine(), lv.id());} 
-        de=expr   {evaluator.evaluateParaExpr(de, p->getLine(), "de");} 
-        ate=expr  {evaluator.evaluateParaExpr(ate, p->getLine(), "até");} 
-        (passo)? (stm)* 
+  : #(p:T_KW_PARA
+        lv=lvalue {evaluator.evaluateParaExpr(lv, p->getLine(), lv.id());}
+        de=expr   {evaluator.evaluateParaExpr(de, p->getLine(), "de");}
+        ate=expr  {evaluator.evaluateParaExpr(ate, p->getLine(), "até");}
+        (passo)? (stm)*
     )
   ;
 
@@ -354,7 +354,7 @@ func_decl
       (
           argsp=primitivo
         | argsm=matriz
-      )* 
+      )*
 
       {
         if((_t != antlr::nullAST) && (_t->getType() == TI_FRETURN)) {

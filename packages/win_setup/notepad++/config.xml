@@ -60,9 +60,9 @@
         <!--
 			value 0 for the folloing parameters means invisible :
 			leftWidth, topHight, rightWidth, bottomHight
-			
+
 					position value for the PluginDlg:
-						
+
 						0 : left
 						 1 : right
 						2 : top

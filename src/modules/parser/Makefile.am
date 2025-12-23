@@ -4,7 +4,7 @@ AM_CPPFLAGS = -I$(top_srcdir)/. -I$(top_srcdir)/src/parser \
 
 noinst_LTLIBRARIES = libparser.la
 
-BUILT_SOURCES = PortugolLexer.cpp  PortugolParser.cpp SemanticWalker.cpp 
+BUILT_SOURCES = PortugolLexer.cpp  PortugolParser.cpp SemanticWalker.cpp
 
 nodist_libparser_la_SOURCES = $(BUILT_SOURCES)
 
@@ -38,7 +38,7 @@ PortugolLexer.cpp: $(srcdir)/$(lexer_g)
 	$(ANTLR_BIN) $(srcdir)/$(lexer_g)
 	cp PortugolTokenTypes.txt ../c_translator
 	cp PortugolTokenTypes.txt ../interpreter
-	cp PortugolTokenTypes.txt ../x86	
+	cp PortugolTokenTypes.txt ../x86
 
 PortugolParser.cpp: $(srcdir)/$(parser_g) PortugolLexer.cpp
 	$(ANTLR_BIN) $(srcdir)/$(parser_g)

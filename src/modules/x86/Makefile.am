@@ -18,4 +18,3 @@ CLEANFILES = X86Walker.hpp X86Walker.cpp X86WalkerTokenTypes.hpp X86WalkerTokenT
 
 X86Walker.cpp: $(srcdir)/$(x86_g)
 	$(ANTLR_BIN) $(srcdir)/$(x86_g)
-

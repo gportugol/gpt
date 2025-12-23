@@ -3,15 +3,15 @@
 
 ;------------- begin nagoa --------------
 
-%define wcall call_   ; comment this line  if you do not like "call" macro 
+%define wcall call_   ; comment this line  if you do not like "call" macro
 
 
-%imacro call_ 1-*  
+%imacro call_ 1-*
 %assign i	%0
 	%if %0 > 1
 		%rep %0 - 1
-			%rotate -1  
-			%assign i	i-1		                               
+			%rotate -1
+			%assign i	i-1
 			%rotate -1
 			%ifidni %1,"ADDR_"
 			%rotate 1
@@ -19,14 +19,14 @@
 			push	eax
 			%rotate -1
 			%assign i	i-1
-			%else		
+			%else
 			%rotate 1
-			STDPUSH {%1}     
+			STDPUSH {%1}
 			%endif
 			%if i <=1
 			%exitrep
 			%endif
-		%endrep		
+		%endrep
 		%rotate -1
 	%endif
 	%ifid %1
@@ -70,7 +70,7 @@
 	%1 %2		; mark label and define data
 	%%skip:		; macro-local label
  %endm
- 
+
 ;%ifdef ONLY_NASM
   BITS 32
 
@@ -109,7 +109,7 @@
 	%endif
 
 	; ----- define image base, section alignment, file alignment,
-	;       code base, data base, characteristics, image size, 
+	;       code base, data base, characteristics, image size,
 	;       CODESIZE, DATASIZE and HDRSIZE
 
 	%ifdef DRIVER
@@ -133,7 +133,7 @@
 	   	%define  CHARACTERISTICS		210Eh
 	   	%define  __DLL
 ;	   	%define  DATASIZE			(end_iat - __iat_) + (end_reloc - _reloc)
-	   %else 
+	   %else
 	   	%define  IMAGEBASE 			exebase
 	   	%define  CHARACTERISTICS		103h
 	   %endif
@@ -235,7 +235,7 @@
 ; ----------------------------------------------------------------------------------
 	.magic                  	dw 	"MZ"
 	.cblp                   	dw 	90h
-	.cp                     	dw 	3	
+	.cp                     	dw 	3
 	.crlc                   	dw 	0
 	.cparhdr                	dw 	4
 	.minalloc               	dw 	0
@@ -304,10 +304,10 @@
 	.CheckSum               	dd 	0
 	.Subsystem              	dw 	SUBSYS
 	.DllCharacteristics     	dw 	0
-	.SizeOfStackReserve     	dd 	100000h 
-	.SizeOfStackCommit      	dd 	1000h   
-	.SizeOfHeapReserve      	dd 	100000h 
-	.SizeOfHeapCommit       	dd 	1000h   
+	.SizeOfStackReserve     	dd 	100000h
+	.SizeOfStackCommit      	dd 	1000h
+	.SizeOfHeapReserve      	dd 	100000h
+	.SizeOfHeapCommit       	dd 	1000h
 	.LoaderFlags            	dd 	0
 	.NumberOfRvaAndSizes    	dd 	10h
 ; ----------------------------------------------------------------------------------
@@ -359,10 +359,10 @@
   SectionTables:
 ; ----------------------------------------
 
-%define csize code_end - code 
+%define csize code_end - code
 
 text_section:
-	.SectionName            	db 	".text", 0, 0, 0     
+	.SectionName            	db 	".text", 0, 0, 0
 	.VirtualSize           		dd 	_data_vsize
 	.VirtualAddress         	dd 	_head_vsize
 	.SizeOfRawData          	dd 	_data_size
@@ -465,8 +465,8 @@ _vsize		equ	_head_vsize + _data_vsize
 ;	· The addres where is a string with the name of the imported
 ;	  module.
 ;	· The address of a directory (The Import Address Table: IAT)
-;	  that is a array whish entries are IMAGE_THUNK_DATA. Each 
-;	  IMAGE_THUNK_DATA is an RVA to a IMAGE_IMPORT_BY_NAME 
+;	  that is a array whish entries are IMAGE_THUNK_DATA. Each
+;	  IMAGE_THUNK_DATA is an RVA to a IMAGE_IMPORT_BY_NAME
 ; 	  structure which describes the imported function.
 ; --------------------------------------------------------------------
 %macro	library 2
@@ -481,10 +481,10 @@ _vsize		equ	_head_vsize + _data_vsize
 ; macro enlibrary: constructs a null IMAGE_IMPORT_DESCRIPTOR
 ; that indicates the end of the IMAGE_IMPORT_DESCRIPTOR's array.
 ; -----------------------------------------------------------------
-%define endlibrary times 5 dd 0 
+%define endlibrary times 5 dd 0
 
 ; -----------------------------------------------------------------
-; macro api_import: constructs the IMAGE_THUNK_DATA that points to 
+; macro api_import: constructs the IMAGE_THUNK_DATA that points to
 ; the IMAGE_IMPORT_BY_NAME structure. Uses tree parameters:
 ; 	· The name of the imported function
 ;	· The address of the IMAGE_IMPORT_BY_NAME struct for the
@@ -521,7 +521,7 @@ _vsize		equ	_head_vsize + _data_vsize
 ; --------------------------
 %macro IAT 0
  raw_code_end:
- align 20h, DB 0 
+ align 20h, DB 0
  code_end:
  BEGIN_IMPORT ntoskrnl.exe
 %endmacro
@@ -634,7 +634,7 @@ ENDM
     %endrep
     %if %0=3
      times 5 DD 0
-    %endif 
+    %endif
    %rotate 1
  %endif
  %else
@@ -645,7 +645,7 @@ ENDM
     %endrep
     %if %0=3
      times 5 DD 0
-    %endif 
+    %endif
    %rotate 1
  %endif
  %endif
@@ -656,14 +656,14 @@ ENDM
 %macro IMPDESCRIPTOR 1
   %ifdef _DRV_
    dd   %1_c
-  %else 
+  %else
    dd   0
   %endif
    dd   0
    dd   0
    rva  %1_i
    rva  %1
-%endmacro  
+%endmacro
 
 	; -----
 
@@ -727,7 +727,7 @@ ENDM
   %pop
  %endif
 END_IMPORT
-%endmacro 
+%endmacro
 
 	; -----
 
@@ -845,7 +845,7 @@ END_IMPORT
 ; :::: PE MACROS   nguga ::::::::::::::
 ;===========================================
 
-%macro IMPORT_END 0-*  
+%macro IMPORT_END 0-*
 _end_import:
 %define	import_size _end_import - import
 end

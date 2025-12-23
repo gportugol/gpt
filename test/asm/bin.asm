@@ -22,7 +22,7 @@ ehdr:                                            ; Elf32_Ehdr
               dw      0                          ;   e_shentsize
               dw      0                          ;   e_shnum
               dw      0                          ;   e_shstrndx
-  
+
 ehdrsize      equ     $ - ehdr
 
 ;;;;; data program header (read+write)
@@ -57,7 +57,7 @@ section .data
        hello:     db 'xla',10
        helloLen:  equ $-hello
 
-section .text 
+section .text
             _start_no equ $
 _start:
         mov eax, hello
@@ -78,4 +78,3 @@ _start:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 filesize   equ     $ - $$
-

@@ -12,7 +12,7 @@ class LogEntry {
 }
 
 class ChangeLog {
-  
+
   var $entries;
 
   function ChangeLog() {
@@ -23,14 +23,14 @@ class ChangeLog {
     }
   }
 
-  function getLog() {    
+  function getLog() {
     $filec = `svn log --xml -v https://thiago_silva@svn.berlios.de/svnroot/repos/gpt/trunk/gpt`;
-  
+
   //   if($GLOBALS['argc'] != 2) {
   //     die("-missing arg\n");
-  //   }  
+  //   }
   //   $filec = file_get_contents($GLOBALS['argv'][1]);
-  
+
     return $filec;
   }
 
@@ -93,7 +93,7 @@ class ChangeLog {
       }
 
       if((strpos($line, "NEW")!==FALSE) || (strpos($line, "FEATURE")!==FALSE)) {
-        $flag = "NEW";  
+        $flag = "NEW";
         continue;
       } else if(strpos($line, "FIX")!==FALSE) {
         $flag = "BUGFIX";
@@ -122,7 +122,7 @@ class ChangeLog {
     if(!count($files->path)) {
       return null;
     }
-    
+
     $ret = array();
     foreach($files->path as $file) {
       array_push($ret, $file);
@@ -141,7 +141,7 @@ class ChangeLog {
       }
 
       echo "$date";
-      
+
       foreach($logs as $log) {
         if(!$log->msgs) {
           continue;
@@ -154,7 +154,7 @@ class ChangeLog {
         echo "\n\n";
         foreach($log->files as $file) {
           echo "\t* $file:\n";
-        }        
+        }
 
         if(count($log->msgs['REGULAR'])) {
           foreach($log->msgs['REGULAR'] as $reg) {
@@ -167,7 +167,7 @@ class ChangeLog {
         }
 
         if(count($log->msgs['NEW'])) {
-          foreach($log->msgs['NEW'] as $new) {            
+          foreach($log->msgs['NEW'] as $new) {
             $this->printMsg($new, "\n\t-");
           }
         }
@@ -179,7 +179,7 @@ class ChangeLog {
           }
         }
       }
-      echo "\n\n";      
+      echo "\n\n";
     }
   }
 
@@ -187,7 +187,7 @@ class ChangeLog {
     //check if has any kind of message
     foreach($logs as $log) {
       if($log->msgs != null) {
-        return true;  
+        return true;
       }
     }
     return false;
@@ -212,19 +212,19 @@ class ChangeLog {
           if(!count($words)) break;
         }
       }
-      
+
       $first = $indent;
       if(!$keepIndent) {
         $other = substr($indent, 0, strlen($indent)-1);
       } else {
         $other = $indent;
-      }     
+      }
       $id = $first;
       foreach($lines as $line) {
         echo $id.$line;
         $id = $other;
       }
-    } 
+    }
   }
 }
 

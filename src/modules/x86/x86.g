@@ -62,7 +62,7 @@ options {
 
 algoritmo returns [string str]
   : #(T_KW_ALGORITMO id:T_IDENTIFICADOR) {x86.init(id->getText());}
-    (variaveis[X86::VAR_GLOBAL])? 
+    (variaveis[X86::VAR_GLOBAL])?
      principal
     (func_decls)*
 
@@ -100,7 +100,7 @@ matriz[int decl_type]
 {
   pair<int, list<string> > tp;
 }
-  : #(TI_VAR_MATRIX tp=tipo_matriz 
+  : #(TI_VAR_MATRIX tp=tipo_matriz
       (
         id:T_IDENTIFICADOR
         {x86.declareMatrix(decl_type, tp.first, id->getText(), tp.second);}
@@ -110,7 +110,7 @@ matriz[int decl_type]
 
 
 tipo_matriz returns [pair<int, list<string> > p] //pair<type, list<dimsize> >
-  : #(T_KW_INTEIROS 
+  : #(T_KW_INTEIROS
       {p.first = TIPO_INTEIRO;}
       (
         s1:T_INT_LIT
@@ -199,7 +199,7 @@ lvalue returns [pair< pair<int, bool>, string> p] //pair< pair<type, using_addr>
   Symbol symb;
   bool isprim;
   int multiplier;
-  int c;  
+  int c;
 }
   : #(id:T_IDENTIFICADOR
       {
@@ -240,7 +240,7 @@ lvalue returns [pair< pair<int, bool>, string> p] //pair< pair<type, using_addr>
     )
 
     {
-      if(symb.type.isPrimitive()) {        
+      if(symb.type.isPrimitive()) {
         x86.writeTEXT("mov ecx, 0");
       } else {
         x86.writeTEXT("pop ecx");
@@ -261,9 +261,9 @@ fcall[int expct_type] returns [int type]
 
   list<int> imp_ptypes;
 }
-  : #(TI_FCALL id:T_IDENTIFICADOR 
+  : #(TI_FCALL id:T_IDENTIFICADOR
       {
-        f = stable.getSymbol(SymbolTable::GlobalScope, id->getText()); //so we get the params                
+        f = stable.getSymbol(SymbolTable::GlobalScope, id->getText()); //so we get the params
         if(f.lexeme == "leia") {
           fname = x86.translateFuncLeia(id->getText(), expct_type);
           type = expct_type;
@@ -296,7 +296,7 @@ fcall[int expct_type] returns [int type]
                 x86.writeTEXT("addarg 'l'");
                 break;
             }
-          } else {            
+          } else {
             x86.writeTEXT("pop eax");
             x86.writeCast(etype, ptype);
             x86.writeTEXT("addarg eax");
@@ -306,14 +306,14 @@ fcall[int expct_type] returns [int type]
         }
       )*
     )
-    {      
+    {
       if(fname == "imprima") {
         s << "addarg " << args;
         x86.writeTEXT(s.str());
         x86.writeTEXT("call imprima");
         s.str("");
         s << "clargs " << ((args*2)+1);
-        x86.writeTEXT(s.str());      
+        x86.writeTEXT(s.str());
         x86.writeTEXT("print_lf"); //\n
       } else if(f.lexeme == "leia"){
         x86.writeTEXT(string("call ") + fname);
@@ -342,7 +342,7 @@ stm_ret
     expecting_type = TIPO_INTEIRO; // o retorno no bloco principal é do TIPO_INTEIRO
   }else{
     expecting_type = stable.getSymbol(SymbolTable::GlobalScope, x86.currentScope(), true).type.primitiveType();
-  }  
+  }
 }
   : #(T_KW_RETORNE (TI_NULL|etype=expr[expecting_type]))
     {
@@ -360,7 +360,7 @@ stm_ret
       	} else {
         	x86.writeCast(etype, expecting_type);
       	}
-      
+
       	x86.writeTEXT("return");
       }
     }
@@ -375,12 +375,12 @@ stm_se
   lbfim  = x86.createLabel(true, "fim_se");
 
   bool hasElse = false;
-  
+
   x86.writeTEXT("; se: expressao");
 }
   : #(T_KW_SE expr[TIPO_LOGICO]
 
-    {      
+    {
       x86.writeTEXT("; se: resultado");
       x86.writeTEXT("pop eax");
       x86.writeTEXT("cmp eax, 0");
@@ -416,7 +416,7 @@ stm_se
 
       s.str("");
       if(hasElse) {
-        s << lbfim << ":";        
+        s << lbfim << ":";
       } else {
         s << lbnext << ":";
       }
@@ -470,7 +470,7 @@ stm_repita
 
   x86.writeTEXT("; repita");
 }
-  : #(T_KW_REPITA 
+  : #(T_KW_REPITA
        (stm)*
       {
        x86.writeTEXT("; until expressao");
@@ -499,7 +499,7 @@ stm_para
 
   x86.writeTEXT("; para: lvalue:");
 }
-  : #(T_KW_PARA 
+  : #(T_KW_PARA
 
         lv=lvalue
         {
@@ -509,7 +509,7 @@ stm_para
           x86.writeTEXT("; para: de:");
         }
 
-        de_type=expr[TIPO_INTEIRO] 
+        de_type=expr[TIPO_INTEIRO]
 
         {
           x86.writeTEXT("; para: de attr:");
@@ -522,7 +522,7 @@ stm_para
 
         {
           x86.writeTEXT("pop eax");
-          x86.writeCast(ate_type, lv.first.first);          
+          x86.writeCast(ate_type, lv.first.first);
           x86.writeTEXT("push eax");//top stack tem "ate"
 
         }
@@ -552,13 +552,13 @@ stm_para
 
           s.str("");
           s << lbpara << ":";
-          x86.writeTEXT(s.str());          
+          x86.writeTEXT(s.str());
         }
 
       (stm)*
 
         {
-          //calcular passo [eax]          
+          //calcular passo [eax]
           x86.writeTEXT("mov ecx, dword [esp+4]");
           s.str("");
           s << "lea edx, [" << X86::makeID(lv.second) << "]";
@@ -576,8 +576,8 @@ stm_para
             }
           }
           x86.writeTEXT(s.str());
-          
-          //desviar constrole          
+
+          //desviar constrole
           x86.writeTEXT("mov ebx, dword [esp]");
           x86.writeTEXT("cmp eax, ebx");
 
@@ -592,7 +592,7 @@ stm_para
           s.str("");
           s << "lea edx, [" << X86::makeID(lv.second) << "]";
           x86.writeTEXT(s.str());
-          x86.writeTEXT("mov ecx, dword [esp+4]");          
+          x86.writeTEXT("mov ecx, dword [esp+4]");
           x86.writeTEXT("lea edx, [edx + ecx * SIZEOF_DWORD]");
           x86.writeTEXT("mov dword [edx], eax");
 
@@ -609,7 +609,7 @@ stm_para
           s.str("");
           s << "lea edx, [" << X86::makeID(lv.second) << "]";
           x86.writeTEXT(s.str());
-          x86.writeTEXT("mov ecx, dword [esp+4]");          
+          x86.writeTEXT("mov ecx, dword [esp+4]");
           x86.writeTEXT("lea edx, [edx + ecx * SIZEOF_DWORD]");
           x86.writeTEXT("mov dword [edx], ebx");
 
@@ -625,7 +625,7 @@ passo returns [pair<int, string> p]
   : #(T_KW_PASSO (
           T_MAIS   {p.first = 0;}
         | T_MENOS  {p.first = 1;}
-        )? 
+        )?
       i:T_INT_LIT {p.second = i->getText();}
     )
   ;
@@ -636,7 +636,7 @@ expr[int expecting_type] returns [int etype]
   stringstream s;
   etype = #expr->getEvalType();
 }
-  : #(T_KW_OU     e1=expr[expecting_type] e2=expr[expecting_type]) 
+  : #(T_KW_OU     e1=expr[expecting_type] e2=expr[expecting_type])
       {
         x86.writeOuExpr();
       }
@@ -681,7 +681,7 @@ expr[int expecting_type] returns [int etype]
         x86.writeMenorEqExpr(e1, e2);
       }
 
-  | #(T_MAIS  e1=expr[expecting_type] e2=expr[expecting_type]) 
+  | #(T_MAIS  e1=expr[expecting_type] e2=expr[expecting_type])
       {
         x86.writeMaisExpr(e1,e2);
       }
@@ -734,7 +734,7 @@ element[int expecting_type] returns [int etype]
   ;
 
 literal returns [pair<int, string> p]
-  : s:T_STRING_LIT        
+  : s:T_STRING_LIT
     {
       if(s->getText().length() > 0) {
         p.second = x86.addGlobalLiteral(s->getText());
@@ -751,7 +751,7 @@ literal returns [pair<int, string> p]
   ;
 
 func_decls
-  : #(id:T_IDENTIFICADOR   
+  : #(id:T_IDENTIFICADOR
       {
         x86.createScope(id->getText());
       }

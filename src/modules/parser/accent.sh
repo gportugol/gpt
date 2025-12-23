@@ -29,4 +29,4 @@ sed  's/"fim-var.*veis/"fim-variáveis/;
 # 	"\"fun\303\247\303\243o\"",
 # 	"\"n\303\272mero real\"",
 # 	"n\303\272mero inteiro",
-# 
+#

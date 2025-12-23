@@ -97,7 +97,7 @@ foo, bar tt>
 --------------
 <algoritmo bla;
 variáveis
-foo, bar 
+foo, bar
 tt>
 --------------
 <algoritmo bla;
@@ -298,7 +298,7 @@ variáveis
   x : inteiro;
 fim-variáveis
 início
-  x := 
+  x :=
 1
 fim>
 --------------
@@ -469,7 +469,7 @@ variáveis
   x : inteiro;
 fim-variáveis
 início
-  x(1, 
+  x(1,
   bla
 fim>
 --------------
@@ -525,7 +525,7 @@ variáveis
   x : inteiro;
 fim-variáveis
 início
-  x(1 
+  x(1
   2
 fim>
 --------------
@@ -672,7 +672,7 @@ início
 --------------
 <algoritmo bla;
 início
-  enquanto x faça 
+  enquanto x faça
     x := 2;
 fim>
 --------------

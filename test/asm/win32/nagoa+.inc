@@ -2,8 +2,8 @@
 ;-----------------------------------------------------------------------------------
 ; 12 Março  2005 NAGOA+.INC        http://visual-assembler.pt.vu
 ;-----------------------------------------------------------------------------------
-; nagoa.inc is part of NAGOA RAD IDE  
-; place this file on   c:\lab\vasm\inc  
+; nagoa.inc is part of NAGOA RAD IDE
+; place this file on   c:\lab\vasm\inc
 ;-----------------------------------------------------------------------------------
 ; NAGOA made by  PedroGC Aka  Nguga
 ;-----------------------------------------------------------------------------------
@@ -17,10 +17,10 @@
 
 ;======================================================
 ;  CALL is real assembly instruction "call" is a macro but if you do not like use instead
-;  call_ or invoke or stdcall  and then   CALL = call  assembly instruction , 
+;  call_ or invoke or stdcall  and then   CALL = call  assembly instruction ,
 ;  for that just comment this line above .
 ;-------------------------------------------------------------------------------------
-%define wcall call_   ; comment this line  if you do not like "call" macro 
+%define wcall call_   ; comment this line  if you do not like "call" macro
 ;-------------------------------------------------------------------------------------
 ;======================================================
 
@@ -92,7 +92,7 @@
 	%endif
 
 	; ----- define image base, section alignment, file alignment,
-	;       code base, data base, characteristics, image size, 
+	;       code base, data base, characteristics, image size,
 	;       CODESIZE, DATASIZE and HDRSIZE
 
 	%ifdef DRIVER
@@ -116,7 +116,7 @@
 	   	%define  CHARACTERISTICS		210Eh
 	   	%define  __DLL
 ;	   	%define  DATASIZE			(end_iat - __iat_) + (end_reloc - _reloc)
-	   %else 
+	   %else
 	   	%define  IMAGEBASE 			exebase
 	   	%define  CHARACTERISTICS		103h
 	   %endif
@@ -218,7 +218,7 @@
 ; ----------------------------------------------------------------------------------
 	.magic                  	dw 	"MZ"
 	.cblp                   	dw 	90h
-	.cp                     	dw 	3	
+	.cp                     	dw 	3
 	.crlc                   	dw 	0
 	.cparhdr                	dw 	4
 	.minalloc               	dw 	0
@@ -287,10 +287,10 @@
 	.CheckSum               	dd 	0
 	.Subsystem              	dw 	SUBSYS
 	.DllCharacteristics     	dw 	0
-	.SizeOfStackReserve     	dd 	100000h 
-	.SizeOfStackCommit      	dd 	1000h   
-	.SizeOfHeapReserve      	dd 	100000h 
-	.SizeOfHeapCommit       	dd 	1000h   
+	.SizeOfStackReserve     	dd 	100000h
+	.SizeOfStackCommit      	dd 	1000h
+	.SizeOfHeapReserve      	dd 	100000h
+	.SizeOfHeapCommit       	dd 	1000h
 	.LoaderFlags            	dd 	0
 	.NumberOfRvaAndSizes    	dd 	10h
 ; ----------------------------------------------------------------------------------
@@ -370,10 +370,10 @@
   SectionTables:
 ; ----------------------------------------
 
-%define csize code_end - code 
+%define csize code_end - code
 
 text_section:
-	.SectionName            	db 	".text", 0, 0, 0     
+	.SectionName            	db 	".text", 0, 0, 0
 	.VirtualSize           		dd 	_data_vsize
 	.VirtualAddress         	dd 	_head_vsize
 	.SizeOfRawData          	dd 	_data_size
@@ -571,8 +571,8 @@ _vsize		equ	_head_vsize + _data_vsize
 ;	· The addres where is a string with the name of the imported
 ;	  module.
 ;	· The address of a directory (The Import Address Table: IAT)
-;	  that is a array whish entries are IMAGE_THUNK_DATA. Each 
-;	  IMAGE_THUNK_DATA is an RVA to a IMAGE_IMPORT_BY_NAME 
+;	  that is a array whish entries are IMAGE_THUNK_DATA. Each
+;	  IMAGE_THUNK_DATA is an RVA to a IMAGE_IMPORT_BY_NAME
 ; 	  structure which describes the imported function.
 ; --------------------------------------------------------------------
 %macro	library 2
@@ -587,10 +587,10 @@ _vsize		equ	_head_vsize + _data_vsize
 ; macro enlibrary: constructs a null IMAGE_IMPORT_DESCRIPTOR
 ; that indicates the end of the IMAGE_IMPORT_DESCRIPTOR's array.
 ; -----------------------------------------------------------------
-%define endlibrary times 5 dd 0 
+%define endlibrary times 5 dd 0
 
 ; -----------------------------------------------------------------
-; macro api_import: constructs the IMAGE_THUNK_DATA that points to 
+; macro api_import: constructs the IMAGE_THUNK_DATA that points to
 ; the IMAGE_IMPORT_BY_NAME structure. Uses tree parameters:
 ; 	· The name of the imported function
 ;	· The address of the IMAGE_IMPORT_BY_NAME struct for the
@@ -627,7 +627,7 @@ _vsize		equ	_head_vsize + _data_vsize
 ; --------------------------
 %macro IAT 0
  raw_code_end:
- align 20h, DB 0 
+ align 20h, DB 0
  code_end:
  BEGIN_IMPORT ntoskrnl.exe
 %endmacro
@@ -740,7 +740,7 @@ ENDM
     %endrep
     %if %0=3
      times 5 DD 0
-    %endif 
+    %endif
    %rotate 1
  %endif
  %else
@@ -751,7 +751,7 @@ ENDM
     %endrep
     %if %0=3
      times 5 DD 0
-    %endif 
+    %endif
    %rotate 1
  %endif
  %endif
@@ -762,14 +762,14 @@ ENDM
 %macro IMPDESCRIPTOR 1
   %ifdef _DRV_
    dd   %1_c
-  %else 
+  %else
    dd   0
   %endif
    dd   0
    dd   0
    rva  %1_i
    rva  %1
-%endmacro  
+%endmacro
 
 	; -----
 
@@ -833,7 +833,7 @@ ENDM
   %pop
  %endif
 END_IMPORT
-%endmacro 
+%endmacro
 
 	; -----
 
@@ -1006,11 +1006,11 @@ END_IMPORT
 ; -----------------------------------------------------------------
 ; Type of control
 ; -----------------------------------------------------------------
-    %define    BUTTON              0x80 
-    %define    EDIT                0x81 
-    %define    STATIC              0x82 
-    %define    LISTBOX             0x83 
-    %define    SCROLLBAR           0x84 
+    %define    BUTTON              0x80
+    %define    EDIT                0x81
+    %define    STATIC              0x82
+    %define    LISTBOX             0x83
+    %define    SCROLLBAR           0x84
     %define    COMBOBOX            0x85
 ; -----------------------------------------------------------------
 ; Equs for menus
@@ -1325,11 +1325,11 @@ resources:
 ; macro _dialog_first_pars_
 ; -----------------------------------------------------------------
 %macro	_dialog_first_pars_ 7
-	%%lStyle		DD  %1 
-	%%lExtendedStyle	DD  %2    	; new for NT 
-	%%NumberOfItems		DW  %3 
+	%%lStyle		DD  %1
+	%%lExtendedStyle	DD  %2    	; new for NT
+	%%NumberOfItems		DW  %3
 
-	%%x			DW   %4 
+	%%x			DW   %4
 	%%y			DW   %5
 
 	%%cx			DW   %6
@@ -1337,7 +1337,7 @@ resources:
 %endmacro
 
 ; ---------------------------------------------------------------
-; macro BEGIN_DIALOG 
+; macro BEGIN_DIALOG
 ; ---------------------------------------------------------------
 ;
 ; ---------------------------------------------------------------
@@ -1357,7 +1357,7 @@ resources:
 	_dialog_first_pars_ %1, %2, %3, %4, %5, %6, %7
 	%%MenuName		DW  %8
 	%%ClassName		DW   0
-	
+
 	%%szCaption
 	%IFNDEF		CAPTION
 		%DEFINE		CAPTION DO_UNICODEZ
@@ -1420,7 +1420,7 @@ ALIGN 4, DB 0
   %%lStyle		DD	%1
   %%lExtendedStyle	DD 	%2
   %%x			DW	%3
-  %%y			DW	%4 
+  %%y			DW	%4
   %%cx			DW  	%5
   %%cy			DW  	%6
   %%wId			DW 	%7
@@ -1430,7 +1430,7 @@ ALIGN 4, DB 0
 ; --------------------------------------------------------------
  %DEFINE		NOTEXT  DW 0
 ; -----------------------------------------------------------------
-; macro EndControl 
+; macro EndControl
 ; -----------------------------------------------------------------
 %macro EndControl	0
 	%%nExtraStuff		DW 	0
@@ -1457,8 +1457,8 @@ ALIGN 4, DB 0
 ; macro NormalMenuItem
 ; -----------------------------------------------------------------
 %macro NormalMenuItem 	3+
-  %%fItemFlags		DW	%1	; 
-  %%wMenuID		DW	%2	; 
+  %%fItemFlags		DW	%1	;
+  %%wMenuID		DW	%2	;
   %%szItemText
   %ifstr %3
    UTEXT		%3
@@ -1688,7 +1688,7 @@ endstruc
   %assign %%_i 1
   %rep %1
    __add_ %%tag, ..@mrels, %%_i
-   setrel %%tag, 3			; <-- opcode size: movdr 
+   setrel %%tag, 3			; <-- opcode size: movdr
    %assign %%_i %%_i+1
   %endrep
 %endmacro
@@ -1699,7 +1699,7 @@ endstruc
   %assign %%_i 1
   %rep %1
    __add_ %%tag, ..@nrels, %%_i
-   setrel %%tag, 1			; <-- opcode size: rmov 
+   setrel %%tag, 1			; <-- opcode size: rmov
    %assign %%_i %%_i+1
   %endrep
 %endmacro
@@ -1710,7 +1710,7 @@ endstruc
   %assign %%_i 1
   %rep %1
    __add_ %%tag, ..@orels, %%_i
-   setrel %%tag, 2			; <-- opcode size: rpush 
+   setrel %%tag, 2			; <-- opcode size: rpush
    %assign %%_i %%_i+1
   %endrep
 %endmacro
@@ -1721,7 +1721,7 @@ endstruc
   %assign %%_i 1
   %rep %1
    __add_ %%tag, ..@prels, %%_i
-   setrel %%tag, 2			; <-- opcode size: rpop  
+   setrel %%tag, 2			; <-- opcode size: rpop
    %assign %%_i %%_i+1
   %endrep
 %endmacro
@@ -1732,7 +1732,7 @@ endstruc
   %assign %%_i 1
   %rep %1
    __add_ %%tag, ..@qrels, %%_i
-   setrel %%tag, 2			; <-- opcode size: relea  
+   setrel %%tag, 2			; <-- opcode size: relea
    %assign %%_i %%_i+1
   %endrep
 %endmacro
@@ -1933,12 +1933,12 @@ endstruc
 
 
 
-; ------------------- Resource Compiler Header File -------------------- 
+; ------------------- Resource Compiler Header File --------------------
 
 ;  This file supplies the constants used by the resource compiler for
-;         various 32 bit resource components in .RC script files. 
+;         various 32 bit resource components in .RC script files.
 
-; ---------------------------------------------------------------------- 
+; ----------------------------------------------------------------------
 
 
 
@@ -1979,7 +1979,7 @@ endstruc
     %define WM_DDE_POKE         	(WM_DDE_FIRST+7)
     %define WM_DDE_EXECUTE	    	(WM_DDE_FIRST+8)
     %define WM_DDE_LAST         	(WM_DDE_FIRST+8)
-    
+
     %define HDS_HORZ                0x0000
     %define HDS_BUTTONS             0x0002
     %define HDS_HOTTRACK            0x0004
@@ -1994,12 +1994,12 @@ endstruc
     %define RBS_AUTOSIZE            0x2000
     %define RBS_VERTICALGRIPPER     0x4000
     %define RBS_DBLCLKTOGGLE        0x8000
-    
+
     %define TTS_ALWAYSTIP           0x01
     %define TTS_NOPREFIX            0x02
-    
+
     %define SBARS_SIZEGRIP          0x0100
-    
+
     %define TBS_AUTOTICKS           0x0001
     %define TBS_VERT                0x0002
     %define TBS_HORZ                0x0000
@@ -2013,7 +2013,7 @@ endstruc
     %define TBS_FIXEDLENGTH         0x0040
     %define TBS_NOTHUMB             0x0080
     %define TBS_TOOLTIPS            0x0100
-    
+
     %define UDS_WRAP                0x0001
     %define UDS_SETBUDDYINT         0x0002
     %define UDS_ALIGNRIGHT          0x0004
@@ -2023,11 +2023,11 @@ endstruc
     %define UDS_HORZ                0x0040
     %define UDS_NOTHOUSANDS         0x0080
     %define UDS_HOTTRACK            0x0100
-    
+
     %define PBS_SMOOTH              0x01
     %define PBS_VERTICAL            0x04
-    
-; --------------------- Common Control Styles ------------------------- 
+
+; --------------------- Common Control Styles -------------------------
 
     %define CCS_TOP                 0x00000001
     %define CCS_NOMOVEY             0x00000002
@@ -2040,7 +2040,7 @@ endstruc
     %define CCS_LEFT                (CCS_VERT | CCS_TOP)
     %define CCS_RIGHT               (CCS_VERT | CCS_BOTTOM)
     %define CCS_NOMOVEX             (CCS_VERT | CCS_NOMOVEY)
-    
+
     %define LVS_ICON                0x0000
     %define LVS_REPORT              0x0001
     %define LVS_SMALLICON           0x0002
@@ -2078,7 +2078,7 @@ endstruc
     %define TVS_FULLROWSELECT       0x1000
     %define TVS_NOSCROLL            0x2000
     %define TVS_NONEVENHEIGHT       0x4000
-    
+
     %define TCS_SCROLLOPPOSITE      0x0001
     %define TCS_BOTTOM              0x0002
     %define TCS_RIGHT               0x0002
@@ -2099,12 +2099,12 @@ endstruc
     %define TCS_OWNERDRAWFIXED      0x2000
     %define TCS_TOOLTIPS            0x4000
     %define TCS_FOCUSNEVER          0x8000
-    
+
     %define ACS_CENTER              0x0001
     %define ACS_TRANSPARENT         0x0002
     %define ACS_AUTOPLAY            0x0004
     %define ACS_TIMER               0x0008
-    
+
     %define DTS_UPDOWN          0x0001
     %define DTS_SHOWNONE        0x0002
     %define DTS_SHORTDATEFORMAT 0x0000
@@ -2112,13 +2112,13 @@ endstruc
     %define DTS_TIMEFORMAT      0x0009
     %define DTS_APPCANPARSE     0x0010
     %define DTS_RIGHTALIGN      0x0020
-    
+
     %define PGS_VERT                0x00000000
     %define PGS_HORZ                0x00000001
     %define PGS_AUTOSCROLL          0x00000002
     %define PGS_DRAGNDROP           0x00000004
-    
-    ; style definition 
+
+    ; style definition
 
     %define NFS_EDIT                0x0001
     %define NFS_STATIC              0x0002
@@ -2126,7 +2126,7 @@ endstruc
     %define NFS_BUTTON              0x0008
     %define NFS_ALL                 0x0010
 
-    ; ShowWindow() Commands 
+    ; ShowWindow() Commands
 
     %define SW_HIDE             0
     %define SW_SHOWNORMAL       1
@@ -2143,41 +2143,41 @@ endstruc
     %define SW_SHOWDEFAULT      10
     %define SW_FORCEMINIMIZE    11
     %define SW_MAX              11
-    
+
     ; Old ShowWindow() Commands
-     
+
     %define HIDE_WINDOW         0
     %define SHOW_OPENWINDOW     1
     %define SHOW_ICONWINDOW     2
     %define SHOW_FULLSCREEN     3
     %define SHOW_OPENNOACTIVATE 4
-    
+
     ; Identifiers for the WM_SHOWWINDOW message
-     
+
     %define SW_PARENTCLOSING    1
     %define SW_OTHERZOOM        2
     %define SW_PARENTOPENING    3
     %define SW_OTHERUNZOOM      4
-    
+
     ; Virtual Keys, Standard Set
-     
+
     %define VK_LBUTTON        0x01
     %define VK_RBUTTON        0x02
     %define VK_CANCEL         0x03
     %define VK_MBUTTON        0x04
-    
+
     %define VK_BACK           0x08
     %define VK_TAB            0x09
-    
+
     %define VK_CLEAR          0x0C
     %define VK_RETURN         0x0D
-    
+
     %define VK_SHIFT          0x10
     %define VK_CONTROL        0x11
     %define VK_MENU           0x12
     %define VK_PAUSE          0x13
     %define VK_CAPITAL        0x14
-    
+
     %define VK_KANA           0x15
     %define VK_HANGEUL        0x15
     %define VK_HANGUL         0x15
@@ -2185,14 +2185,14 @@ endstruc
     %define VK_FINAL          0x18
     %define VK_HANJA          0x19
     %define VK_KANJI          0x19
-    
+
     %define VK_ESCAPE         0x1B
-    
+
     %define VK_CONVERT        0x1C
     %define VK_NONCONVERT     0x1D
     %define VK_ACCEPT         0x1E
     %define VK_MODECHANGE     0x1F
-    
+
     %define VK_SPACE          0x20
     %define VK_PRIOR          0x21
     %define VK_NEXT           0x22
@@ -2209,14 +2209,14 @@ endstruc
     %define VK_INSERT         0x2D
     %define VK_DELETE         0x2E
     %define VK_HELP           0x2F
-    
-    ; VK_0 thru VK_9 are the same as ASCII '0' thru '9' (0x30 - 0x39) 
-    ; VK_A thru VK_Z are the same as ASCII 'A' thru 'Z' (0x41 - 0x5A) 
-    
+
+    ; VK_0 thru VK_9 are the same as ASCII '0' thru '9' (0x30 - 0x39)
+    ; VK_A thru VK_Z are the same as ASCII 'A' thru 'Z' (0x41 - 0x5A)
+
     %define VK_LWIN           0x5B
     %define VK_RWIN           0x5C
     %define VK_APPS           0x5D
-    
+
     %define VK_NUMPAD0        0x60
     %define VK_NUMPAD1        0x61
     %define VK_NUMPAD2        0x62
@@ -2275,7 +2275,7 @@ endstruc
     %define VK_NONAME         0xFC
     %define VK_PA1            0xFD
     %define VK_OEM_CLEAR      0xFE
-    
+
     %define WM_NULL                         0x0000
     %define WM_CREATE                       0x0001
     %define WM_DESTROY                      0x0002
@@ -2283,12 +2283,12 @@ endstruc
     %define WM_SIZE                         0x0005
     %define WM_ACTIVATE                     0x0006
 
-    ; WM_ACTIVATE state values 
+    ; WM_ACTIVATE state values
 
     %define     WA_INACTIVE     0
     %define     WA_ACTIVE       1
     %define     WA_CLICKACTIVE  2
-    
+
     %define WM_SETFOCUS                     0x0007
     %define WM_KILLFOCUS                    0x0008
     %define WM_ENABLE                       0x000A
@@ -2307,7 +2307,7 @@ endstruc
     %define WM_SHOWWINDOW                   0x0018
     %define WM_WININICHANGE                 0x001A
     %define WM_SETTINGCHANGE                WM_WININICHANGE
-    
+
     %define WM_DEVMODECHANGE                0x001B
     %define WM_ACTIVATEAPP                  0x001C
     %define WM_FONTCHANGE                   0x001D
@@ -2317,7 +2317,7 @@ endstruc
     %define WM_MOUSEACTIVATE                0x0021
     %define WM_CHILDACTIVATE                0x0022
     %define WM_QUEUESYNC                    0x0023
-    
+
     %define WM_GETMINMAXINFO                0x0024
     %define WM_PAINTICON                    0x0026
     %define WM_ICONERASEBKGND               0x0027
@@ -2341,17 +2341,17 @@ endstruc
     %define WM_WINDOWPOSCHANGED             0x0047
     %define WM_POWER                        0x0048
 
-    ; wParam for WM_POWER window message and DRV_POWER driver notification 
+    ; wParam for WM_POWER window message and DRV_POWER driver notification
 
     %define PWR_OK              1
     %define PWR_FAIL            (-1)
     %define PWR_SUSPENDREQUEST  1
     %define PWR_SUSPENDRESUME   2
     %define PWR_CRITICALRESUME  3
-    
+
     %define WM_COPYDATA                     0x004A
     %define WM_CANCELJOURNAL                0x004B
-    
+
     %define WM_NOTIFY                       0x004E
     %define WM_INPUTLANGCHANGEREQUEST       0x0050
     %define WM_INPUTLANGCHANGE              0x0051
@@ -2359,19 +2359,19 @@ endstruc
     %define WM_HELP                         0x0053
     %define WM_USERCHANGED                  0x0054
     %define WM_NOTIFYFORMAT                 0x0055
-    
+
     %define NFR_ANSI                             1
     %define NFR_UNICODE                          2
     %define NF_QUERY                             3
     %define NF_REQUERY                           4
-    
+
     %define WM_CONTEXTMENU                  0x007B
     %define WM_STYLECHANGING                0x007C
     %define WM_STYLECHANGED                 0x007D
     %define WM_DISPLAYCHANGE                0x007E
     %define WM_GETICON                      0x007F
     %define WM_SETICON                      0x0080
-    
+
     %define WM_NCCREATE                     0x0081
     %define WM_NCDESTROY                    0x0082
     %define WM_NCCALCSIZE                   0x0083
@@ -2390,7 +2390,7 @@ endstruc
     %define WM_NCMBUTTONDOWN                0x00A7
     %define WM_NCMBUTTONUP                  0x00A8
     %define WM_NCMBUTTONDBLCLK              0x00A9
-    
+
     %define WM_KEYFIRST                     0x0100
     %define WM_KEYDOWN                      0x0100
     %define WM_KEYUP                        0x0101
@@ -2401,12 +2401,12 @@ endstruc
     %define WM_SYSCHAR                      0x0106
     %define WM_SYSDEADCHAR                  0x0107
     %define WM_KEYLAST                      0x0108
-    
+
     %define WM_IME_STARTCOMPOSITION         0x010D
     %define WM_IME_ENDCOMPOSITION           0x010E
     %define WM_IME_COMPOSITION              0x010F
     %define WM_IME_KEYLAST                  0x010F
-    
+
     %define WM_INITDIALOG                   0x0110
     %define WM_COMMAND                      0x0111
     %define WM_SYSCOMMAND                   0x0112
@@ -2423,7 +2423,7 @@ endstruc
     %define WM_MENUGETOBJECT                0x0124
     %define WM_UNINITMENUPOPUP              0x0125
     %define WM_MENUCOMMAND                  0x0126
-    
+
     %define WM_CTLCOLORMSGBOX               0x0132
     %define WM_CTLCOLOREDIT                 0x0133
     %define WM_CTLCOLORLISTBOX              0x0134
@@ -2431,7 +2431,7 @@ endstruc
     %define WM_CTLCOLORDLG                  0x0136
     %define WM_CTLCOLORSCROLLBAR            0x0137
     %define WM_CTLCOLORSTATIC               0x0138
-    
+
     %define WM_MOUSEFIRST                   0x0200
     %define WM_MOUSEMOVE                    0x0200
     %define WM_LBUTTONDOWN                  0x0201
@@ -2443,19 +2443,19 @@ endstruc
     %define WM_MBUTTONDOWN                  0x0207
     %define WM_MBUTTONUP                    0x0208
     %define WM_MBUTTONDBLCLK                0x0209
-    
+
     %define WHEEL_DELTA                     120
     %define WHEEL_PAGESCROLL                (UINT_MAX)
-    
+
     %define WM_PARENTNOTIFY                 0x0210
     %define WM_ENTERMENULOOP                0x0211
     %define WM_EXITMENULOOP                 0x0212
-    
+
     %define WM_NEXTMENU                     0x0213
     %define WM_SIZING                       0x0214
     %define WM_CAPTURECHANGED               0x0215
     %define WM_MOVING                       0x0216
-    %define WM_POWERBROADCAST               0x0218      
+    %define WM_POWERBROADCAST               0x0218
     %define WM_DEVICECHANGE                 0x0219
     %define WM_MDICREATE                    0x0220
     %define WM_MDIDESTROY                   0x0221
@@ -2467,13 +2467,13 @@ endstruc
     %define WM_MDICASCADE                   0x0227
     %define WM_MDIICONARRANGE               0x0228
     %define WM_MDIGETACTIVE                 0x0229
-    
+
     %define WM_MDISETMENU                   0x0230
     %define WM_ENTERSIZEMOVE                0x0231
     %define WM_EXITSIZEMOVE                 0x0232
     %define WM_DROPFILES                    0x0233
     %define WM_MDIREFRESHMENU               0x0234
-    
+
     %define WM_IME_SETCONTEXT               0x0281
     %define WM_IME_NOTIFY                   0x0282
     %define WM_IME_CONTROL                  0x0283
@@ -2483,10 +2483,10 @@ endstruc
     %define WM_IME_REQUEST                  0x0288
     %define WM_IME_KEYDOWN                  0x0290
     %define WM_IME_KEYUP                    0x0291
-    
+
     %define WM_MOUSEHOVER                   0x02A1
     %define WM_MOUSELEAVE                   0x02A3
-    
+
     %define WM_CUT                          0x0300
     %define WM_COPY                         0x0301
     %define WM_PASTE                        0x0302
@@ -2506,23 +2506,23 @@ endstruc
     %define WM_PALETTEISCHANGING            0x0310
     %define WM_PALETTECHANGED               0x0311
     %define WM_HOTKEY                       0x0312
-    
+
     %define WM_PRINT                        0x0317
     %define WM_PRINTCLIENT                  0x0318
-    
+
     %define WM_HANDHELDFIRST                0x0358
     %define WM_HANDHELDLAST                 0x035F
-    
+
     %define WM_AFXFIRST                     0x0360
     %define WM_AFXLAST                      0x037F
-    
+
     %define WM_PENWINFIRST                  0x0380
     %define WM_PENWINLAST                   0x038F
     %define WM_APP                          0x8000
-    
+
     %define WM_USER                         0x0400
-    
-    ;  wParam for WM_SIZING message  
+
+    ;  wParam for WM_SIZING message
 
     %define WMSZ_LEFT           1
     %define WMSZ_RIGHT          2
@@ -2533,7 +2533,7 @@ endstruc
     %define WMSZ_BOTTOMLEFT     7
     %define WMSZ_BOTTOMRIGHT    8
 
-    ; WM_NCHITTEST and MOUSEHOOKSTRUCT Mouse Position Codes 
+    ; WM_NCHITTEST and MOUSEHOOKSTRUCT Mouse Position Codes
 
     %define HTERROR             (-2)
     %define HTTRANSPARENT       (-1)
@@ -2564,25 +2564,25 @@ endstruc
     %define HTOBJECT            19
     %define HTCLOSE             20
     %define HTHELP              21
-    
+
     %define SMTO_NORMAL         0x0000
     %define SMTO_BLOCK          0x0001
     %define SMTO_ABORTIFHUNG    0x0002
     %define SMTO_NOTIMEOUTIFNOTHUNG 0x0008
 
-    ; WM_MOUSEACTIVATE Return Codes 
+    ; WM_MOUSEACTIVATE Return Codes
 
     %define MA_ACTIVATE         1
     %define MA_ACTIVATEANDEAT   2
     %define MA_NOACTIVATE       3
     %define MA_NOACTIVATEANDEAT 4
 
-    ; WM_SETICON / WM_GETICON Type Codes 
+    ; WM_SETICON / WM_GETICON Type Codes
 
     %define ICON_SMALL          0
     %define ICON_BIG            1
 
-    ; WM_SIZE message wParam values 
+    ; WM_SIZE message wParam values
 
     %define SIZE_RESTORED       0
     %define SIZE_MINIMIZED      1
@@ -2590,7 +2590,7 @@ endstruc
     %define SIZE_MAXSHOW        3
     %define SIZE_MAXHIDE        4
 
-    ; Obsolete constant names 
+    ; Obsolete constant names
 
     %define SIZENORMAL          SIZE_RESTORED
     %define SIZEICONIC          SIZE_MINIMIZED
@@ -2598,7 +2598,7 @@ endstruc
     %define SIZEZOOMSHOW        SIZE_MAXSHOW
     %define SIZEZOOMHIDE        SIZE_MAXHIDE
 
-    ; WM_NCCALCSIZE "window valid rect" return values 
+    ; WM_NCCALCSIZE "window valid rect" return values
 
     %define WVR_ALIGNTOP        0x0010
     %define WVR_ALIGNLEFT       0x0020
@@ -2609,22 +2609,22 @@ endstruc
     %define WVR_REDRAW         (WVR_HREDRAW | \
                                 WVR_VREDRAW)
 
-    ; Key State Masks for Mouse Messages 
+    ; Key State Masks for Mouse Messages
 
     %define MK_LBUTTON          0x0001
     %define MK_RBUTTON          0x0002
     %define MK_SHIFT            0x0004
     %define MK_CONTROL          0x0008
     %define MK_MBUTTON          0x0010
-    
+
     %define TME_HOVER       0x00000001
     %define TME_LEAVE       0x00000002
     %define TME_QUERY       0x40000000
     %define TME_CANCEL      0x80000000
-    
+
     %define HOVER_DEFAULT   0xFFFFFFFF
 
-    ; Window Styles 
+    ; Window Styles
 
     %define WS_OVERLAPPED       0x00000000
     %define WS_POPUP            0x80000000
@@ -2644,7 +2644,7 @@ endstruc
     %define WS_THICKFRAME       0x00040000
     %define WS_GROUP            0x00020000
     %define WS_TABSTOP          0x00010000
-    
+
     %define WS_MINIMIZEBOX      0x00020000
     %define WS_MAXIMIZEBOX      0x00010000
 
@@ -2653,7 +2653,7 @@ endstruc
     %define WS_SIZEBOX          WS_THICKFRAME
     %define WS_TILEDWINDOW      WS_OVERLAPPEDWINDOW
 
-    ; Common Window Styles 
+    ; Common Window Styles
 
     %define WS_OVERLAPPEDWINDOW (WS_OVERLAPPED     | \
                                  WS_CAPTION        | \
@@ -2661,14 +2661,14 @@ endstruc
                                  WS_THICKFRAME     | \
                                  WS_MINIMIZEBOX    | \
                                  WS_MAXIMIZEBOX)
-    
+
     %define WS_POPUPWINDOW      (WS_POPUP          | \
                                  WS_BORDER         | \
                                  WS_SYSMENU)
-    
+
     %define WS_CHILDWINDOW      (WS_CHILD)
 
-    ; Extended Window Styles 
+    ; Extended Window Styles
 
     %define WS_EX_DLGMODALFRAME     0x00000001
     %define WS_EX_NOPARENTNOTIFY    0x00000004
@@ -2692,7 +2692,7 @@ endstruc
     %define WS_EX_OVERLAPPEDWINDOW  (WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE)
     %define WS_EX_PALETTEWINDOW     (WS_EX_WINDOWEDGE | WS_EX_TOOLWINDOW | WS_EX_TOPMOST)
 
-    ; Class styles 
+    ; Class styles
 
     %define CS_VREDRAW          0x0001
     %define CS_HREDRAW          0x0002
@@ -2705,10 +2705,10 @@ endstruc
     %define CS_BYTEALIGNCLIENT  0x1000
     %define CS_BYTEALIGNWINDOW  0x2000
     %define CS_GLOBALCLASS      0x4000
-    
+
     %define CS_IME              0x00010000
 
-    ; Predefined Clipboard Formats 
+    ; Predefined Clipboard Formats
 
     %define CF_TEXT             1
     %define CF_BITMAP           2
@@ -2733,56 +2733,56 @@ endstruc
     %define CF_DSPMETAFILEPICT  0x0083
     %define CF_DSPENHMETAFILE   0x008E
 
-    ; "Private" formats don't get GlobalFree()'d 
+    ; "Private" formats don't get GlobalFree()'d
 
     %define CF_PRIVATEFIRST     0x0200
     %define CF_PRIVATELAST      0x02FF
 
-    ; "GDIOBJ" formats do get DeleteObject()'d 
+    ; "GDIOBJ" formats do get DeleteObject()'d
 
     %define CF_GDIOBJFIRST      0x0300
     %define CF_GDIOBJLAST       0x03FF
 
-    ; Menu flags for Add/Check/EnableMenuItem() 
+    ; Menu flags for Add/Check/EnableMenuItem()
 
     %define MF_INSERT           0x00000000
     %define MF_CHANGE           0x00000080
     %define MF_APPEND           0x00000100
     %define MF_DELETE           0x00000200
     %define MF_REMOVE           0x00001000
-    
+
     %define MF_BYCOMMAND        0x00000000
     %define MF_BYPOSITION       0x00000400
-    
+
     %define MF_SEPARATOR        0x00000800
-    
+
     %define MF_ENABLED          0x00000000
     %define MF_GRAYED           0x00000001
     %define MF_DISABLED         0x00000002
-    
+
     %define MF_UNCHECKED        0x00000000
     %define MF_CHECKED          0x00000008L
     %define MF_USECHECKBITMAPS  0x00000200
-    
+
     %define MF_STRING           0x00000000
     %define MF_BITMAP           0x00000004
     %define MF_OWNERDRAW        0x00000100
-    
+
     %define MF_POPUP            0x00000010
     %define MF_MENUBARBREAK     0x00000020
     %define MF_MENUBREAK        0x00000040
-    
+
     %define MF_UNHILITE         0x00000000
     %define MF_HILITE           0x00000080
-    
+
     %define MF_DEFAULT          0x00001000
     %define MF_SYSMENU          0x00002000
     %define MF_HELP             0x00004000
     %define MF_RIGHTJUSTIFY     0x00004000
-    
+
     %define MF_MOUSESELECT      0x00008000
     %define MF_END              0x00000080
-    
+
     %define MFT_STRING          MF_STRING
     %define MFT_BITMAP          MF_BITMAP
     %define MFT_MENUBARBREAK    MF_MENUBARBREAK
@@ -2792,8 +2792,8 @@ endstruc
     %define MFT_SEPARATOR       MF_SEPARATOR
     %define MFT_RIGHTORDER      0x00002000
     %define MFT_RIGHTJUSTIFY    MF_RIGHTJUSTIFY
-    
-    ; Menu flags for Add/Check/EnableMenuItem() 
+
+    ; Menu flags for Add/Check/EnableMenuItem()
 
     %define MFS_GRAYED          0x00000003
     %define MFS_DISABLED        MFS_GRAYED
@@ -2809,10 +2809,10 @@ endstruc
     %define MFS_BOTTOMGAPDROP   0x40000000
     %define MFS_TOPGAPDROP      0x80000000
     %define MFS_GAPDROP         0xC0000000
-    
+
     %define MF_END             0x00000080
 
-    ; System Menu Command Values 
+    ; System Menu Command Values
 
     %define SC_SIZE         0xF000
     %define SC_MOVE         0xF010
@@ -2835,12 +2835,12 @@ endstruc
     %define SC_CONTEXTHELP  0xF180
     %define SC_SEPARATOR    0xF00F
 
-    ; Obsolete names 
+    ; Obsolete names
 
     %define SC_ICON         SC_MINIMIZE
     %define SC_ZOOM         SC_MAXIMIZE
 
-    ; OEM Resource Ordinal Numbers 
+    ; OEM Resource Ordinal Numbers
 
     %define OBM_CLOSE           32754
     %define OBM_UPARROW         32753
@@ -2863,7 +2863,7 @@ endstruc
     %define OBM_DNARROWI        32736
     %define OBM_RGARROWI        32735
     %define OBM_LFARROWI        32734
-    
+
     %define OBM_OLD_CLOSE       32767
     %define OBM_SIZE            32766
     %define OBM_OLD_UPARROW     32765
@@ -2894,7 +2894,7 @@ endstruc
     %define OCR_NO              32648
     %define OCR_HAND            32649
     %define OCR_APPSTARTING     32650
-    
+
     %define OIC_SAMPLE          32512
     %define OIC_HAND            32513
     %define OIC_QUES            32514
@@ -2905,7 +2905,7 @@ endstruc
     %define OIC_ERROR           OIC_HAND
     %define OIC_INFORMATION     OIC_NOTE
 
-    ; Standard Icon IDs 
+    ; Standard Icon IDs
 
     %define IDI_APPLICATION     32512
     %define IDI_HAND            32513
@@ -2913,12 +2913,12 @@ endstruc
     %define IDI_EXCLAMATION     32515
     %define IDI_ASTERISK        32516
     %define IDI_WINLOGO         32517
-    
+
     %define IDI_WARNING     IDI_EXCLAMATION
     %define IDI_ERROR       IDI_HAND
     %define IDI_INFORMATION IDI_ASTERISK
 
-    ; Dialog Box Command IDs 
+    ; Dialog Box Command IDs
 
     %define IDOK                1
     %define IDCANCEL            2
@@ -2929,8 +2929,8 @@ endstruc
     %define IDNO                7
     %define IDCLOSE         8
     %define IDHELP          9
-    
-    ; Edit Control Styles 
+
+    ; Edit Control Styles
 
     %define ES_LEFT             0x0000
     %define ES_CENTER           0x0001
@@ -2946,8 +2946,8 @@ endstruc
     %define ES_READONLY         0x0800
     %define ES_WANTRETURN       0x1000
     %define ES_NUMBER           0x2000
-    
-    ; Edit Control Messages 
+
+    ; Edit Control Messages
 
     %define EM_GETSEL               0x00B0
     %define EM_SETSEL               0x00B1
@@ -2986,11 +2986,11 @@ endstruc
     %define EM_GETLIMITTEXT         0x00D5
     %define EM_POSFROMCHAR          0x00D6
     %define EM_CHARFROMPOS          0x00D7
-    
+
     %define EM_SETIMESTATUS         0x00D8
     %define EM_GETIMESTATUS         0x00D9
-    
-    ; Button Control Styles 
+
+    ; Button Control Styles
 
     %define BS_PUSHBUTTON       0x00000000
     %define BS_DEFPUSHBUTTON    0x00000001
@@ -3019,7 +3019,7 @@ endstruc
     %define BS_FLAT             0x00008000
     %define BS_RIGHTBUTTON      BS_LEFTTEXT
 
-    ; User Button Notification Codes 
+    ; User Button Notification Codes
 
     %define BN_CLICKED          0
     %define BN_PAINT            1
@@ -3033,7 +3033,7 @@ endstruc
     %define BN_SETFOCUS         6
     %define BN_KILLFOCUS        7
 
-    ; Button Control Messages 
+    ; Button Control Messages
 
     %define BM_GETCHECK        0x00F0
     %define BM_SETCHECK        0x00F1
@@ -3043,14 +3043,14 @@ endstruc
     %define BM_CLICK           0x00F5
     %define BM_GETIMAGE        0x00F6
     %define BM_SETIMAGE        0x00F7
-    
+
     %define BST_UNCHECKED      0x0000
     %define BST_CHECKED        0x0001
     %define BST_INDETERMINATE  0x0002
     %define BST_PUSHED         0x0004
     %define BST_FOCUS          0x0008
 
-    ; Static Control Constants 
+    ; Static Control Constants
 
     %define SS_LEFT             0x00000000
     %define SS_CENTER           0x00000001
@@ -3083,7 +3083,7 @@ endstruc
     %define SS_WORDELLIPSIS     0x0000C000
     %define SS_ELLIPSISMASK     0x0000C000
 
-    ; Dialog Styles 
+    ; Dialog Styles
 
     %define DS_ABSALIGN         0x01
     %define DS_SYSMODAL         0x02
@@ -3092,7 +3092,7 @@ endstruc
     %define DS_MODALFRAME       0x80
     %define DS_NOIDLEMSG        0x100
     %define DS_SETFOREGROUND    0x200
-    
+
     %define DS_3DLOOK           	0x0004
     %define DS_FIXEDSYS         	0x0008
     %define DS_NOFAILCREATE     	0x0010
@@ -3101,7 +3101,7 @@ endstruc
     %define DS_CENTERMOUSE      	0x1000
     %define DS_CONTEXTHELP      	0x2000
 
-    ; Listbox Styles 
+    ; Listbox Styles
 
     %define LBS_NOTIFY            0x0001
     %define LBS_SORT              0x0002
@@ -3120,7 +3120,7 @@ endstruc
     %define LBS_NOSEL             0x4000
     %define LBS_STANDARD          (LBS_NOTIFY | LBS_SORT | WS_VSCROLL | WS_BORDER)
 
-    ; Combo Box styles 
+    ; Combo Box styles
 
     %define CBS_SIMPLE            	0x0001
     %define CBS_DROPDOWN          	0x0002
@@ -3136,7 +3136,7 @@ endstruc
     %define CBS_UPPERCASE           0x2000
     %define CBS_LOWERCASE           0x4000
 
-    ; Scroll Bar Styles 
+    ; Scroll Bar Styles
 
     %define SBS_HORZ                    0x0000
     %define SBS_VERT                    0x0001
@@ -3149,7 +3149,7 @@ endstruc
     %define SBS_SIZEBOX                 0x0008
     %define SBS_SIZEGRIP                0x0010
 
-    ; Commands to pass to WinHelp() 
+    ; Commands to pass to WinHelp()
 
     %define HELP_CONTEXT      0x0001
     %define HELP_QUIT         0x0002
@@ -3169,12 +3169,12 @@ endstruc
     %define HELP_FINDER       0x000b
     %define HELP_WM_HELP      0x000c
     %define HELP_SETPOPUP_POS 0x000d
-    
+
     %define HELP_TCARD              0x8000
     %define HELP_TCARD_DATA         0x0010
     %define HELP_TCARD_OTHER_CALLER 0x0011
-    
-    ; These are in winhelp.h in Win95. 
+
+    ; These are in winhelp.h in Win95.
 
     %define IDH_NO_HELP                     28440
     %define IDH_MISSING_CONTEXT             28441
@@ -3182,9 +3182,9 @@ endstruc
     %define IDH_OK                          28443
     %define IDH_CANCEL                      28444
     %define IDH_HELP                        28445
-    
-    
-    
+
+
+
 %define ACHAR         BYTE  ;ansi character
 %define ATOM          DWORD ;string atom
 %define BOOL          DWORD ;boolean variable
@@ -16800,7 +16800,7 @@ STRUC DEBUG_EVENT
 .dwDebugEventCode RESD 1
 .dwProcessId RESD 1
 .dwThreadId RESD 1
-.u RESB EXCEPTION_DEBUG_INFO_size 
+.u RESB EXCEPTION_DEBUG_INFO_size
 ENDSTRUC
 
 
@@ -16989,7 +16989,7 @@ ENDSTRUC
 
 
 
-STRUC BROWSEINFO 
+STRUC BROWSEINFO
  .hwndOwner      resd 1
  .pidlRoot       resd 1
  .pszDisplayName resd 1
@@ -17062,7 +17062,7 @@ ENDSTRUC
 
 
 
- 
+
 
 ;====================== end PE
 
@@ -17474,7 +17474,7 @@ STRUC TBBUTTON
 .idCommand RESD 1
 .fsState RESB 1
 .fsStyle RESB 1
-._wPad1  RESW  1       
+._wPad1  RESW  1
 .dwData RESD 1
 .iString RESD 1
 ENDSTRUC
@@ -18507,11 +18507,11 @@ endstruc
 
 
 
-STRUC WSADATA 
+STRUC WSADATA
   .wVersion      RESW 1
   .wHighVersion  RESW 1
-  .szDescription   RESB  WSADESCRIPTION_LEN + 1 
-  .szSystemStatus  RESB WSASYS_STATUS_LEN + 1 
+  .szDescription   RESB  WSADESCRIPTION_LEN + 1
+  .szSystemStatus  RESB WSASYS_STATUS_LEN + 1
   .iMaxSockets   RESW 1
   .iMaxUdpDg     RESW 1
   .lpVendorInfo  RESD 1
@@ -18522,12 +18522,12 @@ ENDSTRUC
 
 
 STRUC ITaskBarList
-    ;==This are pointers to IUnknown interface 
+    ;==This are pointers to IUnknown interface
    .QueryInterface    resd 1
    .AddRef                resd 1
    .Release                resd 1
-   ;==This are pointers to Methods (functions) of ITaskbarlist    
-  
+   ;==This are pointers to Methods (functions) of ITaskbarlist
+
    .HrInit                 resd 1
    .AddTab                 resd 1
    .DeleteTab              resd 1
@@ -18535,14 +18535,14 @@ STRUC ITaskBarList
    .SetActiveAlt           resd 1
  ENDSTRUC
 
-  
+
 STRUC INITCOMMONCONTROLSEX
   .dwSize  RESD 1
   .dwICC   RESD 1
 ENDSTRUC
 
 
-STRUC st_mysql_field 
+STRUC st_mysql_field
 	.name        resd 1        ; column name <PTR>
 	.table		resd 1		; table of column if col was field <PTR>
 	.def		resd 1	; defaults val (from mysql_list_fields) <PTR>
@@ -18558,7 +18558,7 @@ ENDSTRUC
 
 
 
-STRUC COMBOBOXEXITEM 
+STRUC COMBOBOXEXITEM
     .fmask			resd 1
     .iItem			resd 1
     .pszText			resd 1
@@ -18573,16 +18573,16 @@ ENDSTRUC
 
 
 
-; MACROS FROM NAGOA  for NASM 
-; version  date  :  14 Março 2004  
+; MACROS FROM NAGOA  for NASM
+; version  date  :  14 Março 2004
 ; ---------------------------------------------------------------------
 ; ---------------------------------------------------------------------
-; 
-; pedrogc macros proc endproc stack  20-março-2003 (undef resolved)  
-; nuMIT_or  PEMAC  only NASM  , adapted to NAGOA by PedroGC 10-fev-2004  
+;
+; pedrogc macros proc endproc stack  20-março-2003 (undef resolved)
+; nuMIT_or  PEMAC  only NASM  , adapted to NAGOA by PedroGC 10-fev-2004
 ; ADDR_   or  addr  or ADDR   ( lea eax , [xxx] )  LuckyStar  15- jan-2004
 ; NPEMAC   ( nuMIT_or ) edit by PedroGC 12-fev-2004  (  %define ONLY_NASM )
-; pedrogc 14 march 2004  proc end proc stack new updated version    
+; pedrogc 14 march 2004  proc end proc stack new updated version
 ; pedrogc 14 march 2004 GUID_ macro
 ;=====================================================================
 
@@ -18593,34 +18593,34 @@ ENDSTRUC
 ;   INVOKE or   invoke or STDCALL or stdcall  or CALL_  or call_
 ;========================================================
 
-;%define call call_   ; remove this ! if you do not like call macro 
+;%define call call_   ; remove this ! if you do not like call macro
 
 ;========================================================
 ;
-;  example  
+;  example
 ;  invoke MessageBoxA,NULL,"Info to say","the title",MB_OK
 ;  or
 ;  stdcall MessageBoxA,NULL,"Info to say","the title",MB_OK
-;  or 
+;  or
 ;  call_   MessageBoxA,NULL,"Info to say","the title",MB_OK
 ;
 ;======================================================================
 ;  local function    is  LOCCALL or loccall
 ; =====================================================================
-;  
+;
 ;  loccall myMessage,"ola meu","my tiltle"
 ;
 ;======================================================================
-;  NEW MACRO CAN USE  * ADDR_ *   it will out put   LEA EAX,[var]   ,   push eax     
+;  NEW MACRO CAN USE  * ADDR_ *   it will out put   LEA EAX,[var]   ,   push eax
 ;======================================================================
 ; proc teste,ola
-;    
+;
 ;     stack opf, OPENFILENAME_size
 ;
 ;     call MessageBoxA , NULL,[ola],"title1",MB_OK
-;     call RtlZeroMemory,  ADDR_ opf   , OPENFILENAME_size      <-  LOOK HERE 
-;     mov dword [opf],OPENFILENAME_size 
-;     call  GetOpenFileName ,   ADDR_ opf                       <-  LOOK HERE 
+;     call RtlZeroMemory,  ADDR_ opf   , OPENFILENAME_size      <-  LOOK HERE
+;     mov dword [opf],OPENFILENAME_size
+;     call  GetOpenFileName ,   ADDR_ opf                       <-  LOOK HERE
 ;     call ExitProcess,0
 ;
 ; endproc
@@ -18642,12 +18642,12 @@ ENDSTRUC
 ;   var_1  dd 0
 ;   var_2  dd 0
 ;   sectioncode
-;    
+;
 ;    stack var1,4,msg,MSG_size,hWnd,4  ; locals using stack !
 ;
 ;  mov [hWnd],eax
 ;
-;  
+;
 ;
 ;  return           ; jump to endrotin
 ;
@@ -18801,12 +18801,12 @@ ENDSTRUC
 ;=============
 
 
-%imacro call_ 1-*  
+%imacro call_ 1-*
 %assign i	%0
 	%if %0 > 1
 		%rep %0 - 1
-			%rotate -1  
-			%assign i	i-1		                               
+			%rotate -1
+			%assign i	i-1
 			%rotate -1
 			%ifidni %1,"ADDR_"
 			%rotate 1
@@ -18814,14 +18814,14 @@ ENDSTRUC
 			push	eax
 			%rotate -1
 			%assign i	i-1
-			%else		
+			%else
 			%rotate 1
-			STDPUSH {%1}     
+			STDPUSH {%1}
 			%endif
 			%if i <=1
 			%exitrep
 			%endif
-		%endrep		
+		%endrep
 		%rotate -1
 	%endif
 	%ifid %1
@@ -19056,7 +19056,7 @@ CALL [eax+%2]
 		%if %0=3
 			cmp %1,%3
 			j%-2 near %$else_%$i
-		%else		
+		%else
 			%rep (%0 / 3)
 				cmp %1,%3
 				j%2 near %$c_%$i
@@ -19364,7 +19364,7 @@ CALL [eax+%2]
 	%assign %$i %0-1
 	%assign %$params %0-1
 	%rep %0-1
-		%rotate -1  
+		%rotate -1
 			%assign %$i	%$i-1
 			%rotate -1
 			%ifidni %1,"ADDR_"
@@ -19374,7 +19374,7 @@ CALL [eax+%2]
 				%rotate -1
 				%assign %$i %$i-1
 				%assign %$params %$params-1
-			%else		
+			%else
 				%rotate 1
 				STDPUSH {%1}
 			%endif
@@ -19416,13 +19416,13 @@ CALL [eax+%2]
 ; loccall LocalFunction,ADDR_ msg
 ; loccall Message,  " Some Text " , " title "
 ;
-;======================================= 
+;=======================================
 
-%imacro loccall 1-*  
+%imacro loccall 1-*
 %assign i	%0
 	%if %0 > 1
 		%rep %0 - 1
-			%rotate -1  
+			%rotate -1
 			%assign i	i-1
 			; ===== ADDR_
 			%rotate -1
@@ -19432,27 +19432,27 @@ CALL [eax+%2]
 				push	eax
 				%rotate -1
 				%assign i	i-1
-			%else		
+			%else
 				%rotate 1
 				STDPUSH {%1}
 			%endif
-			
+
 
 			%if i <=1
 				%exitrep
 			%endif
-		%endrep		
+		%endrep
 		%rotate -1
-	%endif  
+	%endif
 	CALL %1
 %endmacro
 ;===================== [ LOCAL FUNCTIONS END *LOCCALL* ]
 
 
 
-;========= nuMIT_or MACROS 
+;========= nuMIT_or MACROS
 
-; ------------------ 
+; ------------------
 ; DO_UNICODE macro
 ; ------------------
 %macro DO_UNICODE 1
@@ -19501,7 +19501,7 @@ CALL [eax+%2]
 ; ----------------------------
 %macro DO_UNICODEZ 1
  DO_UNICODE %1
- set_wzero 
+ set_wzero
 %endmacro
 ; ----------------------------
 ; set_wchar macro
@@ -19584,7 +19584,7 @@ CALL [eax+%2]
 ; :::: PE MACROS   nguga ::::::::::::::
 ;===========================================
 
-%macro IMPORT_END 0-*  
+%macro IMPORT_END 0-*
 _end_import:
 %define	import_size _end_import - import
 end
@@ -19637,7 +19637,7 @@ IEND
 ;mov eax,[@arg_3]
 ;endproc	funcao3
 ;--------------------------------------------------------------
-;                                   dword = 4 
+;                                   dword = 4
 ;=================================================
 %imacro proc 1-*.nolist
 	%assign SizeLocalAdd 0  ; inicializar o size das locais a zero
@@ -19655,9 +19655,9 @@ IEND
 	;== loop para defenir parametros
 	%rep %0-1
 		%rotate 1
-		%xdefine @%1  ebp+4 +c_l*4 
+		%xdefine @%1  ebp+4 +c_l*4
 		%assign c_l c_l+1
-	%endrep      
+	%endrep
 	;=== loop end  para defenir parametros
 %endmacro
 ;; ==================
@@ -19667,7 +19667,7 @@ IEND
 ;            uses edi,esi,"C"
 ;       endproc
 ;Saves the register at start of proc and retains at the end of function
-;automatically. Also it makes a proc, a C proc too. 
+;automatically. Also it makes a proc, a C proc too.
 ;---
 %imacro uses 1-*.nolist
 	%ifctx proc
@@ -19707,8 +19707,8 @@ IEND
 		%assign _SomaDasLocais_ 0
 		%rep %%pare_Argts
 			%assign SizeLocalAdd SizeLocalAdd +%2
-			%xdefine @%1 ebp-SizeLocalAdd 
-			%assign stack_var stack_var+1          
+			%xdefine @%1 ebp-SizeLocalAdd
+			%assign stack_var stack_var+1
 			%assign _SomaDasLocais_ _SomaDasLocais_ +%2
 			%rotate 2
 		%endrep        ; end loop para defenir parametros

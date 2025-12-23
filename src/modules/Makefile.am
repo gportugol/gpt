@@ -19,4 +19,4 @@ libgportugol_la_SOURCES = $(sources)
 libgportugol_la_LIBADD = $(top_builddir)/src/modules/parser/libparser.la \
                          $(top_builddir)/src/modules/interpreter/libinterpreter.la \
                          $(top_builddir)/src/modules/c_translator/libctranslator.la \
-												 $(top_builddir)/src/modules/x86/libx86.la                         
+												 $(top_builddir)/src/modules/x86/libx86.la

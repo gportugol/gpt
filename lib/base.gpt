@@ -3,9 +3,9 @@
  * Autor: Thiago Silva
  *
  * Nota: as funções dessa biblioteca suprem apenas
- * funcionalidades e cenários simples. Melhorias e 
+ * funcionalidades e cenários simples. Melhorias e
  * adições são bem vindas.
- * 
+ *
  */
 
 função arredonda(num: real) : real
@@ -66,7 +66,7 @@ início
     val := i * i - num;
     se val = 0 então
       retorne i;
-    fim-se  
+    fim-se
 
     se val > 0 então
       xn := (i+(i-1))/2.0;
@@ -79,6 +79,6 @@ início
     x := xn;
     xn := x - (x * x - n) / (2 * x);
   fim-enquanto
-  
+
   retorne xn;
 fim

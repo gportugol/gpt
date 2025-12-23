@@ -1,4 +1,4 @@
-% TODO: -rever referencias a implementação da gramatica%       
+% TODO: -rever referencias a implementação da gramatica%
 %       -Glossario e padronizacao de termos: uso de vetor e matriz,
 %        significando coisas distintas, e o que significam
 %       -Convenções (uso de shell unix, etc)
@@ -17,7 +17,7 @@
 
 \pagestyle{myheadings}     % Go for customized headings
 \newcommand{\capitulo}[1]  % Re-define the chaptering command
-        { 
+        {
           \chapter{#1}
 
           %http://www.devdaily.com/blog/Content/2/18/408/
@@ -80,13 +80,13 @@
   \begin{titlepage}%
 
     %% remove footer (sem isso, aparece o numero da pagina)
-    \fancyhf{} 
+    \fancyhf{}
     \fancypagestyle{empty}{%
       \fancyhead{} % remoev o header
       \renewcommand{\headrulewidth}{0pt} % e a linha
     }
 
-    
+
     \let\footnotesize\small
     \let\footnoterule\relax
     \parindent \z@
@@ -103,8 +103,8 @@
       \hrule
       \vskip 1pt
       \hrule
-      
-      \vskip 5pt 
+
+      \vskip 5pt
       \Large Manual da versão \@version
 
     \end{center}
@@ -117,8 +117,8 @@
     {\Large \@author \par}
     {\Large \@email \par}
     \vskip 100pt
-    {\Large \@date\par}    
-    \end{flushright}  
+    {\Large \@date\par}
+    \end{flushright}
 
   \end{titlepage}%
 
@@ -202,13 +202,13 @@ edição, execução e depuração de programas escritos em G-Portugol.
 A seguir são apresentados os assuntos abordados nos capítulos seguintes:
 
 \begin{itemize}
- \item 
-  Capítulo 2: pretende discutir as características gerais da linguagem. 
+ \item
+  Capítulo 2: pretende discutir as características gerais da linguagem.
 
   \item
-  Capítulo 3: aborda a programação em G-Portugol, suas estruturas e recursos, utilizando exemplos ilustrativos e 
-  comparando com linguagens populares. Embora o capítulo trate da programação, ele não tem como objetivo explicar 
-  programação em si ou a teoria/história por trás das estruturas abordadas. 
+  Capítulo 3: aborda a programação em G-Portugol, suas estruturas e recursos, utilizando exemplos ilustrativos e
+  comparando com linguagens populares. Embora o capítulo trate da programação, ele não tem como objetivo explicar
+  programação em si ou a teoria/história por trás das estruturas abordadas.
 
   \item
   Capítulo 4: trata da implementação da linguagem. Discute as decisões de design e recursos oferecidos por G-Portugol.
@@ -229,8 +229,8 @@ No apêndice deste livro pode ser encontrado a gramática da linguagem G-Portugol.
 \capitulo{Características Gerais}
 \label{ch:caracgerais}
 
-A linguagem em si não difere fundamentalmente ou apresenta novidades em relação ao uso popular de 
-portugol. Semelhante à linguagens como Pascal e C, é uma linguagem imperativa, com comandos de 
+A linguagem em si não difere fundamentalmente ou apresenta novidades em relação ao uso popular de
+portugol. Semelhante à linguagens como Pascal e C, é uma linguagem imperativa, com comandos de
 controle de fluxo, manipulação de dados e recursos de entrada e saída básicos.
 A linguagem em \textit{case sensitive}, o que significa que, por exemplo, uma
 função chamada ``leia'' é diferente de uma função chamada ``Leia''.
@@ -285,7 +285,7 @@ de livros e muitos professores os discutem.
       enquanto & repetição \\
       repita & repetição \\
       para & repetição \\
-      \hline    
+      \hline
     \end{tabular}
 
     \label{tb_estruturas_de_repeticao}
@@ -309,24 +309,24 @@ variáveis. Vale ressaltar que passagem de parâmetros é sempre feita por
 \capitulo{Programando em G-Portugol}
 \label{ch:programando}
 
-A proposta desse capítulo é mostrar os elementos da linguagem G-Portugol usando programas como exemplos. Não 
-é um capítulo sobre como programar, nem tem como intuito ensinar algorítmos. Portanto, é esperado que o 
+A proposta desse capítulo é mostrar os elementos da linguagem G-Portugol usando programas como exemplos. Não
+é um capítulo sobre como programar, nem tem como intuito ensinar algorítmos. Portanto, é esperado que o
 leitor seja familiarizado com programação.
 
 \section{Olá Mundo}
 
-Mantendo a tradição, vamos criar nosso primeiro programa. O propósito dele será exibir na tela o 
-texto "Olá mundo". Crie um arquivo  chamado "olamundo.gpt" com o seguinte 
+Mantendo a tradição, vamos criar nosso primeiro programa. O propósito dele será exibir na tela o
+texto "Olá mundo". Crie um arquivo  chamado "olamundo.gpt" com o seguinte
 conteúdo:
 
 \begin{program}
   \begin{verbatim}
-/* 
-  Nosso primeiro programa 
+/*
+  Nosso primeiro programa
 */
-  
+
 algoritmo olamundo;
-  
+
 início
   imprima("Olá mundo!");
 fim
@@ -334,7 +334,7 @@ fim
   \caption{``Olá Mundo'' em G-Portugol.}
 \end{program}
 
-\noindent 
+\noindent
 Após salvar o arquivo, digite o seguinte na linha de comando:
 \newline
 
@@ -367,23 +367,23 @@ linhas como na linguagem C:
 \end{verbatim}
 
 Outro detalhe é a pontuação. Da mesma forma que em C, o ``;'' é utilizado como
-finalizador de enunciados. Se for necessário utilizar uma aspa dupla em um literal, 
+finalizador de enunciados. Se for necessário utilizar uma aspa dupla em um literal,
 deve-se utilizar o escape:
 
 \begin{verbatim}
-  imprima("Isso é literal com aspas duplas ($\backslash$") "); 
+  imprima("Isso é literal com aspas duplas ($\backslash$") ");
 \end{verbatim}
 
 \section{Variáveis}
 
-A declaração de variáveis deve ser feita dentro de um bloco específico, que deve aparecer logo após a 
-declaração do algoritmo. O bloco é iniciado pela palavra-chave ``variáveis'' (sim, com acento) e 
+A declaração de variáveis deve ser feita dentro de um bloco específico, que deve aparecer logo após a
+declaração do algoritmo. O bloco é iniciado pela palavra-chave ``variáveis'' (sim, com acento) e
 termina com a palavra chave ``fim-variáveis''. Pelo menos uma variável deve
 ser declarada dentro do bloco (embora o bloco em si seja opcional) e apenas
 um bloco em escopo global deve ser declarado. Eis um exemplo para estudo:
 
-\begin{program}  
-  \begin{verbatim}  
+\begin{program}
+  \begin{verbatim}
 algoritmo teste_variaveis;
 
 variáveis
@@ -393,18 +393,18 @@ fim-variáveis
 
 início
 fim
-  \end{verbatim}  
+  \end{verbatim}
   \caption{Declaração de variáveis globais.}
   \label{programa_inutil}
 \end{program}
- 
+
 
 \subsection{Variáveis primitivas}
 
 Variáveis primitivas são declaradas seguindo o seguinte modelo:
 
 \begin{verbatim}
-<identificador> [, identificador]* : <tipo>; 
+<identificador> [, identificador]* : <tipo>;
 \end{verbatim}
 
 Isso é, um ou mais identificadores separados por virgula, seguido de um
@@ -419,7 +419,7 @@ A fim de explorar melhor os aspectos da declaração, seguem-se alguns comentários
 respeito do último exemplo (programa \ref{programa_inutil})
 
 \begin{itemize}
- \item 
+ \item
   Observe que o nome do algoritmo (``teste\_variaveis'')
 não tem
 acento. Se declarar o algoritmo como ``teste\_variáveis'' e tentar
@@ -433,19 +433,19 @@ especiais.}
   de um identificador em   G-Portugol é equivalente ao das linguagens populares:
   uma letra (a-z ou A-Z) seguido de qualquer número de letras ou números.
   Finalmente, underlines (\_) são permitidos. Cedilhas, portanto, também não
-  formam identificadores válidos. 
+  formam identificadores válidos.
 
- \item 
+ \item
   O segundo ponto, é a palavra-chave ``variáveis'': ela tem acento, e isso é
-permitido e obrigatório. 
+permitido e obrigatório.
 
   \item
-  O terceiro, é a definição do bloco e sua (falta de) semelhança com o Pascal. Todas os blocos em G-Portugol 
-  tentam seguir o formato ``nome/fim-nome'', em favor da uniformidade e em detrimento de exceções linguísticas 
+  O terceiro, é a definição do bloco e sua (falta de) semelhança com o Pascal. Todas os blocos em G-Portugol
+  tentam seguir o formato ``nome/fim-nome'', em favor da uniformidade e em detrimento de exceções linguísticas
   que confundem os estudantes.
 
-  \item 
-  E, finalmente, o quarto ponto é a ausência de código entre ``início'' e ``fim''. 
+  \item
+  E, finalmente, o quarto ponto é a ausência de código entre ``início'' e ``fim''.
   O programa não é obrigado a ter enunciados ou comandos.
 \end{itemize}
 
@@ -464,11 +464,11 @@ exemplo de declaração de uma matriz:
 variáveis
    bitset : matriz[10] de lógicos;
    quadr : matriz[4][4] de inteiros;
-fim-variáveis 
+fim-variáveis
 \end{verbatim}
 
-O tipo do vetor ou matriz é dado pelo nome do tipo no plural (``inteiros'' para tipo inteiro, ``literais'' 
-para tipo literal, etc). Os subscritos na declaração (delimitados por ``[]'') indicam o tamanho da matriz, 
+O tipo do vetor ou matriz é dado pelo nome do tipo no plural (``inteiros'' para tipo inteiro, ``literais''
+para tipo literal, etc). Os subscritos na declaração (delimitados por ``[]'') indicam o tamanho da matriz,
 e sua dimensão é informada pelo número de subscritos. Portanto, ``bitset'' é um vetor de 10 valores lógicos,
 enquanto ``quadr'' é uma matriz bidimensional, onde as duas dimensões tem tamanho 4.
 
@@ -528,9 +528,9 @@ início
   nome := leia();
 
   imprima(nome, ", digite sua idade:");
-  idade := leia();  
+  idade := leia();
 
-  se idade >= 18 então    
+  se idade >= 18 então
     se idade < 60 então
       imprima("adulto!");
     senão
@@ -540,7 +540,7 @@ início
     imprima("menor", "!");
   fim-se
 fim
-  \end{verbatim}  
+  \end{verbatim}
   \caption{Exemplo de programa que utiliza estrutura condicional.
 \label{programa_exemplo_condicional}}
 \end{program}
@@ -549,7 +549,7 @@ Alguns pontos a serem considerados:
 
 
 \begin{itemize}
-  \item 
+  \item
   O nome do algoritmo é ``idade'', assim como o nome de uma variável. Não há
 conflitos.
 
@@ -562,26 +562,26 @@ tipo.
 
   \item
   A função ``imprima'' recebe um número variável de argumentos de qualquer tipo primitivo,
-sendo que pelo menos um argumento deve ser passado, que podem ser constantes literais 
-(números, textos entre aspas, caracteres entre aspas simples,...), variáveis primitivas ou 
-índices de vetores/matrizes. Os valores são concatenados e adicionados de um caractere EOL 
+sendo que pelo menos um argumento deve ser passado, que podem ser constantes literais
+(números, textos entre aspas, caracteres entre aspas simples,...), variáveis primitivas ou
+índices de vetores/matrizes. Os valores são concatenados e adicionados de um caractere EOL
 (end of line, ou fim de linha).
 
   \item
-  Já vimos que strings/literais constantes são denotados por texto entre aspas duplas ("). Tal qual em C, 
+  Já vimos que strings/literais constantes são denotados por texto entre aspas duplas ("). Tal qual em C,
   um caractere entre aspas simples (') é um caractere constante que,
 também, permite escapes para representar caracteres como EOL ('$\backslash$n').
 
   \item
-  Assim como a palavra-chave ``variáveis'', ``então'' e ``senão'' devem ser acentuadas. 
+  Assim como a palavra-chave ``variáveis'', ``então'' e ``senão'' devem ser acentuadas.
 
-  \item 
+  \item
   Parêntesis ao redor da expressão da estrutura ``se/então'' são opcionais.
 
   \item
-  Como em ``variáveis/fim-variáveis'', blocos ``se'' tem seus respectivos e obrigatórios ``fim-se''. 
+  Como em ``variáveis/fim-variáveis'', blocos ``se'' tem seus respectivos e obrigatórios ``fim-se''.
   Não há a opção de ignorar a definição do bloco quando apenas um enunciado é
-  usado, como na linguagem C onde o uso de ``\{\}'' é opcional. Também, não há 
+  usado, como na linguagem C onde o uso de ``\{\}'' é opcional. Também, não há
   imposições  sobre a indentação. O programa \ref{programa_se_incorreto}
 ilustra esse assunto.
 
@@ -596,8 +596,8 @@ início
   se x = 2 então
     imprima("ok");
   imprima("estou dentro ou fora do bloco \"se\"?");
-fim 
-  \end{verbatim}  
+fim
+  \end{verbatim}
   \caption{Uso incorreto de estrutura condicional.
 \label{programa_se_incorreto}}
 \end{program}
@@ -608,7 +608,7 @@ fim
 \subsection{A estrutura ``enquanto''}
 
 A estrutura ``enquanto'' é a mais básica e comum das estruturas de repetição. Seu funcionamento é o mesmo que
-em outras linguagens populares, onde um conjunto de instruções é executado repetidamente enquanto o valor 
+em outras linguagens populares, onde um conjunto de instruções é executado repetidamente enquanto o valor
 lógico de uma dada expressão for avaliado como ``verdadeiro''.
 
 \begin{program}
@@ -624,7 +624,7 @@ fim-variáveis
 início
   imprima("Digite um número:");
   x := leia();
-  
+
   fat := x;
   res := 1;
 
@@ -633,7 +633,7 @@ início
     x   := x - 1;
   fim-enquanto
 
-  imprima("fatorial de ",fat," é igual a ",res);  
+  imprima("fatorial de ",fat," é igual a ",res);
 fim
   \end{verbatim}
   \caption{Exemplo de programa que utiliza a estrutura ``enquanto''.}
@@ -670,13 +670,13 @@ início
     x   := x - 1;
   até x <= 0;
 
-  imprima("fatorial de ",fat," é igual a ",res);  
+  imprima("fatorial de ",fat," é igual a ",res);
 fim
   \end{verbatim}
   \caption{Exemplo de programa que utiliza a estrutura ``repita.''}
 \end{program}
 
- 
+
 
 \subsection{A estrutura ``para''}
 
@@ -690,24 +690,24 @@ A estrutura ``para'' tem a seguinte forma:
  para <variável> de <expressão> até <expressão> [passo <inteiro>] faça
   [lista de comandos]
  fim-para
-\end{verbatim} 
+\end{verbatim}
 
 
 Onde:
 \begin{itemize}
- \item 
+ \item
   ``variável'' deve ser uma variável numérica;
   \item
   ``expressão'' deve ser uma expressão que tem seu valor avaliado como numérico;
   \item
   ``passo'', se existir, deve ser seguido por um inteiro constante.
 \end{itemize}
-  
+
 As expressões de/até controlam os valores que a variável numérica terá no
 início e no fim do laço, respectivamente. Tanto o controle da frequência, quanto
 a decisão de incrementar ou decrementar a variável de controle é feita pelo
 termo opcional ``passo'', e seu valor padrão é 1. Por exemplo, para iterar o
-valor de uma variável numérica ``x'' de 0 até 10, escreve-se: 
+valor de uma variável numérica ``x'' de 0 até 10, escreve-se:
 
   \begin{verbatim}
 para x de 0 até 10 faça
@@ -762,7 +762,7 @@ sair do laço. Essa diferença acontece porque a sintaxe do ``para'' induz a esse
 comportamento, diferente da sintaxe do ``for'', que tem um aspecto de mais
 baixo nível.
 
-\begin{verbatim}  
+\begin{verbatim}
 //código em C
 for(x = 0; x <= 10; x++);
 printf("%d", x); //imprime "11"
@@ -790,7 +790,7 @@ passagem de argumentos são feitos \textit{por valor}.
 
 Para retorno prematuro ou retorno de dados, a palavra chave ``retorne'' é usada. Para funções que retornam dados,
 ``retorne'' deve ser seguido de um operando, que é uma expressão cujo valor deve ser compatível com o tipo da função.
-Já funções que não declaram um tipo de retorno expliticamente  (equivalente a funções de retorno ``void'' em C), 
+Já funções que não declaram um tipo de retorno expliticamente  (equivalente a funções de retorno ``void'' em C),
 ``retorne'' deve ser usado sem operando.
 
 \begin{program}[h!t]
@@ -803,8 +803,8 @@ fim-variáveis
 
 início
   imprima("Digite um número:");
-  x := leia();  
-  imprima("fatorial de ",x," é igual a ",fatorial(x));  
+  x := leia();
+  imprima("fatorial de ",x," é igual a ",fatorial(x));
 fim
 
 função fatorial(z:inteiro) : inteiro
@@ -814,7 +814,7 @@ início
   senão
     retorne z * fatorial(z-1);
   fim-se
-fim 
+fim
   \end{verbatim}
   \caption{Exemplo de algoritmo que utiliza funções.}
 \end{program}
@@ -852,7 +852,7 @@ variáveis
   mat: matriz[2] de inteiros;
 fim-variáveis
 
-início  
+início
   imprima("digite um caractere");
   c := leia();
   imprima("Digite um número inteiro");
@@ -890,12 +890,12 @@ dicionário em inglês, acesso a recursos de sistema, etc. A preocupação central
 está em oferecer uma ferramenta que:
 
 \begin{itemize}
- \item 
+ \item
   reflita os processos computacionais, exigindo o mínimo de conhecimento e experiência do estudante;
 
   \item
   evidencie os processos relacionados com o desenvolvimento de softwares;
-  
+
   \item
   estimule a abstração e raciocínio lógico do estudante.
 
@@ -908,7 +908,7 @@ propósito educacional: ela deve expressar processos computacionais de forma
 que um leigo os compreenda sem enfatizar a si mesma. Isso é, a linguagem em
 si deve chamar o mínimo de atenção possível, fazendo com que a compreensão
 dos processos computacionais seja tão natural quanto ler sua descrição
-informal, ou não-estruturada. 
+informal, ou não-estruturada.
 
 Esse objetivo encontra restrições, quando se leva em consideração a natureza
 das linguagens artificiais e o uso e forma popular atual da linguagem
@@ -997,7 +997,7 @@ adapte ou oferecer diferentes formas da linguagem.
 
 Entre os aspectos que podem ser adaptados com facilidade se encontram os
 termos léxicos (palavras-chave, operadores,etc), e algumas formas de expressar
-estruturas, como algumas declarações e enunciados. 
+estruturas, como algumas declarações e enunciados.
 
 Por exemplo, pode ser interessante que, para se declarar uma varíavel, não se
 use um bloco iniciado por ``variáveis'' e terminado por ``fim-variáveis'', mas
@@ -1010,14 +1010,14 @@ e operadores semelhantes a esta linguagem, de forma a oferecer uma transição
 mais direta e que aproveita melhor os conhecimentos do estudante.
 
 Atualmente, o programa GPT não implementa mecanismos para esse tipo de
-mudança, sendo necessário modificar seu código fonte e recompilá-lo. 
+mudança, sendo necessário modificar seu código fonte e recompilá-lo.
 
 \section{Formato Estrutural}
 
 Um programa escrito em G-Portugol tem o seguinte formato:
 
 \begin{itemize}
- \item 
+ \item
   declaração do algoritmo
 
   \item
@@ -1038,7 +1038,7 @@ A declaração do algoritmo não influencia o programa ou sua execução, visto que é
 apenas uma sessão informativa no código que, embora não seja um comentário, tem
 o mesmo efeito prático. A adoção dessa declaração pode ser discutida, e
 foi escolhida por ser bastante utilizada em literaturas.
-  
+
 \subsection{Declaração de variáveis globais}
 
   Como visto no capítulo 2, essa declaração é opcional, e seu formato pode ser
@@ -1062,7 +1062,7 @@ Os tipos primitivos englobam os tipos mais básicos das linguagens populares.
 No momento, agregados heterogêneos como, por exemplo, estruturas/registros
 (``struct'' em C) não são suportados. Para uma lista dos tipos suportados, veja
 a tabela \ref{tb_tipos_primitivos}.
-  
+
 \subsection{Bloco Principal}
 
 As linguagens de programação devem, de alguma forma, oferecer um ``entry point''
@@ -1091,7 +1091,7 @@ início
   imprima("Essa linha não será impressa");
 fim
   \end{verbatim}
-  
+
   \caption{Bloco principal com comando retorne.}
 \end{program}
 
@@ -1121,7 +1121,7 @@ Constantes são valores \textit{inline}, e cada tipo de dado tem uma forma de
 ser representada.
 
 \begin{itemize}
- \item 
+ \item
   Inteiros: Podem ser representados em base decimal, hexadecimal, octal e
 binária. Representações decimais são formadas, opcionalmente, por um sinal
 (``+'' ou ``-'') seguido de um mais algarismos(ex.``120'', ``+5'', e ``-2'').
@@ -1199,9 +1199,9 @@ lógico, parênteses \\
 
 Em G-Portugol, não há coerção ou \textit{casting} de tipos expliticamente.
 Todos os tipos numéricos (inteiro, real, lógico e caractere) são compatíveis
-entre si. É importante ressaltar que expressões envolvendo igualdade ou 
-diferença de valores reais não são apropriadas dado a forma como esses valores 
-são representados internamente. Tais comparações podem ter resultados 
+entre si. É importante ressaltar que expressões envolvendo igualdade ou
+diferença de valores reais não são apropriadas dado a forma como esses valores
+são representados internamente. Tais comparações podem ter resultados
 imprevisíveis, e até diferentes, ao serem executados nos modos compilado,
 interpretado ou traduzido.
 
@@ -1253,7 +1253,7 @@ início
   imprima(m1); //erro
 fim
   \end{verbatim}
-  
+
   \caption{Uso incorreto de matrizes. \label{bad_matrix}}
 \end{program}
 
@@ -1266,7 +1266,7 @@ criam um novo escopo sobreposto ao escopo principal. Isso permite recursos
 como recursão e possibilita que variáveis locais (no escopo da função) tenham o
 mesmo nome que variáveis globais, onde essas últimas ficam ``escondidas'', isso
 é, incapazes de serem acessadas enquanto o escopo durar. Ressalta-se que não há
-suporte para funções aninhadas, isso é, funções declaradas dentro de funções. 
+suporte para funções aninhadas, isso é, funções declaradas dentro de funções.
 
 O retorno de dados é feito por meio da instrução ``retorne'' e o valor de
 retorno (se houver) deve ser compatível com o tipo da função. Esse tipo não
@@ -1280,7 +1280,7 @@ As variáveis locais de uma função são formadas por seus parâmetros e pelas
 variáveis declaradas em seu escopo. A declaração de variáveis locais é feita
 entre o cabeçalho da função e a palavra-chave ``início'', portanto, não é
 uniforme em relação a declaração global, onde se usa as palavras-chave
-``variáveis'' e ``fim-variáveis''. 
+``variáveis'' e ``fim-variáveis''.
 
 A declaração dos parâmetros da função também não segue estritamente o formato
 de declaração de variáveis. O programa \ref{exemplo_funcao} ilustra a
@@ -1291,7 +1291,7 @@ declaração de uma função.
  \begin{verbatim}
 algoritmo exemplo_funcao;
 
-início  
+início
   imprima(soma(2,2));
 fim
 
@@ -1365,7 +1365,7 @@ Essa função se comporta de forma excepcional visto que seu tipo de retorno não
 momento, é restrita expressões isentas de operadores. Isso é, não é permitido
 aplicá-la como um termo em uma expressão com múltiplos operandos (ex. ``x :=  y
 + leia()''), embora seja possível utilizá-la em subscritos de vetores e
-matrizes, assim como em expressões de estruturas de controle. 
+matrizes, assim como em expressões de estruturas de controle.
 
 Em princípio, pode-se levar em conta duas formas de implementar uma função de
 leitura em alto nível. A primeira, e mais simples é o uso de funções
@@ -1381,14 +1381,14 @@ parâmetros por referência.
 \capitulo{O programa GPT}
 
 \section{Introdução}
-  
+
 GPT é a ferramenta principal da linguagem G-Portugol. Entre suas funções
 principais estão:
 
 \begin{itemize}
   \item
   Compilar algoritmos;
- \item 
+ \item
   Traduzir algoritmos para outras linguagens;
   \item
   Executar algoritmos.
@@ -1432,7 +1432,7 @@ Opções:
 As opções são comentadas a seguir.
 
 \begin{itemize}
- \item 
+ \item
   v: Exibe a versão do programa ``gpt'', assim como informações de copyright;
 
   \item
@@ -1442,16 +1442,16 @@ As opções são comentadas a seguir.
   o <arquivo>: Ao compilar um algoritmo, salva o executável com o nome de
 \textit{<arquivo>}. Se essa opção for omitida na compilação, o nome do
 algoritmo será usado para criar o arquivo executável.
-  
+
   \item
   t <arquivo>: Traduz o algoritmo para C, salva o código fonte com o nome de
 \textit{<arquivo>};
-  
+
   \item
   s <arquivo>: Compila o algoritmo mas não cria código executável. Salva o
 código em assembly com o nome de \textit{<arquivo>};
 
-  \item 
+  \item
   i: Executa o algoritmo diretamente, sem compilar ou criar arquivos. Opção
 conhecida como ``interpretação'' ou ``scripting''.
 
@@ -1465,14 +1465,14 @@ em G-Portugol, embora seja mais comum utilizar um arquivo apenas para cada
 algoritmo.
 
 \section{Tratamento de erros}
-  
+
 Em geral, as ferramentas de diversas linguagens de programação oferecem o
 mínimo de informações a cerca de erros de compilação, às vezes, tendo uma
 forma ``criptica'' dificultando seu entendimento e posterior correção.
 Comum, também a possibilidade de que determinados erros sejam reportados em
 localizações distantes de onde o erro efetivamente se encontra no código
 fonte. Ademais, é importante notar que nessas linguagens, os erros são
-reportados em inglês. 
+reportados em inglês.
 
 O tratamento de erros é um aspecto importante do programa GPT. A reportagem de
 erros deve ser o mais claro possível e ter um formato uniforme, informando o
@@ -1558,22 +1558,22 @@ Por exemplo, a pilha de funções pode ser representada da seguinte forma:
 <stackinfo>
   <entry id="0"  function="@global" line="10"/>
   <entry id="1"  function="funcTeste" line="18"/>
-</stackinfo> 
+</stackinfo>
 \end{verbatim}
 
 
 \subsection{Processando algoritmos divididos em multiplos arquivos}
 
 A partir da versão 1.0, o GPT suporta processar algoritmos divididos em
-múltiplos arquivos. Esse recurso é possível utilizando duas formas: 
+múltiplos arquivos. Esse recurso é possível utilizando duas formas:
 
 
 \begin{itemize}
 
- \item 
+ \item
   Passando os arquivos como opções na linha de comando;
 
- \item 
+ \item
   Utilizando a variável de ambiente GPT\_INCLUDE.
 
 \end{itemize}
@@ -1614,7 +1614,7 @@ algoritmo, bloco de variáveis globais ou bloco principal.
 
 A seguir é apresentado as convenções léxicas usadas em G-Portugol.
 
-\begin{verbatim} 
+\begin{verbatim}
     Regras para identificar literais numéricos
 
 T_INT_LIT : T_OCTAL_LIT | T_HEX_LIT | T_BIN_LIT | T_DEC_LIT
@@ -1674,15 +1674,15 @@ G-Portugol.
 A seguir é apresentado a gramática da linguagem G-Portugol.
 
 \begin{verbatim}
-algoritmo 
+algoritmo
   : declaracao_algoritmo (var_decl_block)? stm_block (func_decls)* EOF
   ;
 
-declaracao_algoritmo 
+declaracao_algoritmo
   : "algoritmo" T_IDENTIFICADOR ";"
   ;
 
-var_decl_block  
+var_decl_block
   : "variáveis" (var_decl ";")+ "fim-variáveis"
   ;
 
@@ -1747,7 +1747,7 @@ stm_repita
   : "repita" stm_list "até" expr ";"
   ;
 
-stm_para 
+stm_para
   : "para" lvalue "de" expr "até" expr  passo? "faça" stm_list "fim-para"
   ;
 
@@ -1769,15 +1769,15 @@ expr
   ;
 
 termo
-  : fcall  
+  : fcall
   | lvalue
   | literal
-  | "(" expr ")" 
+  | "(" expr ")"
   ;
 
 fcall
   : T_IDENTIFICADOR "(" fargs? ")"
-  ; 
+  ;
 
 fargs
   : expr ("," expr)*
@@ -1788,7 +1788,7 @@ literal
   | T_INT_LIT
   | T_REAL_LIT
   | T_CARAC_LIT
-  | T_KW_VERDADEIRO 
+  | T_KW_VERDADEIRO
   | T_KW_FALSO
   ;
 

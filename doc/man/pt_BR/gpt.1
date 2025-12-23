@@ -24,24 +24,24 @@
 gpt \- compilador, interpretador e tradutor da linguagem G-Portugol
 
 .SH SINOPSE
-  gpt 
-[ 
+  gpt
+[
 .BR \-vhid
 ] [
-.BI \-ots  
-arq_saida 
+.BI \-ots
+arq_saida
 ] arquivo1 arquivo2 ...
 
 .SH DESCRIÇÃO
 .I gpt
 é um compilador simples para a linguagem G-portugol. Além de criar executáveis,
-pode interpretar algoritmos e traduzí-los para a linguagem C. Um algoritmo pode 
-ser formado por vários arquivos, cada um podendo conter várias funções, por 
-exemplo. Os arquivos são passados na linha de comando, sendo que o primeiro 
-arquivo deve ser aquele que contém o bloco principal e a declaração do algoritmo. 
-É possível, também, ter a lista de arquivos adicionadas automaticamente 
-utilizando a variável de ambiente GPT_INCLUDE, que deve conter o caminho de 
-cada arquivo separado por ":". 
+pode interpretar algoritmos e traduzí-los para a linguagem C. Um algoritmo pode
+ser formado por vários arquivos, cada um podendo conter várias funções, por
+exemplo. Os arquivos são passados na linha de comando, sendo que o primeiro
+arquivo deve ser aquele que contém o bloco principal e a declaração do algoritmo.
+É possível, também, ter a lista de arquivos adicionadas automaticamente
+utilizando a variável de ambiente GPT_INCLUDE, que deve conter o caminho de
+cada arquivo separado por ":".
 .SH OPTIONS
 .TP
 .BI \-v
@@ -56,7 +56,7 @@ Exibe sumário de opções termina execução.
 .TP
 .TP
 .BI \-i
-Executa o algoritmo em modo 
+Executa o algoritmo em modo
 .I interpretação.
 .br
 .ns
@@ -66,7 +66,7 @@ Mostra dicas no relatório de erros.
 .br
 .ns
 .TP
-.BI \-o " arq_saída" 
+.BI \-o " arq_saída"
 Compila o algoritmo e salva o arquivo executável com o nome
 .I arq_saída.
 .br
@@ -89,10 +89,9 @@ Compila o algoritmo mas não cria código executável. Salva o arquivo com códi
 
 .SH INFORMAÇÕES ADICIONAIS
 
-Para maiores informações, visite o website em: 
+Para maiores informações, visite o website em:
 .br
 .BI https://gportugol.github.io
 
 .SH AUTOR
 Thiago Silva <tsilva@sourcecraft.info>
-

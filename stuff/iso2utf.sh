@@ -8,7 +8,7 @@ function convert
   rm .itmp
 }
 
-for line in `find src -type f | gawk ' !/.svn/ && /[ch]pp$|h$|g$/  { print $1 }'`; do    
+for line in `find src -type f | gawk ' !/.svn/ && /[ch]pp$|h$|g$/  { print $1 }'`; do
     convert $line
 done
 

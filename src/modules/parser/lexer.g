@@ -35,14 +35,14 @@ header {
 }
 
 options {
-  language="Cpp";  
+  language="Cpp";
 }
 
 class PortugolLexer extends Lexer("UnicodeCharScanner");
 options {
   k=2;
-  charVocabulary='\u0003'..'\u00FF'; // latin-1  
-//   charVocabulary='\u0003'..'\u0FFF'; // 
+  charVocabulary='\u0003'..'\u00FF'; // latin-1
+//   charVocabulary='\u0003'..'\u0FFF'; //
   exportVocab=Portugol;
   testLiterals = false;
   filter=T_INVALID;
@@ -57,7 +57,7 @@ options {
 tokens {
   T_KW_FIM_VARIAVEIS="fim-variáveis";
   T_KW_ALGORITMO="algoritmo";
-  T_KW_VARIAVEIS="variáveis";  
+  T_KW_VARIAVEIS="variáveis";
   T_KW_INTEIRO="inteiro";
   T_KW_REAL="real";
   T_KW_CARACTERE="caractere";
@@ -89,7 +89,7 @@ tokens {
   T_KW_LITERAIS="literais";
   T_KW_LOGICOS="lógicos";
   T_KW_FUNCAO="função";
-  T_KW_RETORNE="retorne";  
+  T_KW_RETORNE="retorne";
   T_KW_PASSO="passo";
 
   T_REAL_LIT="número real"; //nondeterminism T_INT_LIT & T_REAL_LIT
@@ -108,7 +108,7 @@ tokens {
 }
 
 {
-public:  
+public:
   PortugolLexer(ANTLR_USE_NAMESPACE(std)istream& in, TokenStreamSelector* s)
 	: UnicodeCharScanner(new UnicodeCharBuffer(in),true),
     selector(s)
@@ -120,7 +120,7 @@ public:
   {
     if(!nextFilename.empty()) {
       GPTDisplay::self()->setCurrentFile(nextFilename);
-      selector->pop();      
+      selector->pop();
       selector->retry();
     }
   }
@@ -131,7 +131,7 @@ public:
 
 private:
   string nextFilename;
-  TokenStreamSelector* selector;  
+  TokenStreamSelector* selector;
   bool hasLatim;
 }
 /*------------------------- Operators -----------------------*/
@@ -142,98 +142,98 @@ options {
 }
   : '|'
   ;
-  
-T_BIT_XOU 
+
+T_BIT_XOU
 options {
   paraphrase = "operador '^'";
 }
   : '^'
   ;
-  
+
 T_BIT_E
 options {
   paraphrase = "operador '&'";
 }
   : '&'
   ;
-  
+
 T_BIT_NOT
 options {
   paraphrase = "operador '~'";
 }
   : '~'
   ;
-  
+
 T_IGUAL
 options {
   paraphrase = "operador '='";
 }
   : '='
   ;
-  
+
 T_DIFERENTE
 options {
   paraphrase = "operador '<>'";
 }
   : "<>"
   ;
-  
+
 T_MAIOR
 options {
   paraphrase = "operador '>'";
 }
   : '>'
   ;
-  
+
 T_MENOR
 options {
   paraphrase = "operador '<'";
 }
   : '<'
   ;
-  
+
 T_MAIOR_EQ
 options {
   paraphrase = "operador '>='";
 }
   : ">="
   ;
-  
+
 T_MENOR_EQ
 options {
   paraphrase = "operador '<='";
 }
   : "<="
   ;
-  
+
 T_MAIS
 options {
   paraphrase = "operador '+'";
 }
   : '+'
   ;
-  
+
 T_MENOS
 options {
   paraphrase = "operador '-'";
 }
   : '-'
   ;
-  
+
 T_DIV
 options {
   paraphrase = "operador '/'";
 }
   : {LA(2)!= '/' && LA(2)!= '*'}? '/'
   ;
-  
+
 T_MULTIP
 options {
   paraphrase = "operador '*'";
 }
   : '*'
   ;
-  
+
 T_MOD
 options {
   paraphrase = "operador '%'";
@@ -247,7 +247,7 @@ options {
 }
   : '('
   ;
-  
+
 T_FECHAP
 options {
   paraphrase = "')'";
@@ -279,7 +279,7 @@ options {
   : ('0' ('c'|'C') )=> T_OCTAL_LIT
   | ('0' ('x'|'X') )=> T_HEX_LIT
   | ('0' ('b'|'B') )=> T_BIN_LIT
-  | T_INTEGER_LIT 
+  | T_INTEGER_LIT
     (
       '.' (T_DIGIT)+
       {$setType(T_REAL_LIT);}
@@ -301,7 +301,7 @@ T_OCTAL_LIT
            (str.find("9",0) != string::npos) ) {
           stringstream s;
           s << "\"" << $getText << "\" não é um valor octal válido";
-          GPTDisplay::self()->add(s.str(), getLine());          
+          GPTDisplay::self()->add(s.str(), getLine());
           haserror = true;
         } else {
           for(unsigned int i = 2; i < str.length(); ++i) {
@@ -321,7 +321,7 @@ T_OCTAL_LIT
           base10 = strtoul(str.c_str(), NULL, 8);
 
           stringstream s;
-          s << base10;        
+          s << base10;
           string res = s.str();
           $setText(res);
         }
@@ -347,11 +347,11 @@ T_HEX_LIT
         //convert to base 10
         int base10;
         base10 = strtoul(str.c_str(), NULL, 16);
-  
+
         stringstream s;
         s << base10;
         string res = s.str();
-        $setText(res);      
+        $setText(res);
       }
     }
   ;
@@ -422,14 +422,14 @@ options {
 }
   : ';'
   ;
-  
+
 T_COLON
 options {
   paraphrase = "':'";
 }
   : ':'
   ;
-  
+
 T_COMMA
 options {
   paraphrase = "','";
@@ -446,7 +446,7 @@ T_WS_ : (' '
 
 SL_COMMENT
   : "//" (~('\n'))* ('\n')?
-    { 
+    {
       newline();
       $setType(antlr::Token::SKIP);
     }
@@ -454,21 +454,21 @@ SL_COMMENT
 
 ML_COMMENT
 {int line = getLine();}
-  : "/*" 
-    ( 
-      options { generateAmbigWarnings=false; } :  
+  : "/*"
+    (
+      options { generateAmbigWarnings=false; } :
         '\n'                     {newline();}
       | ('\r' '\n')=> '\r' '\n'  {newline();}
       | '\r'                     {newline();}
       |~('*'|'\n'|'\r')
-      | ('*' ~'/' )=> '*' 
-    )* 
+      | ('*' ~'/' )=> '*'
+    )*
     "*/"
     {$setType(antlr::Token::SKIP);}
   ;
 
 exception
-catch[antlr::RecognitionException] {  
+catch[antlr::RecognitionException] {
   stringstream s;
   s << "AVISO: comentário iniciado na linha " << line << " não termina com \"*/\".";
   GPTDisplay::self()->add(s.str(), getLine());
@@ -478,23 +478,23 @@ catch[antlr::RecognitionException] {
 
 /* Now, thats reeeally tricky:
   Here is the problem:
-  
+
   we need a way to get tokens such as "fim-variaveis".
   those tokens are listed on tokens{} section, so
   in order to match those tokens, we need a rule
   that covers all the keywords, then, we use testLiterals=true.
-  
+
   If there is a token on tokens{} section that
   cannot be matched by any rule, it will never
   be matched (since, there will be no rule to call testLiterals
   and create the desireble token).
-  
-  So, the problem arrives when we add a token with 
-  hiphen (such as "fim-variaveis") on tokens{} section.    
+
+  So, the problem arrives when we add a token with
+  hiphen (such as "fim-variaveis") on tokens{} section.
   The T_IDENTIFIER should not accept '-', so, there is no
   other general rule that can match "fim-variaveis" to call testLiterals
   and return it to the parser.
-  
+
   The workaround for this is to generalize T_IDENTIFIER
   to support '-', but marking its state right before the '-'.
   after the matching process, we check if there is an '-' on the
@@ -525,18 +525,18 @@ options {
 //   paraphrase = "variável/função";
 }
   { int m=-1,len; hasLatim=false;}
-  
+
   : T_ID_AUX
       {
         len=$getText.length();
         if(LA(1)=='-') {
-          m=mark();          
+          m=mark();
         }
       }
-      
+
     ('-' (T_LETTER_OR_DIGIT)*)?
   {
-    
+
     if(m != -1) {
       if(testLiteralsTable(_ttype) == T_IDENTIFICADOR) {
         rewind(m);
@@ -568,7 +568,7 @@ T_LETTER
 
 protected
 T_INVALID
-  : . 
+  : .
     {
 //       printf("%d == '%x' -> '%c'\n", $getText.c_str()[0], $getText.c_str()[0], $getText.c_str()[0]);
 

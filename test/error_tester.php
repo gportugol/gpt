@@ -7,7 +7,7 @@
 		foreach($lines as $line) {
 			echo $c . " $line". "\n";
 			$c++;
-		}    
+		}
 		echo "--------\n";
 	}
 
@@ -20,7 +20,7 @@
 
   $feed = file_get_contents($feedname);
 
-    
+
   $matches = array();
   preg_match_all("/<([^>]*)>/", $feed, $matches);
 //   print_r($matches);
@@ -30,7 +30,7 @@
   $char = '';
   $idx = 0;
   while(($char != 'q') && ($idx < count($sources))) {
-    system("clear");    
+    system("clear");
     echo "Source idx: $idx\n\n";
     print_source($sources[$idx]);
     system("echo \"".$sources[$idx]."\" | $gpt -p ");
@@ -44,5 +44,5 @@
 			$idx--;
 			if($idx < 0) $idx = 0;
 		}
-  }	
+  }
 ?>

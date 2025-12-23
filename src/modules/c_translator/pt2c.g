@@ -27,7 +27,7 @@ header {
   #include <map>
   #include <list>
   #include <stdlib.h>
-  
+
   using namespace std;
 
   typedef struct production_t {
@@ -57,7 +57,7 @@ options {
 
 {
   public:
-  Portugol2CWalker(SymbolTable& st) 
+  Portugol2CWalker(SymbolTable& st)
     : stable(st) { }
 
   private:
@@ -122,7 +122,7 @@ options {
          "   double *fs,*fd;\n"
          "   char *cs,*cd;\n"
          "   char **css,**cdd;\n"
-         "   boolean *bs,*bd;\n"          
+         "   boolean *bs,*bd;\n"
          "   switch(type) {\n"
          "     case 'i':\n"
          "       ds = (int*) src;\n"
@@ -160,7 +160,7 @@ options {
          "   double* f;\n"
          "   char* c;\n"
          "   char** s;\n"
-         "   boolean* b;\n"          
+         "   boolean* b;\n"
          "   switch(type) {\n"
          "     case 'i':\n"
          "       d = (int*) matrix;\n"
@@ -209,7 +209,7 @@ options {
          "         c = va_arg(args, int);\n"
          "         printf(\"%c\", c);\n"
          "         break;\n"
-         "       case 's':\n"         
+         "       case 's':\n"
          "         s = va_arg(args, char*);\n"
          "         if(!s) {\n"
          "           printf(\"(nulo)\");\n"
@@ -276,7 +276,7 @@ options {
          "     return 0;\n"
          "   }\n"
          "   return strlen(str);\n"
-         "}\n";     
+         "}\n";
     s << "boolean str_comp(char* left, char* right) {\n"
          "   if (!left && !right) {\n"
          "      return TRUE;\n"
@@ -311,7 +311,7 @@ options {
   }
 
   void addPrototype(stringstream& str) {
-    _head << str.str() << endl; 
+    _head << str.str() << endl;
   }
 
   void writeln(const stringstream& s, bool doIndent = true) {
@@ -333,7 +333,7 @@ options {
     if(doIndent) _txt << _indent;
     _txt << s.str();
   }
-  
+
 
   void writeInitStms() {
     _txt << _scope_init_stms.str();
@@ -368,19 +368,19 @@ options {
     } else {
       string ret = "_";
       ret += id;
-      return ret; 
-    }    
+      return ret;
+    }
   }
 
-  
+
   string translateFunctionParams(const string& id, list<pair<int, string> >& params) {
     Symbol s = stable.getSymbol(SymbolTable::GlobalScope, id);
-    
-    if(s.isBuiltin && (id == "imprima")) {      
+
+    if(s.isBuiltin && (id == "imprima")) {
       stringstream first_arg;
       first_arg << "\"";
-      for(list<pair<int, string> >::iterator it = params.begin(); it != params.end(); ++it) {        
-        switch((*it).first) {          
+      for(list<pair<int, string> >::iterator it = params.begin(); it != params.end(); ++it) {
+        switch((*it).first) {
           case TIPO_INTEIRO:   first_arg << "d"; break;
           case TIPO_REAL:      first_arg << "f"; break;
           case TIPO_CARACTERE: first_arg << "c"; break;
@@ -397,7 +397,7 @@ options {
     for(list<pair<int, string> >::iterator it = params.begin(); it != params.end(); ++it) {
       ret << v << (*it).second;
       v = ", ";
-    }  
+    }
     return ret.str();
   }
 
@@ -409,7 +409,7 @@ options {
       case TIPO_REAL:      str = "double"; break;
       case TIPO_CARACTERE: str = "char"; break;
       case TIPO_LITERAL:   str = "char*"; break;
-      case TIPO_LOGICO:    str = "boolean"; break;    
+      case TIPO_LOGICO:    str = "boolean"; break;
       default:
         cerr << "Erro interno: tipo nao suportado (pt2c::translateType)." << endl;
         exit(1);
@@ -417,10 +417,10 @@ options {
     return str;
   }
 
-  
+
   string translateBinExpr(const production& left, const production& right, int optoken) {
     stringstream ret;
-    if((left.expr.first != TIPO_LITERAL) && (right.expr.first != TIPO_LITERAL)) {      
+    if((left.expr.first != TIPO_LITERAL) && (right.expr.first != TIPO_LITERAL)) {
       switch(optoken) {
         case T_IGUAL:
           ret << left.expr.second << "==" << right.expr.second;
@@ -437,7 +437,7 @@ options {
         case T_MAIOR_EQ:
           ret << left.expr.second << ">=" << right.expr.second;
           break;
-        case T_MENOR_EQ:  
+        case T_MENOR_EQ:
           ret << left.expr.second << "<=" << right.expr.second;
           break;
         default:
@@ -463,7 +463,7 @@ options {
       case T_MAIOR_EQ:
         ret << "(str_strlen(" << left.expr.second << ") >= str_strlen(" << right.expr.second << "))";
         break;
-      case T_MENOR_EQ:  
+      case T_MENOR_EQ:
         ret << "(str_strlen(" << left.expr.second << ") <= str_strlen(" << right.expr.second << "))";
         break;
       default:
@@ -471,15 +471,15 @@ options {
           exit(1);
     }
     return ret.str();
-  }  
+  }
 }
 
 /********************************* Producoes **************************************/
 
 algoritmo returns [string str]
   : #(T_KW_ALGORITMO id:T_IDENTIFICADOR) {init(id->getText());}
-    (variaveis)? 
-    principal 
+    (variaveis)?
+    principal
     (func_decls)*
     {str = _head.str() + _txt.str();}
   ;
@@ -490,9 +490,9 @@ variaveis
   stringstream str;
   stringstream init;
 }
-  : #(T_KW_VARIAVEIS 
+  : #(T_KW_VARIAVEIS
       (
-          p=primitivo 
+          p=primitivo
             {
               for(list<string>::iterator it = p.primvars.second.begin(); it != p.primvars.second.end(); ++it) {
                 str << translateType(p.primvars.first) << " _" << (*it) << " = 0;";
@@ -501,7 +501,7 @@ variaveis
               }
             }
 
-          | p=matriz 
+          | p=matriz
             {
               for(list<string>::iterator itid = p.matrizvars.second.first.begin(); itid !=  p.matrizvars.second.first.end(); ++itid) {
                 str << translateType(p.matrizvars.first) << " _" << *itid;
@@ -510,7 +510,7 @@ variaveis
                 }
                 str << ";";
                 writeln(str);
-      
+
                 init << "matrix_init(_" << *itid << ", ";
                 switch(p.matrizvars.first) {
                   case TIPO_INTEIRO:
@@ -520,11 +520,11 @@ variaveis
                   case TIPO_CARACTERE:
                     init << "'c', ";break;
                   case TIPO_LITERAL:
-                    init << "'s', ";break;      
+                    init << "'s', ";break;
                   case TIPO_LOGICO:
                     init << "'b', ";break;
                 }
-      
+
                 int tsize = 1;
                 for(list<string>::iterator itdim = p.matrizvars.second.second.begin(); itdim != p.matrizvars.second.second.end(); ++itdim) {
                   tsize = tsize * atoi((*itdim).c_str());
@@ -564,7 +564,7 @@ matriz returns [production p]
 {
   production tp; //pair<int, list<string> > tipo_matriz; //pair<type, list<dimsize> >
 }
-  : #(TI_VAR_MATRIX tp=tipo_matriz 
+  : #(TI_VAR_MATRIX tp=tipo_matriz
         {
           p.matrizvars.first = tp.tipo_matriz.first;
           p.matrizvars.second.second = tp.tipo_matriz.second;
@@ -577,7 +577,7 @@ matriz returns [production p]
 
 
 tipo_matriz returns [production p]
-  : #(T_KW_INTEIROS 
+  : #(T_KW_INTEIROS
       {p.tipo_matriz.first = TIPO_INTEIRO;}
       (
         s1:T_INT_LIT
@@ -620,9 +620,9 @@ principal
     indent();
   }
   : stm_block
-    {      
+    {
       writeln("cleanup();");
-      writeln("return EXIT_SUCCESS;\n}");      
+      writeln("return EXIT_SUCCESS;\n}");
       unindent();
     }
   ;
@@ -664,7 +664,7 @@ stm_attr
 
 lvalue returns [production p]
 {
-  stringstream s;  
+  stringstream s;
   production e; //pair<int type, string expr> lvalue;
 }
   : #(id:T_IDENTIFICADOR
@@ -689,7 +689,7 @@ fcall[int expct_type] returns [production p] //id, list<dimexpr>
   int type;
   int count = 0;
 }
-  : #(TI_FCALL id:T_IDENTIFICADOR 
+  : #(TI_FCALL id:T_IDENTIFICADOR
       {
         p.fcall.second = translateFunctionName(id->getText(), expct_type);
         f = stable.getSymbol(SymbolTable::GlobalScope, id->getText()); //so we get the params
@@ -701,7 +701,7 @@ fcall[int expct_type] returns [production p] //id, list<dimexpr>
         {lp.push_back(e.expr);type = f.param.paramType(count++);}
       )*
     )
-    {p.fcall.second += "("; p.fcall.second += translateFunctionParams(id->getText(), lp); p.fcall.second += ")";}    
+    {p.fcall.second += "("; p.fcall.second += translateFunctionParams(id->getText(), lp); p.fcall.second += ")";}
   ;
 
 stm_ret
@@ -713,9 +713,9 @@ stm_ret
   }else{
     expecting_type = stable.getSymbol(SymbolTable::GlobalScope, _currentScope, true).type.primitiveType();
   }
-  
+
   production e;
-  stringstream str; 
+  stringstream str;
 }
   : #(T_KW_RETORNE (TI_NULL|e=expr[expecting_type]))
     {
@@ -733,7 +733,7 @@ stm_ret
 stm_se
 {
   production e;
-  stringstream str; 
+  stringstream str;
 }
   : #(T_KW_SE e=expr[TIPO_LOGICO]
         {
@@ -741,18 +741,18 @@ stm_se
           writeln(str);
           indent();
         }
-      (stm)* 
+      (stm)*
       {
         unindent();
-        write("}");        
+        write("}");
       }
 
-      ( 
-        T_KW_SENAO 
+      (
+        T_KW_SENAO
         {
           writeln(" else {", false);
           indent();
-        } 
+        }
 
         (stm)*
         {
@@ -798,7 +798,7 @@ stm_repita
       e=expr[TIPO_LOGICO]
       {
         unindent();
-        str.str(""); 
+        str.str("");
         str << "}while (! "  << e.expr.second << ");";
         writeln(str);
       }
@@ -814,17 +814,17 @@ stm_para
   : #(T_KW_PARA var=lvalue de=expr[TIPO_INTEIRO] ate=expr[TIPO_INTEIRO] (ps=passo {haspasso=true;})?
       {
         if(!haspasso) {
-            str  << "for(" <<    var.lvalue.second << "=" << de.expr.second << ";" 
-                              << var.lvalue.second << "<=" << ate.expr.second << ";" 
+            str  << "for(" <<    var.lvalue.second << "=" << de.expr.second << ";"
+                              << var.lvalue.second << "<=" << ate.expr.second << ";"
                               << var.lvalue.second << "+=" << 1 << ") {";
         } else {
           if(ps.passo.first) {//crescente
-            str  << "for(" << var.lvalue.second << "=" << de.expr.second << ";" 
-                              << var.lvalue.second << "<=" << ate.expr.second << ";" 
-                              << var.lvalue.second << "+=" << ps.passo.second << ") {";            
+            str  << "for(" << var.lvalue.second << "=" << de.expr.second << ";"
+                              << var.lvalue.second << "<=" << ate.expr.second << ";"
+                              << var.lvalue.second << "+=" << ps.passo.second << ") {";
           } else { //decrescente
-            str  << "for(" << var.lvalue.second << "=" << de.expr.second << ";" 
-                              << var.lvalue.second << ">=" << ate.expr.second << ";" 
+            str  << "for(" << var.lvalue.second << "=" << de.expr.second << ";"
+                              << var.lvalue.second << ">=" << ate.expr.second << ";"
                               << var.lvalue.second << "-=" << ps.passo.second << ") {";
           }
         }
@@ -847,7 +847,7 @@ passo returns [production p]
   : #(T_KW_PASSO (
           T_MAIS  {p.passo.first=true;} //crescente
         | T_MENOS {p.passo.first=false;} //decrescente
-        )? 
+        )?
       i:T_INT_LIT {p.passo.second = i->getText();}
     )
   ;
@@ -855,12 +855,12 @@ passo returns [production p]
 expr[int expecting_type] returns [production p]
 {
   production left,right;
-}  
+}
   : #(T_KW_OU     left=expr[expecting_type] right=expr[expecting_type]) {p.expr.second="("+left.expr.second;p.expr.second+="||";p.expr.second+=right.expr.second+")";p.expr.first=#expr->getEvalType();}
   | #(T_KW_E      left=expr[expecting_type] right=expr[expecting_type]) {p.expr.second="("+left.expr.second;p.expr.second+="&&";p.expr.second+=right.expr.second+")";p.expr.first=#expr->getEvalType();}
-  | #(T_BIT_OU    left=expr[expecting_type] right=expr[expecting_type]) {p.expr.second="("+left.expr.second;p.expr.second+="|";p.expr.second+=right.expr.second+")";p.expr.first=#expr->getEvalType();}  
+  | #(T_BIT_OU    left=expr[expecting_type] right=expr[expecting_type]) {p.expr.second="("+left.expr.second;p.expr.second+="|";p.expr.second+=right.expr.second+")";p.expr.first=#expr->getEvalType();}
   | #(T_BIT_XOU   left=expr[expecting_type] right=expr[expecting_type]) {p.expr.second="("+left.expr.second;p.expr.second+="^";p.expr.second+=right.expr.second+")";p.expr.first=#expr->getEvalType();}
-  | #(T_BIT_E     left=expr[expecting_type] right=expr[expecting_type]) {p.expr.second="("+left.expr.second;p.expr.second+="&";p.expr.second+=right.expr.second+")";p.expr.first=#expr->getEvalType();}  
+  | #(T_BIT_E     left=expr[expecting_type] right=expr[expecting_type]) {p.expr.second="("+left.expr.second;p.expr.second+="&";p.expr.second+=right.expr.second+")";p.expr.first=#expr->getEvalType();}
   | #(T_IGUAL     left=expr[expecting_type] right=expr[expecting_type]) {p.expr.second="("+translateBinExpr(left,right,T_IGUAL);p.expr.second+=")";p.expr.first=#expr->getEvalType();}
   | #(T_DIFERENTE left=expr[expecting_type] right=expr[expecting_type]) {p.expr.second="("+translateBinExpr(left,right,T_DIFERENTE);p.expr.second+=")";p.expr.first=#expr->getEvalType();}
   | #(T_MAIOR     left=expr[expecting_type] right=expr[expecting_type]) {p.expr.second="("+p.expr.second+=translateBinExpr(left,right,T_MAIOR);p.expr.second+=")";p.expr.first=#expr->getEvalType();}
@@ -891,28 +891,28 @@ element[int expecting_type] returns [production p]
   ;
 
 literal returns [production p]
-  : s:T_STRING_LIT        
+  : s:T_STRING_LIT
     {
-      p.expr.first=TIPO_LITERAL;   
+      p.expr.first=TIPO_LITERAL;
       if(s->getText().length() == 0) {
         p.expr.second = "0";
       } else {
-        p.expr.second = "\""; 
+        p.expr.second = "\"";
         p.expr.second += s->getText();
         p.expr.second += "\"";
       }
     }
   | i:T_INT_LIT           {p.expr.first=TIPO_INTEIRO;   p.expr.second = i->getText();}
   | r:T_REAL_LIT          {p.expr.first=TIPO_REAL;      p.expr.second = r->getText();}
-  | c:T_CARAC_LIT         
+  | c:T_CARAC_LIT
     {
       if(c->getText().length() > 0) {
-        p.expr.first=TIPO_CARACTERE; 
-        p.expr.second = "'"; 
+        p.expr.first=TIPO_CARACTERE;
+        p.expr.second = "'";
         p.expr.second += c->getText();
         p.expr.second += "'";
       } else {
-        p.expr.first=TIPO_CARACTERE; 
+        p.expr.first=TIPO_CARACTERE;
         p.expr.second = "0";
       }
     }
@@ -929,7 +929,7 @@ func_decls
   stringstream decl;
   string comma;
 }
-  : #(id:T_IDENTIFICADOR   
+  : #(id:T_IDENTIFICADOR
       {
         setScope(id->getText());
         //nota: nao estamos usando a producao "ret_type" para saber o tipo de retorno.
@@ -941,7 +941,7 @@ func_decls
 
       (
           prim=primitivo
-            {              
+            {
               for(list<string>::iterator it = prim.primvars.second.begin(); it != prim.primvars.second.end(); ++it) {
                 str << comma << translateType(prim.primvars.first) << " _" << (*it);
                 comma = ", ";
@@ -953,13 +953,13 @@ func_decls
               for(list<string>::iterator itid = mat.matrizvars.second.first.begin(); itid !=  mat.matrizvars.second.first.end(); ++itid) {
                 s << comma << translateType(mat.matrizvars.first) << " __" << *itid;
                 decl << translateType(mat.matrizvars.first) << " _" << *itid;
-        
+
                 comma = ",";
                 for(list<string>::iterator itdim = mat.matrizvars.second.second.begin(); itdim != mat.matrizvars.second.second.end(); ++itdim) {
                   s << "[" << *itdim << "]";
                   decl << "[" << *itdim << "]";
-                }                
-        
+                }
+
                 decl << ";";
                 addInitStm(decl);
                 decl.str("");
@@ -977,13 +977,13 @@ func_decls
                   case TIPO_LOGICO:
                     cpy << "'b', ";break;
                 }
-      
+
                 int tsize = 1;
                 for(list<string>::iterator itdim = mat.matrizvars.second.second.begin(); itdim != mat.matrizvars.second.second.end(); ++itdim) {
                   tsize = tsize * atoi((*itdim).c_str());
                 }
                 cpy << tsize << ");";
-                addInitStm(cpy);        
+                addInitStm(cpy);
                 cpy.str("");
                 str << s.str();
                 s.str("");
@@ -1036,13 +1036,13 @@ func_decls
 
 
 // arg_primitivo returns [production p]
-//   : #(TI_VAR_PRIMITIVE tipo_prim 
-//       (id:T_IDENTIFICADOR)+ 
+//   : #(TI_VAR_PRIMITIVE tipo_prim
+//       (id:T_IDENTIFICADOR)+
 //     )
 //   ;
 
 // arg_matriz
-//   : #(TI_VAR_MATRIX tipo_matriz 
+//   : #(TI_VAR_MATRIX tipo_matriz
 //       (id:T_IDENTIFICADOR)+
 //       )
 //   ;

@@ -1,5 +1,5 @@
 %macro  begin 1
-    push    ebp 
+    push    ebp
     mov     ebp,esp
   %if %1
     sub     esp,%1
@@ -8,7 +8,7 @@
 
 %macro return 0
     mov esp, ebp
-    pop ebp  
+    pop ebp
     ret
 %endmacro
 
@@ -54,11 +54,11 @@ global _start
 ;     addarg __buffer1
 ;     call __atof
 ;     clargs 1
-; 
+;
 ;     addarg eax
 ;     call __imprima_real
 ;     clargs 1
-; 
+;
      exit 0
 
 __imprima_literal:
@@ -85,10 +85,10 @@ __imprima_inteiro:
     ;local
     %define buffer   ebp-BUFFER_SIZE
     begin BUFFER_SIZE
-    
+
     lea eax, [buffer]
     addarg eax
-    addarg dword [num]    
+    addarg dword [num]
     call __itoa
     clargs 2
 
@@ -111,7 +111,7 @@ __imprima_real:
 
     lea eax, [buffer]
     addarg eax
-    addarg dword [num]    
+    addarg dword [num]
     call __ftoa
     clargs 2
 
@@ -123,7 +123,7 @@ __imprima_real:
     print_lf
 
     return
-  
+
 __print_c:
     ;params
     %define carac ebp+8
@@ -138,20 +138,20 @@ __print_c:
     return
 
 __imprima_caractere:
-    ;params 
+    ;params
     %define carac ebp+8
     begin 4
-    
+
     addarg dword [carac]
     call __print_c
     clargs 1
 
     print_lf
-    
+
     return
 
 __imprima_logico:
-    ;params 
+    ;params
     %define val ebp+8
 
     begin 0
@@ -171,7 +171,7 @@ __imprima_logico:
       clargs 1
 
       print_lf
-  
+
     return
 
 __strpos:
@@ -262,7 +262,7 @@ __is_num:
 __atoi:
     ;params
     %define string ebp+8
-  
+
     ;locals
     %define num   ebp-4
     %define m     ebp-8
@@ -270,10 +270,10 @@ __atoi:
     %define len   ebp-16
     %define negt  ebp-20
     begin 20
-  
+
     mov dword [num], 0
     mov dword [m], 1
-  
+
     addarg dword [string]
     call __strlen
     clargs 1
@@ -285,7 +285,7 @@ __atoi:
     mov dword [i], 0
 
     ;checks for signal (+-)
-    %define minus_sig 45 
+    %define minus_sig 45
     %define plus_sig 43
     mov eax, [string]
     xor ebx, ebx
@@ -318,35 +318,35 @@ __atoi:
     .while:
       mov eax, dword [i]
       cmp eax, [len]
-      jg .endwhile      
-      
+      jg .endwhile
+
       mov ebx, [string]
-      mov ecx, [i]        
+      mov ecx, [i]
       xor edx, edx
-      mov dl, [ebx+ecx]      
+      mov dl, [ebx+ecx]
 
       addarg edx
       call __is_num
       clargs 1
-  
+
       cmp eax, 0
       jz .endwhile
-  
+
       inc dword [i]
       jmp .while
     .endwhile:
-  
+
     cmp dword [i], 0
     jz .ret_zero
-  
 
-    dec dword [i]    
-    
+
+    dec dword [i]
+
     .while2:
       cmp dword [i], 0
       jl .endwhile2
 
-      ; get the string[len-i]  
+      ; get the string[len-i]
       mov ebx, [string]
       mov ecx, [i]
       xor eax, eax
@@ -355,7 +355,7 @@ __atoi:
       ;(string[len-i] - 48) * m
       sub al, 48
 
-      mul dword [m]      
+      mul dword [m]
 
       ;num += (string[len-i] - 48) * m
       add [num], eax
@@ -370,14 +370,14 @@ __atoi:
 
       jmp .while2
     .endwhile2:
-  
+
     cmp dword [negt], 1
     jnz .return_pos
 
     mov eax, [num]
     neg eax
     return
-   
+
     .return_pos
       mov eax, [num]
       return
@@ -399,7 +399,7 @@ __atof:
     %define deci     ebp-24
     %define p        ebp-28
     %define float    ebp-32
-    
+
     begin 32
 
     addarg dword [string]
@@ -410,7 +410,7 @@ __atof:
     jz .ret_zero
 
     ;checks for signal (+-)
-    %define minus_sig 45 
+    %define minus_sig 45
     %define plus_sig 43
     mov eax, [string]
     xor ebx, ebx
@@ -443,7 +443,7 @@ __atof:
     addarg '.'
     call __strpos
     clargs 2
-    
+
     mov dword [dotpos], eax
 
     ;get decimal str
@@ -456,8 +456,8 @@ __atof:
     addarg dword [str_dec]
     call __strlen
     clargs 1
-    
-    mov dword [declen], eax    
+
+    mov dword [declen], eax
 
     addarg dword [str_dec]
     call __atoi
@@ -476,7 +476,7 @@ __atof:
     mov [inte], eax
 
     mov eax, dword [declen]
-    
+
     addarg 10
     addarg eax
     call __pow
@@ -496,7 +496,7 @@ __atof:
     mov eax, [float]
     or eax, 0x80000000
     return
-   
+
     .return_pos
       mov eax, [float]
       return
@@ -520,14 +520,14 @@ __itoa:
     mov eax, [num]
     mov [sig], eax
     shr eax, 31
-    mov [sig], eax    
+    mov [sig], eax
 
     cmp [sig], dword 0
     jz .endif
       neg dword [num]
     .endif:
 
-    
+
     mov ecx, 0
     mov eax, [num] ;123
     .trans
@@ -540,18 +540,18 @@ __itoa:
     cmp eax, 0
     jnz .trans
 
-    
+
     cmp [sig], dword 0
     jz .else1
       %define minus_sig 45
       mov edx, 1 ;addr offset
       mov eax, [buffer]
-      mov [eax], byte minus_sig            
+      mov [eax], byte minus_sig
       jmp .endif1
     .else1:
       mov edx, 0 ;addr offset
     .endif1
-    
+
     .reorder
       pop eax
       mov ebx, [buffer]
@@ -574,7 +574,7 @@ __ftoa:
     %define exp    ebp-4
     %define mant   ebp-8
     %define left   ebp-12
-    %define sig    ebp-16    
+    %define sig    ebp-16
     %define offset ebp-20
     %define r      ebp-24
     %define term   ebp-28
@@ -582,8 +582,8 @@ __ftoa:
     %define tmp    ebp-36
     %define right  ebp-40
     ;last ebp localvar offset
-    %define lst    40    
-  
+    %define lst    40
+
     begin lst
 
     ;sig = (num >> 31);
@@ -608,9 +608,9 @@ __ftoa:
     mov [mant], eax
 
     ;if((exp | mant) == 0) return "0.0";
-    mov eax, [exp]      
+    mov eax, [exp]
     mov ebx, [mant]
-    or eax, ebx      
+    or eax, ebx
       cmp eax, 0
       jnz .endif
       mov eax, 0x00302E30 ;"0.0"
@@ -619,7 +619,7 @@ __ftoa:
 
     ;exp -= BIAS;
     sub [exp], dword BIAS
-  
+
     ;mant |= 0x800000;       //+ hidden (1.)
     or [mant], dword 0x800000
 
@@ -631,7 +631,7 @@ __ftoa:
     mov eax, 25
     sub eax, [exp]
       cmp eax, 32
-      jg .else1   
+      jg .else1
       mov eax, [mant]
       mov ecx, 23
       sub ecx, [exp]
@@ -644,7 +644,7 @@ __ftoa:
 
     ;if(8 + 1 + exp > 0) {//not sure about this eighter
     ;  mant = mant << (8 + 1 + exp); //hidden + exp
-    ;} else { 
+    ;} else {
     ;  exp *= -1;
     ;  mant = mant >> (exp - (8+1));
     ;}
@@ -662,7 +662,7 @@ __ftoa:
       mov ecx, [exp]
       sub ecx, 9
       mov eax, [mant]
-      shr eax, cl          
+      shr eax, cl
     .endif2:
 
 
@@ -682,12 +682,12 @@ __ftoa:
 
     finit
 
-    ;while(offset != 1) {  
-    .while:    
+    ;while(offset != 1) {
+    .while:
       mov eax, [offset]
       cmp eax, 1
       jz .endwhile
-  
+
       ;if((r >> offset) & 1) {
       mov eax, [r]
       mov ecx, [offset]
@@ -695,7 +695,7 @@ __ftoa:
       and eax, 1
         cmp eax, 0
         jz .endif3
-  
+
         ;acc += pow(2, -(term));
         mov eax, 2
         mov ebx, [term]
@@ -707,8 +707,8 @@ __ftoa:
         clargs 2
 
         mov [tmp], eax
-  
-        fld  dword [acc] ;st0 = acc      
+
+        fld  dword [acc] ;st0 = acc
         fadd dword [tmp]
         fstp dword [acc]
       .endif3:
@@ -748,7 +748,7 @@ __ftoa:
     call __itoa
     clargs 2
     ;buffer has "left"
-    
+
     addarg dword [buffer]
     call __strlen
     clargs 1
@@ -756,7 +756,7 @@ __ftoa:
     add eax, dword [buffer]
     mov [eax], byte '.'
     inc eax
-    mov [tmp], eax    
+    mov [tmp], eax
 
     ;make room
     %define buffer2 ebp-lst+4
@@ -789,7 +789,7 @@ __ftoa:
     .append:
       cmp [eax], byte 0
       jz .endappend
-      
+
       xor ecx, ecx
       mov cl, [eax]
       mov [ebx], cl
@@ -857,7 +857,7 @@ __pow:
     .negative:
       finit
       mov [tmp], dword 0x3F800000 ; 1.0
-  
+
       fld   dword [tmp]
       fidiv dword [res]
       fstp  dword [res]
@@ -888,7 +888,7 @@ matrix_init__:
       mul ebx
       mov [total], eax
     .endif:
-  
+
     mov eax, 0
     .while:
       cmp eax, [total]
@@ -959,7 +959,7 @@ __strcpy:
 
     cmp eax, [src_len]
     jnz .end
-    
+
     mov eax, 0
     mov edx, [dest]
     .while:
@@ -1017,7 +1017,7 @@ __strcmp:
       mov ebx, [right]
       xor ecx, ecx
       mov cl, [ebx+eax]
-      
+
       cmp edx, ecx
       jnz .false
 
@@ -1029,7 +1029,7 @@ __strcmp:
     return
 
   .false
-    mov eax, 0 
+    mov eax, 0
     return
 
 __malloc:
@@ -1048,7 +1048,7 @@ __malloc:
       mov eax, __mem        ;base       +
       add eax, [__mem_ptr]  ;allocated  +
       add eax, [size]       ;requested  = new allocated chunk
-  
+
       mov ebx,  __mem      ;base  +
       add ebx, MEMORY_SIZE ;total  = chunk limit address
 
@@ -1058,14 +1058,14 @@ __malloc:
       ;return val
       mov eax, __mem
       add eax, [__mem_ptr]
-  
+
       ;updates __mem_ptr
       mov ebx, [__mem_ptr]
       add ebx, [size]
       mov [__mem_ptr], ebx
 
       return
-    
+
    .no_memory_left:
       addarg __str_no_mem_left
       call __imprima_literal
@@ -1075,14 +1075,14 @@ __malloc:
 __leia_caractere:
     %define buffer   ebp-BUFFER_SIZE
     begin BUFFER_SIZE
-    
+
     ;read from stdin
     lea eax, [buffer]
     addarg eax
     addarg BUFFER_SIZE
     call __readline
     clargs 2
-    
+
     lea ebx, [buffer]
     xor eax, eax
     mov al, [ebx]
@@ -1090,16 +1090,16 @@ __leia_caractere:
     return
 
 __leia_real:
-    %define buffer   ebp-BUFFER_SIZE    
+    %define buffer   ebp-BUFFER_SIZE
     begin BUFFER_SIZE
-    
+
     ;read from stdin
     lea eax, [buffer]
     addarg eax
     addarg BUFFER_SIZE
     call __readline
     clargs 2
-    
+
     lea eax, [buffer]
     addarg eax
     call __atof
@@ -1110,14 +1110,14 @@ __leia_real:
 __leia_inteiro:
     %define buffer   ebp-BUFFER_SIZE
     begin BUFFER_SIZE
-    
+
     ;read from stdin
     lea eax, [buffer]
     addarg eax
     addarg BUFFER_SIZE
     call __readline
     clargs 2
-    
+
     lea eax, [buffer]
     addarg eax
     call __atoi
@@ -1129,7 +1129,7 @@ __leia_logico:
     %define zero_str ebp-4
     %define buffer   ebp-4-BUFFER_SIZE
     begin (4+BUFFER_SIZE)
-    
+
     mov [zero_str], dword 0x00000030 ;"0\0"
 
     ;read from stdin
@@ -1195,7 +1195,7 @@ __readline:
     mov eax, 3 ;the syscall "read"
     mov ebx, 0 ;the fd (stdin)
     mov ecx, [buffer]
-    mov edx, [size];the length 
+    mov edx, [size];the length
     int 80h
 
     ;removes the \n
@@ -1203,4 +1203,3 @@ __readline:
     mov [ebx+eax-1], byte 0
 
     return
-
