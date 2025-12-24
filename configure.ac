@@ -68,40 +68,51 @@ fi
 AM_CONDITIONAL(BUILD_DEBUGGER, test x$SO_WINDOWS = xno)
 
 dnl------------------------------
-dnl Checks for ANTLR
+dnl Checks for ANTLR3
 dnl------------------------------
 
-AC_PATH_PROG(ANTLR_BIN, runantlr)
+AC_PATH_PROG(ANTLR3_CMD, antlr3)
 
-if test "x${ANTLR}" = "x"; then
-  AC_PATH_PROG(ANTLR_BIN, runantlr)
-fi
-
-if test "x${ANTLR_BIN}" = "x"; then
+if test "x${ANTLR3_CMD}" = "x"; then
   AC_MSG_ERROR(
   [
-    O programa "antlr" (ou runantlr) nao foi encontrado no seu sistema (PATH).
-    GPT precisa do ANTLR (versao 2.7.x) instalado.
-    Baixe em: http://www.antlr.org
+    O programa "antlr3" nao foi encontrado no seu sistema (PATH).
+    GPT precisa do ANTLR3 (versao 3.x) instalado.
+    No Debian/Ubuntu: sudo apt-get install antlr3
+    Baixe em: http://www.antlr3.org
   ])
 fi
 
-AC_PATH_PROG(ANTLR_CFG, antlr-config)
-if test "x${ANTLR_CFG}" = "x"; then
-  AC_MSG_ERROR(
-  [
-    O programa "antlr-config" nao foi encontrado no seu sistema (PATH).
-    GPT precisa do ANTLR (versao 2.7.x) instalado.
-    Baixe em: http://www.antlr.org
+AC_MSG_CHECKING([for ANTLR3])
+AC_MSG_RESULT([$ANTLR3_CMD])
+
+AC_SUBST(ANTLR3_CMD)
+
+dnl Check for ANTLR3 C runtime library
+AC_CHECK_LIB([antlr3c], [antlr3StringStreamNew],
+  [ANTLR3_LIB="-lantlr3c"],
+  [AC_MSG_ERROR(
+    [
+      A biblioteca libantlr3c nao foi encontrada.
+      GPT precisa da biblioteca C runtime do ANTLR3 instalada.
+      No Debian/Ubuntu: sudo apt-get install libantlr3c-dev
+      Baixe em: http://www.antlr3.org/download/C
+    ])
   ])
-fi
 
-ANTLR_LIB=`${ANTLR_CFG} --libs`
-ANTLR_INC=`${ANTLR_CFG} --cflags`
+AC_CHECK_HEADER([antlr3.h],
+  [ANTLR3_INC=""],
+  [AC_MSG_ERROR(
+    [
+      O header antlr3.h nao foi encontrado.
+      GPT precisa dos headers da biblioteca C runtime do ANTLR3 instalados.
+      No Debian/Ubuntu: sudo apt-get install libantlr3c-dev
+      Baixe em: http://www.antlr3.org/download/C
+    ])
+  ])
 
-AC_SUBST(ANTLR_BIN)
-AC_SUBST(ANTLR_INC)
-AC_SUBST(ANTLR_LIB)
+AC_SUBST(ANTLR3_INC)
+AC_SUBST(ANTLR3_LIB)
 
 
 dnl------------------------------
@@ -165,9 +176,9 @@ AC_OUTPUT
 
 AC_MSG_NOTICE([
 Sumario:
-	antlr           : $ANTLR_BIN
-	antlr includes  : $ANTLR_INC
-	antr lib        : $ANTLR_LIB
+	ANTLR3 command  : $ANTLR3_CMD
+	ANTLR3 includes : $ANTLR3_INC
+	ANTLR3 lib      : $ANTLR3_LIB
 
 	pcre includes   : $PCRE_INC
 	pcre lib        : $PCRE_LIB

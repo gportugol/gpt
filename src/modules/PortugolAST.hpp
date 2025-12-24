@@ -1,4 +1,4 @@
-/***************************************************************************
+/*
  *   Copyright (C) 2003-2006 by Thiago Silva                               *
  *   thiago.silva@kdemal.net                                               *
  *                                                                         *
@@ -16,55 +16,76 @@
  *   along with this program; if not, write to the                         *
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- ***************************************************************************/
+ */
 
 #ifndef PORTUGOLAST_HPP
 #define PORTUGOLAST_HPP
 
-#include <antlr/CommonAST.hpp>
+#include <antlr3.h>
 #include <string>
+#include <memory>
 
-using namespace std;
-using namespace antlr;
-
-class PortugolAST : public CommonAST {
+/**
+ * Custom AST node class for Portugol
+ * Adapted for ANTLR3 C runtime
+ */
+class PortugolAST {
 public:
-  PortugolAST();
-  PortugolAST(RefToken t);
-  PortugolAST(const CommonAST &other);
-  PortugolAST(const PortugolAST &other);
+    PortugolAST();
+    PortugolAST(pANTLR3_BASE_TREE tree);
+    PortugolAST(const PortugolAST& other);
+    ~PortugolAST();
 
-  ~PortugolAST();
+    PortugolAST& operator=(const PortugolAST& other);
 
-  void setLine(int line);
-  int getLine();
+    // Null check
+    bool isNull() const;
+    operator bool() const { return !isNull(); }
 
-  void setEndLine(int endLine);
-  int getEndLine();
+    // Token info
+    std::string getText() const;
+    int getType() const;
+    int getLine() const;
+    int getEndLine() const;
+    std::string getFilename() const;
 
-  void setEvalType(int type) { eval_type = type; }
-  int getEvalType() { return eval_type; }
+    // Tree navigation
+    PortugolAST* getFirstChild() const;
+    PortugolAST* getNextSibling() const;
+    ANTLR3_UINT32 getChildCount() const;
+    PortugolAST* getChild(ANTLR3_UINT32 i) const;
+    PortugolAST* getParent() const;
 
-  void setFilename(const string &fname) { filename = fname; }
+    // Custom properties
+    void setEvalType(int type);
+    int getEvalType() const;
+    void setEndLine(int line);
+    void setFilename(const std::string& filename);
 
-  string getFilename() { return filename; }
+    // Internal access
+    pANTLR3_BASE_TREE getTree() const { return _tree; }
 
-  virtual RefAST clone(void) const;
+    // Comparison with null
+    bool operator==(std::nullptr_t) const { return isNull(); }
+    bool operator!=(std::nullptr_t) const { return !isNull(); }
 
-  virtual void initialize(RefToken t);
+    // Static factory methods
+    static PortugolAST* create(pANTLR3_BASE_TREE tree);
+    static void release(PortugolAST* ast);
 
-  virtual const char *typeName(void) const;
-
-  static RefAST factory();
-  static const char *const TYPE_NAME;
-
-protected:
-  int line;
-  int endLine;
-  int eval_type; // evaluated type of expression
-  string filename;
+private:
+    pANTLR3_BASE_TREE _tree;
+    int _evalType;
+    int _endLine;
+    std::string _filename;
 };
 
-typedef ASTRefCount<PortugolAST> RefPortugolAST;
+// Type alias for compatibility with old code
+typedef PortugolAST* RefPortugolAST;
 
-#endif
+// Null AST for comparisons
+namespace antlr {
+    extern PortugolAST* nullAST;
+}
+
+#endif // PORTUGOLAST_HPP

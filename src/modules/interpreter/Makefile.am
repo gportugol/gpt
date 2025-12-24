@@ -1,26 +1,29 @@
 AM_CPPFLAGS = -I$(top_srcdir)/. -I$(top_srcdir)/src/modules \
 	-I$(top_srcdir)/src/modules/interpreter -I$(top_srcdir)/src/modules/parser \
-	$(ANTLR_INC) $(PCRE_INC) $(all_includes)
+	-I$(top_builddir)/src/modules/parser \
+	$(ANTLR3_INC) $(PCRE_INC) $(all_includes)
 
 noinst_LTLIBRARIES = libinterpreter.la
 
-BUILT_SOURCES = InterpreterWalker.cpp
+BUILT_SOURCES = InterpreterWalker.c
 
-nodist_libinterpreter_la_SOURCES = $(BUILT_SOURCES)
+nodist_libinterpreter_la_SOURCES = $(BUILT_SOURCES) InterpreterWalker.h
 
-libinterpreter_la_SOURCES = InterpreterEval.cpp
+libinterpreter_la_SOURCES = InterpreterEval.cpp Interpreter.cpp
 
 if BUILD_DEBUGGER
 libinterpreter_la_SOURCES += InterpreterDBG.cpp
 endif
 
-noinst_HEADERS = InterpreterDBG.hpp InterpreterEval.hpp
+noinst_HEADERS = InterpreterDBG.hpp InterpreterEval.hpp Interpreter.hpp
 
-interpreter_g = interpreter.g
-EXTRA_DIST = $(interpreter_g)
+interpreter_g = InterpreterWalker.g
+EXTRA_DIST = $(interpreter_g) interpreter.g
 
-CLEANFILES = InterpreterWalker.cpp InterpreterWalker.hpp InterpreterWalkerTokenTypes.hpp \
-             InterpreterWalkerTokenTypes.txt PortugolTokenTypes.txt
+CLEANFILES = InterpreterWalker.c InterpreterWalker.h Portugol.tokens
 
-InterpreterWalker.cpp: $(srcdir)/$(interpreter_g)
-	$(ANTLR_BIN) $(srcdir)/$(interpreter_g)
+InterpreterWalker.c: $(srcdir)/$(interpreter_g) Portugol.tokens
+	$(ANTLR3_CMD) -o . $(srcdir)/$(interpreter_g)
+
+Portugol.tokens: $(top_builddir)/src/modules/parser/Portugol.tokens
+	cp $(top_builddir)/src/modules/parser/Portugol.tokens .

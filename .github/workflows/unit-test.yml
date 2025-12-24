@@ -19,7 +19,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt update
-          sudo apt install -y build-essential autoconf automake libtool pkg-config libantlr-dev libpcre2-dev nasm
+          sudo apt install -y build-essential autoconf automake libtool pkg-config libantlr-dev libpcre2-dev nasm antlr3 libantlr3c-dev
 
       - name: Generate configure script
         run: autoreconf -i

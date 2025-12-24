@@ -88,9 +88,21 @@ Symbol &SymbolTable::getSymbol(const string &scope, const string &lexeme,
     }
   }
 
-  throw SymbolTableException("no symbol found");
+  throw SymbolTableException("no symbol found: " + lexeme + " in scope: " + scope);
 }
 
 list<Symbol> SymbolTable::getSymbols(const string &scope) {
   return symbols[scope];
+}
+
+bool SymbolTable::symbolExists(const string &scope, const string &lexeme) {
+  list<Symbol>::iterator it;
+  list<Symbol>::iterator end = symbols[scope].end();
+
+  for (it = symbols[scope].begin(); it != end; ++it) {
+    if ((*it).lexeme == lexeme) {
+      return true;
+    }
+  }
+  return false;
 }

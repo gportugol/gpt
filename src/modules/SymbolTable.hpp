@@ -57,6 +57,9 @@ public:
                     bool searchGlobal = false);
 
   list<Symbol> getSymbols(const string &scope);
+  
+  bool symbolExists(const string &scope, const string &lexeme);
+  int getCurrentCod() const { return currentCod; }
 
 protected:
   void registrarLeia();

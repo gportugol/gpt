@@ -18,7 +18,7 @@ jobs:
         run: |
           sudo apt update
           sudo apt install -y build-essential autoconf automake libtool \
-            pkg-config libantlr-dev libpcre2-dev nasm
+            pkg-config libantlr-dev libpcre2-dev nasm antlr3 libantlr3c-dev
 
       - name: Build GPT Project
         run: |

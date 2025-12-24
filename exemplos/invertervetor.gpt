@@ -1,4 +1,4 @@
-algoritmo inverterVetor;
+algoritmo inv;
 
 variáveis
   a: matriz[10] de inteiros;

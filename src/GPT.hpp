@@ -28,7 +28,6 @@
 #include "SymbolTable.hpp"
 
 using namespace std;
-using namespace antlr;
 
 class GPT {
 public:
@@ -64,8 +63,9 @@ private:
   bool _useOutputFile;
   string _outputfile;
 
-  RefPortugolAST _astree;
+  PortugolAST _astree;
   SymbolTable _stable;
+  string _sourceContent;  // Original source content for text extraction
 };
 
 #endif

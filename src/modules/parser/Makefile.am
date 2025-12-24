@@ -1,48 +1,43 @@
 AM_CPPFLAGS = -I$(top_srcdir)/. -I$(top_srcdir)/src/parser \
 	-I$(top_srcdir)/src/modules -I$(top_srcdir)/src/modules/parser \
-	$(ANTLR_INC) $(all_includes)
+	$(ANTLR3_INC) $(all_includes)
 
 noinst_LTLIBRARIES = libparser.la
 
-BUILT_SOURCES = PortugolLexer.cpp  PortugolParser.cpp SemanticWalker.cpp
+BUILT_SOURCES = PortugolLexer.c PortugolParser.c SemanticWalker.c
 
-nodist_libparser_la_SOURCES = $(BUILT_SOURCES)
+nodist_libparser_la_SOURCES = $(BUILT_SOURCES) \
+	PortugolLexer.h PortugolParser.h SemanticWalker.h
 
-headers = BasePortugolParser.hpp SemanticEval.hpp MismatchedUnicodeCharException.hpp \
-          UnicodeCharBuffer.hpp UnicodeCharScanner.hpp
+headers = BasePortugolParser.hpp SemanticEval.hpp Antlr3Adapter.hpp \
+          SemanticWalkerTokenTypes.hpp SemanticAnalyzer.hpp
 
-libparser_la_SOURCES = BasePortugolParser.cpp SemanticEval.cpp MismatchedUnicodeCharException.cpp
+libparser_la_SOURCES = BasePortugolParser.cpp SemanticEval.cpp SemanticAnalyzer.cpp
 
 if INSTALL_DEVEL
-nodist_pkginclude_HEADERS = PortugolParserTokenTypes.hpp PortugolLexer.hpp \
-                            PortugolParser.hpp PortugolTokenTypes.hpp \
-								            SemanticWalker.hpp SemanticWalkerTokenTypes.hpp
+nodist_pkginclude_HEADERS = PortugolLexer.h PortugolParser.h Portugol.tokens \
+                            SemanticWalker.h
 
 pkginclude_HEADERS = $(headers)
 else
 noinst_HEADERS = $(headers)
 endif
 
-lexer_g       = lexer.g
-parser_g      = parser.g
-semantic_g    = semantic.g
+portugol_g   = Portugol.g
+semantic_g   = SemanticWalker.g
 
-EXTRA_DIST = $(lexer_g) $(parser_g) $(semantic_g) accent.sh
+EXTRA_DIST = $(portugol_g) $(semantic_g) accent.sh
 
-CLEANFILES = PortugolLexer.cpp PortugolLexer.hpp PortugolParser.cpp PortugolParser.hpp \
-             PortugolParserTokenTypes.hpp PortugolParserTokenTypes.txt \
-             PortugolTokenTypes.hpp PortugolTokenTypes.txt SemanticWalker.hpp \
-             SemanticWalker.cpp SemanticWalkerTokenTypes.hpp SemanticWalkerTokenTypes.txt
+CLEANFILES = PortugolLexer.c PortugolLexer.h PortugolParser.c PortugolParser.h \
+             Portugol.tokens SemanticWalker.c SemanticWalker.h
 
-PortugolLexer.cpp: $(srcdir)/$(lexer_g)
-	$(ANTLR_BIN) $(srcdir)/$(lexer_g)
-	cp PortugolTokenTypes.txt ../c_translator
-	cp PortugolTokenTypes.txt ../interpreter
-	cp PortugolTokenTypes.txt ../x86
+# Generate lexer and parser from combined grammar
+PortugolLexer.c PortugolParser.c: $(srcdir)/$(portugol_g)
+	$(ANTLR3_CMD) -o . $(srcdir)/$(portugol_g)
+	cp Portugol.tokens ../c_translator
+	cp Portugol.tokens ../interpreter
+	cp Portugol.tokens ../x86
 
-PortugolParser.cpp: $(srcdir)/$(parser_g) PortugolLexer.cpp
-	$(ANTLR_BIN) $(srcdir)/$(parser_g)
-	./$(srcdir)/accent.sh
-
-SemanticWalker.cpp: $(srcdir)/$(semantic_g) PortugolLexer.cpp
-	$(ANTLR_BIN) $(srcdir)/$(semantic_g)
+# Generate semantic walker
+SemanticWalker.c: $(srcdir)/$(semantic_g) Portugol.tokens
+	$(ANTLR3_CMD) -o . $(srcdir)/$(semantic_g)

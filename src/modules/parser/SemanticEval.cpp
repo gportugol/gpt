@@ -23,6 +23,7 @@
 #include "GPTDisplay.hpp"
 #include "SemanticWalkerTokenTypes.hpp"
 
+#include <iostream>
 #include <sstream>
 
 ExpressionValue::ExpressionValue()
@@ -568,7 +569,7 @@ void SemanticEval::evaluateReturnCmd(ExpressionValue &ev, int line) {
         GPTDisplay::self()->add(msg.str(), line);
       } // else ok!
     } catch (SymbolTableException &e) {
-      cerr << "Erro interno: SemanticEval::evaluateReturnCmd exception\n";
+      std::cerr << "Erro interno: SemanticEval::evaluateReturnCmd exception\n";
     }
   }
 }
@@ -747,4 +748,31 @@ ExpressionValue SemanticEval::evaluateNumTypes(ExpressionValue &left,
   }
 
   return ret; // no number here...
+}
+
+// Simple overloads for SemanticAnalyzer
+void SemanticEval::declareVar(const string& name, int type, int line) {
+  Symbol s(currentScope, name, line, false, type);
+  s.cd = stable.getCurrentCod();
+  stable.insertSymbol(s, currentScope);
+}
+
+void SemanticEval::declareMatrix(const string& name, int type, const list<int>& dims, int line) {
+  Symbol s(currentScope, name, line, false, type);
+  s.cd = stable.getCurrentCod();
+  s.type.setDimensions(dims);
+  s.type.setPrimitive(false);
+  stable.insertSymbol(s, currentScope);
+}
+
+void SemanticEval::declareFunction(const string& name, int returnType, int line) {
+  // Check if function already exists
+  if (stable.symbolExists(SymbolTable::GlobalScope, name)) {
+    return; // Already declared
+  }
+  
+  Symbol s(SymbolTable::GlobalScope, name, line, false, returnType);
+  s.cd = stable.getCurrentCod();
+  s.isFunction = true;
+  stable.insertSymbol(s, SymbolTable::GlobalScope);
 }

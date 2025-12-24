@@ -116,6 +116,11 @@ public:
 
   void declareVar(int type, RefPortugolAST prim);
   void declareVar(int type, list<int> dims, RefPortugolAST mt);
+  
+  // Simple overloads for SemanticAnalyzer
+  void declareVar(const string& name, int type, int line);
+  void declareMatrix(const string& name, int type, const list<int>& dims, int line);
+  void declareFunction(const string& name, int returnType, int line);
 
   void declareVars(pair<int, list<RefPortugolAST>> &prims);
   void declareVars(pair<pair<int, list<int>>, list<RefPortugolAST>> &ms);
