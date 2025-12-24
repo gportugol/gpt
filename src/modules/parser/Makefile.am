@@ -1,48 +1,39 @@
 AM_CPPFLAGS = -I$(top_srcdir)/. -I$(top_srcdir)/src/parser \
 	-I$(top_srcdir)/src/modules -I$(top_srcdir)/src/modules/parser \
-	$(ANTLR_INC) $(all_includes)
+	$(ANTLR4_INC) $(all_includes)
 
 noinst_LTLIBRARIES = libparser.la
 
-BUILT_SOURCES = PortugolLexer.cpp  PortugolParser.cpp SemanticWalker.cpp
+# ANTLR4 generates C++ files
+BUILT_SOURCES = PortugolLexer.cpp PortugolParser.cpp \
+                PortugolBaseVisitor.cpp PortugolVisitor.cpp
 
-nodist_libparser_la_SOURCES = $(BUILT_SOURCES)
+nodist_libparser_la_SOURCES = $(BUILT_SOURCES) \
+	PortugolLexer.h PortugolParser.h \
+	PortugolBaseVisitor.h PortugolVisitor.h
 
-headers = BasePortugolParser.hpp SemanticEval.hpp MismatchedUnicodeCharException.hpp \
-          UnicodeCharBuffer.hpp UnicodeCharScanner.hpp
+headers = BasePortugolParser.hpp SemanticEval.hpp SemanticAnalyzer.hpp
 
-libparser_la_SOURCES = BasePortugolParser.cpp SemanticEval.cpp MismatchedUnicodeCharException.cpp
+libparser_la_SOURCES = BasePortugolParser.cpp SemanticEval.cpp SemanticAnalyzer.cpp
 
 if INSTALL_DEVEL
-nodist_pkginclude_HEADERS = PortugolParserTokenTypes.hpp PortugolLexer.hpp \
-                            PortugolParser.hpp PortugolTokenTypes.hpp \
-								            SemanticWalker.hpp SemanticWalkerTokenTypes.hpp
+nodist_pkginclude_HEADERS = PortugolLexer.h PortugolParser.h Portugol.tokens \
+                            PortugolBaseVisitor.h PortugolVisitor.h
 
 pkginclude_HEADERS = $(headers)
 else
 noinst_HEADERS = $(headers)
 endif
 
-lexer_g       = lexer.g
-parser_g      = parser.g
-semantic_g    = semantic.g
+portugol_g = Portugol.g4
 
-EXTRA_DIST = $(lexer_g) $(parser_g) $(semantic_g) accent.sh
+EXTRA_DIST = $(portugol_g)
 
-CLEANFILES = PortugolLexer.cpp PortugolLexer.hpp PortugolParser.cpp PortugolParser.hpp \
-             PortugolParserTokenTypes.hpp PortugolParserTokenTypes.txt \
-             PortugolTokenTypes.hpp PortugolTokenTypes.txt SemanticWalker.hpp \
-             SemanticWalker.cpp SemanticWalkerTokenTypes.hpp SemanticWalkerTokenTypes.txt
+CLEANFILES = PortugolLexer.cpp PortugolLexer.h PortugolLexer.interp PortugolLexer.tokens \
+             PortugolParser.cpp PortugolParser.h PortugolParser.interp Portugol.tokens \
+             PortugolBaseVisitor.cpp PortugolBaseVisitor.h \
+             PortugolVisitor.cpp PortugolVisitor.h
 
-PortugolLexer.cpp: $(srcdir)/$(lexer_g)
-	$(ANTLR_BIN) $(srcdir)/$(lexer_g)
-	cp PortugolTokenTypes.txt ../c_translator
-	cp PortugolTokenTypes.txt ../interpreter
-	cp PortugolTokenTypes.txt ../x86
-
-PortugolParser.cpp: $(srcdir)/$(parser_g) PortugolLexer.cpp
-	$(ANTLR_BIN) $(srcdir)/$(parser_g)
-	./$(srcdir)/accent.sh
-
-SemanticWalker.cpp: $(srcdir)/$(semantic_g) PortugolLexer.cpp
-	$(ANTLR_BIN) $(srcdir)/$(semantic_g)
+# Generate lexer, parser and visitor from grammar
+PortugolLexer.cpp PortugolParser.cpp PortugolBaseVisitor.cpp PortugolVisitor.cpp: $(srcdir)/$(portugol_g)
+	$(ANTLR4_CMD) -Dlanguage=Cpp -visitor -no-listener -o . $(srcdir)/$(portugol_g)

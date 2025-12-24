@@ -10,15 +10,17 @@ jobs:
   build-linux:
     if: ${{ inputs.target == 'linux' || inputs.target == 'all' }}
     runs-on: ubuntu-latest
+    container:
+      image: debian:trixie
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
       - name: Install Build Dependencies
         run: |
-          sudo apt update
-          sudo apt install -y build-essential autoconf automake libtool \
-            pkg-config libantlr-dev libpcre2-dev nasm
+          apt-get update
+          apt-get install -y build-essential autoconf automake libtool \
+            pkg-config antlr4 libantlr4-runtime-dev libpcre2-dev nasm git
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
       - name: Build GPT Project
         run: |
@@ -63,6 +65,12 @@ jobs:
             mingw-w64-x86_64-gcc
             mingw-w64-x86_64-gcc-libs
             mingw-w64-x86_64-pcre2
+            mingw-w64-x86_64-antlr4-runtime-cpp
+            mingw-w64-x86_64-nasm
+            mingw-w64-i686-gcc
+            mingw-w64-i686-crt-git
+            mingw-w64-i686-headers-git
+            mingw-w64-i686-winpthreads-git
             pkg-config
             tar
             unzip
@@ -86,39 +94,36 @@ jobs:
           export PATH=$PATH:$(pwd)/jdk-25.0.1/bin
           java -version
 
-      - name: Cache ANTLR2 Build
-        id: cache-antlr
+      - name: Cache ANTLR4 Tool
+        id: cache-antlr4
         uses: actions/cache@v3
         with:
-          path: D:/a/_temp/msys64/usr/local
-          key: antlr2.7.7-msys2-static
+          path: D:/a/_temp/antlr4
+          key: antlr4-4.13.2-tool
 
       - shell: msys2 {0}
-        name: Build ANTLR 2.7.7 (if not cached)
-        if: steps.cache-antlr.outputs.cache-hit != 'true'
+        name: Download ANTLR4 Tool (if not cached)
+        if: steps.cache-antlr4.outputs.cache-hit != 'true'
         run: |
-          wget http://www.antlr2.org/download/antlr-2.7.7.tar.gz
-          tar xvfz antlr-2.7.7.tar.gz
-          cd antlr-2.7.7
+          mkdir -p /d/a/_temp/antlr4
+          wget -O /d/a/_temp/antlr4/antlr-4.13.2-complete.jar https://www.antlr.org/download/antlr-4.13.2-complete.jar
 
-          sed -i '1i #ifdef _WIN32\n#include <string.h>\n#define strcasecmp _stricmp\n#endif' lib/cpp/antlr/CharScanner.hpp
-          sed -i 's/struct CharScannerLiteralsLess : public binary_function<string, string, bool>/struct CharScannerLiteralsLess { bool operator()(const std::string& x,const std::string& y) const { return strcasecmp(x.c_str(), y.c_str())<0; } };/g' lib/cpp/antlr/CharScanner.hpp
-
-          export CXXFLAGS="-O2 -std=gnu++14 -static -static-libgcc -static-libstdc++"
-          export LDFLAGS="-static -static-libgcc -static-libstdc++"
-
-          autoreconf -fi
-          ./configure --prefix=/usr/local
-          make -j$(nproc)
-          make install
-
-          ln -s /usr/local/bin/antlr /usr/local/bin/runantlr || true
+      - shell: msys2 {0}
+        name: Setup ANTLR4 Alias
+        run: |
+          export PATH="$(pwd)/jdk-25.0.1/bin:$PATH"
+          mkdir -p /usr/local/bin
+          cat > /usr/local/bin/antlr4 << 'EOF'
+          #!/bin/bash
+          java -jar /d/a/_temp/antlr4/antlr-4.13.2-complete.jar "$@"
+          EOF
+          chmod +x /usr/local/bin/antlr4
 
       - shell: msys2 {0}
         name: Build GPT Project
         run: |
-          export PATH="/usr/local/bin:$PATH"
-          export CXXFLAGS="-O2 -std=gnu++14 -static -static-libgcc -static-libstdc++"
+          export PATH="$(pwd)/jdk-25.0.1/bin:/usr/local/bin:$PATH"
+          export CXXFLAGS="-O2 -std=gnu++17 -static -static-libgcc -static-libstdc++"
           export LDFLAGS="-static -static-libgcc -static-libstdc++"
           autoreconf -i
           ./configure --prefix=/usr/local

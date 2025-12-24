@@ -18,10 +18,33 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "config.h"
-
 #include "GPT.hpp"
 #include "GPTDisplay.hpp"
+
+// Undefine libantlr3c's config.h macros before including our config.h
+#ifdef PACKAGE
+#undef PACKAGE
+#endif
+#ifdef PACKAGE_BUGREPORT
+#undef PACKAGE_BUGREPORT
+#endif
+#ifdef PACKAGE_NAME
+#undef PACKAGE_NAME
+#endif
+#ifdef PACKAGE_STRING
+#undef PACKAGE_STRING
+#endif
+#ifdef PACKAGE_TARNAME
+#undef PACKAGE_TARNAME
+#endif
+#ifdef PACKAGE_VERSION
+#undef PACKAGE_VERSION
+#endif
+#ifdef VERSION
+#undef VERSION
+#endif
+
+#include "config.h"
 
 #include <list>
 #include <sstream>
