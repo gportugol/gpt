@@ -67,21 +67,12 @@ tutoriais passo a passo.
 
 👉 Acesse aqui: [Manual do G-Portugol](https://github.com/gportugol/gpt/wiki/Manual)
 
-## Produção bibliográfica
+## Referências e citações sobre o G-Portugol
 
-Monografias e trabalhos científicos já foram elaborados utilizando este projeto.
-Para uma pequena lista de publicações:
+Quer saber mais sobre publicações, palestras e materiais relacionados ao
+G-Portugol? Essas informações estão reunidas na wiki do projeto:
 
-FERREIRA, C. C. ; GONZAGA, F. B. ; SANTOS, R. P. . "Um Estudo sobre a
-Aprendizagem de Lógica de Programação Utilizando Programação por
-Demonstração". In: XXX Congresso da Sociedade Brasileira de Computação -
-XVIII Workshop sobre Educação em Computação (WEI), 2010, Belo
-Horizonte. Anais do CSBC 2010, 2010.
-
-SILVA, Thiago B. L. ; CAVALCANTE, André Luís Brasil . Literatura Executável:
-interpretando algoritmos em notações arbitrárias. In: XIX Simpósio
-Brasileiro de Informática na Educação, 2008, Fortaleza. II Workshop de
-Ambientes de apoio à Aprendizagem de Algoritmos e Programação, 2008.
+👉 [Produção bibliográfica](https://github.com/gportugol/gpt/wiki/Refer%C3%AAncias-e-cita%C3%A7%C3%B5es-sobre-o-G%E2%80%90Portugol)
 
 ## Licença
 
