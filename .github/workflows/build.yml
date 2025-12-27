@@ -26,13 +26,8 @@ jobs:
           ./configure --prefix=/usr/local
           make -j$(nproc)
 
-      - name: Test GPT Binary (-i mode)
-        run: src/gpt -i exemplos/olamundo.gpt
-
-      - name: Test GPT Binary (-o mode)
-        run: |
-          src/gpt -o olamundo exemplos/olamundo.gpt
-          ./olamundo
+      - name: Run Tests
+        run: bash test/run_test.sh
 
       - name: Package Linux
         run: |
@@ -138,15 +133,8 @@ jobs:
           cp nasm-0.99.06/nasm.exe /mingw64/bin/
 
       - shell: msys2 {0}
-        name: Test GPT Binary (-i mode)
-        run: |
-          src/gpt -i exemplos/olamundo.gpt
-
-      - shell: msys2 {0}
-        name: Test GPT Binary (-o mode)
-        run: |
-          src/gpt -o olamundo.exe exemplos/olamundo.gpt
-          ./olamundo.exe
+        name: Run Tests
+        run: bash test/run_test.sh
 
       - shell: msys2 {0}
         name: Package Windows Binary

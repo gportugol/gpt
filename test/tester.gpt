@@ -1,5 +1,5 @@
 /* algoritmo para testar comportamento da linguagem */
-/* Nota: nao testar errors de compilacao aqui */
+/* Nota: não testar erros de compilação aqui */
 
 algoritmo tester;
 
@@ -10,6 +10,13 @@ variáveis
   c : caractere;
   str : literal;
   mat: matriz[2] de inteiros;
+
+  /* Teste: múltiplas variáveis na mesma declaração */
+  a, b, abc : inteiro;
+  x, y : real;
+
+  /* Matrizes 3D */
+  cubo : matriz[2][3][4] de inteiros;
 fim-variáveis
 
 início
@@ -25,10 +32,14 @@ início
 
   testar_funcoes();
 
-//overflow de inteiros, caracteres logicos e reais
-  //testar_overflow();
-
-//testar_castings();
+  /* Testes extras */
+  testar_unario_positivo();
+  testar_funcao_sem_retorno();
+  testar_matriz_3d();
+  testar_multiplas_variaveis();
+  testar_recursao();
+  testar_operadores_mod();
+  testar_escape_caractere();
 
   imprima("Verifique se o resultado de 'echo $?' é 42");
   retorne 42;
@@ -73,7 +84,7 @@ início
   fim-para
 
   se local <> 1 então
-    imprima("testar_inicializacao: local <> 2");
+    imprima("testar_inicializacao: local <> 1");
   fim-se
 fim
 
@@ -535,7 +546,7 @@ início
 
   lit := f(13, 5.5, mm, 'a');
   se lit <> "ok" então
-    imprima("testar_funcoes: lit <> \"oi\"");
+    imprima("testar_funcoes: lit <> \"ok\"");
   fim-se
 
   se mm[0] = 99 então
@@ -611,5 +622,152 @@ função f4(r:real)
 início
   se r <> 2 então
     imprima("f4: r <> 2");
+  fim-se
+fim
+
+/* Teste: operador unário + */
+função testar_unario_positivo()
+  i : inteiro;
+  r : real;
+início
+  i := +5;
+  se i <> 5 então
+    imprima("ERRO: +5 <> 5");
+  fim-se
+
+  i := -(-10);
+  se i <> 10 então
+    imprima("ERRO: -(-10) <> 10");
+  fim-se
+
+  r := +3.14;
+  se r <> 3.14 então
+    imprima("ERRO: +3.14 <> 3.14");
+  fim-se
+fim
+
+/* Teste: função sem tipo de retorno (void) */
+função testar_funcao_sem_retorno()
+início
+  funcao_void();
+fim
+
+função funcao_void()
+  temp : inteiro;
+início
+  temp := 42;
+  retorne;
+fim
+
+/* Teste: matriz 3D */
+função testar_matriz_3d()
+  i, j, k : inteiro;
+início
+  /* Inicializar cubo com valores únicos */
+  para i de 0 até 1 faça
+    para j de 0 até 2 faça
+      para k de 0 até 3 faça
+        cubo[i][j][k] := i * 100 + j * 10 + k;
+      fim-para
+    fim-para
+  fim-para
+
+  /* Verificar alguns valores */
+  se cubo[0][0][0] <> 0 então
+    imprima("ERRO: cubo[0][0][0] <> 0");
+  fim-se
+
+  se cubo[1][2][3] <> 123 então
+    imprima("ERRO: cubo[1][2][3] <> 123");
+  fim-se
+
+  se cubo[0][1][2] <> 12 então
+    imprima("ERRO: cubo[0][1][2] <> 12");
+  fim-se
+fim
+
+/* Teste: múltiplas variáveis na mesma declaração */
+função testar_multiplas_variaveis()
+início
+  a := 1;
+  b := 2;
+  abc := 3;
+
+  se a + b + abc <> 6 então
+    imprima("ERRO: a + b + abc <> 6");
+  fim-se
+
+  x := 1.5;
+  y := 2.5;
+
+  se x + y <> 4.0 então
+    imprima("ERRO: x + y <> 4.0");
+  fim-se
+fim
+
+/* Teste: recursão */
+função testar_recursao()
+  fat : inteiro;
+início
+  fat := fatorial(5);
+
+  se fat <> 120 então
+    imprima("ERRO: fatorial(5) <> 120");
+  fim-se
+
+  fat := fibonacci(10);
+  se fat <> 55 então
+    imprima("ERRO: fibonacci(10) <> 55");
+  fim-se
+fim
+
+função fatorial(n : inteiro) : inteiro
+início
+  se n <= 1 então
+    retorne 1;
+  senão
+    retorne n * fatorial(n - 1);
+  fim-se
+fim
+
+função fibonacci(n : inteiro) : inteiro
+início
+  se n <= 1 então
+    retorne n;
+  senão
+    retorne fibonacci(n - 1) + fibonacci(n - 2);
+  fim-se
+fim
+
+/* Teste: operador módulo */
+função testar_operadores_mod()
+  i : inteiro;
+início
+  i := 17 % 5;
+  se i <> 2 então
+    imprima("ERRO: 17 % 5 <> 2");
+  fim-se
+
+  i := 10 % 3;
+  se i <> 1 então
+    imprima("ERRO: 10 % 3 <> 1");
+  fim-se
+fim
+
+/* Teste: escape em caracteres */
+função testar_escape_caractere()
+  c : caractere;
+  i : inteiro;
+início
+  c := '\n';
+  i := c;
+  se i <> 10 então
+    imprima("ERRO: '\\n' <> 10");
+  fim-se
+
+  c := '\t';
+  i := c;
+  se i <> 9 então
+    imprima("ERRO: '\\t' <> 9");
   fim-se
 fim
