@@ -270,7 +270,9 @@ bool GPT::compile(const list<string> &ifnames, bool genBinary) {
         return false;
       }
 
-      // Link with 32-bit gcc (requires /mingw32/bin in PATH)
+      // Link with 32-bit gcc
+      // We need a 32-bit linker for our 32-bit object file.
+      // Assumes gcc in PATH is 32-bit (e.g., /mingw32/bin/gcc in MSYS2)
       cmd = "gcc -o \"" + ofname + "\" \"" + objfile +
             "\" -lkernel32 -nostartfiles -Wl,-e,_start 2>&1";
       ret = system(cmd.c_str());

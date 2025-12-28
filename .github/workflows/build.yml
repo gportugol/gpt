@@ -139,7 +139,10 @@ jobs:
 
       - shell: msys2 {0}
         name: Run Tests
-        run: bash test/run_test.sh
+        run: |
+          # Add 32-bit gcc to PATH for linking 32-bit binaries
+          export PATH="/mingw32/bin:$PATH"
+          bash test/run_test.sh
 
       - shell: msys2 {0}
         name: Package Windows Binary
