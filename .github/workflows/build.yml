@@ -51,6 +51,12 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
       - name: Setup MSYS2 Environment
         uses: msys2/setup-msys2@v2
         with:
@@ -72,46 +78,25 @@ jobs:
             mingw-w64-i686-headers-git
             mingw-w64-i686-winpthreads-git
             pkg-config
-            tar
             unzip
             wget
-            zip
-
-      - name: Cache JDK 25
-        id: cache-jdk
-        uses: actions/cache@v3
-        with:
-          path: D:\a\gpt\gpt\jdk-25.0.1
-          key: jdk-25.0.1-cache
-
-      - shell: msys2 {0}
-        name: Install Java JDK 25
-        if: steps.cache-jdk.outputs.cache-hit != 'true'
-        run: |
-          wget https://download.java.net/java/GA/jdk25.0.1/2fbf10d8c78e40bd87641c434705079d/8/GPL/openjdk-25.0.1_windows-x64_bin.zip
-          unzip openjdk-25.0.1_windows-x64_bin.zip
-          echo "PATH=$PATH:$(pwd)/jdk-25.0.1/bin" >> $GITHUB_ENV
-          export PATH=$PATH:$(pwd)/jdk-25.0.1/bin
-          java -version
 
       - name: Cache ANTLR4 Tool
         id: cache-antlr4
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: D:/a/_temp/antlr4
           key: antlr4-4.13.2-tool
 
       - shell: msys2 {0}
-        name: Download ANTLR4 Tool (if not cached)
-        if: steps.cache-antlr4.outputs.cache-hit != 'true'
+        name: Setup ANTLR4 Tool
         run: |
-          mkdir -p /d/a/_temp/antlr4
-          wget -O /d/a/_temp/antlr4/antlr-4.13.2-complete.jar https://www.antlr.org/download/antlr-4.13.2-complete.jar
-
-      - shell: msys2 {0}
-        name: Setup ANTLR4 Alias
-        run: |
-          export PATH="$(pwd)/jdk-25.0.1/bin:$PATH"
+          # Download ANTLR4 JAR if not cached
+          if [ ! -f /d/a/_temp/antlr4/antlr-4.13.2-complete.jar ]; then
+            mkdir -p /d/a/_temp/antlr4
+            wget -O /d/a/_temp/antlr4/antlr-4.13.2-complete.jar https://www.antlr.org/download/antlr-4.13.2-complete.jar
+          fi
+          # Create antlr4 wrapper script using Java from setup-java (available via PATH)
           mkdir -p /usr/local/bin
           cat > /usr/local/bin/antlr4 << 'EOF'
           #!/bin/bash
@@ -122,20 +107,12 @@ jobs:
       - shell: msys2 {0}
         name: Build GPT Project
         run: |
-          export PATH="$(pwd)/jdk-25.0.1/bin:/usr/local/bin:$PATH"
           export CXXFLAGS="-O2 -std=gnu++17 -static -static-libgcc -static-libstdc++"
           export LDFLAGS="-static -static-libgcc -static-libstdc++"
           autoreconf -i
           ./configure --prefix=/usr/local
           make -j$(nproc)
           make install
-
-      - shell: msys2 {0}
-        name: Install NASM
-        run: |
-          wget https://www.nasm.us/pub/nasm/releasebuilds/0.99.06/nasm-0.99.06-win32.zip
-          unzip nasm-0.99.06-win32.zip
-          cp nasm-0.99.06/nasm.exe /mingw64/bin/
 
       - shell: msys2 {0}
         name: Run Tests
