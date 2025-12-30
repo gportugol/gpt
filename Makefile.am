@@ -6,7 +6,11 @@ ACLOCAL_AMFLAGS = -I m4
 
 SUBDIRS = src doc exemplos lib
 
-EXTRA_DIST = INSTALL.default CHANGELOG.md HACKING.md THANKS README.en.md README.md
+docdir = $(datadir)/doc/$(PACKAGE)
+
+doc_DATA = README.md README.en.md CHANGELOG.md HACKING.md NEWS.md THANKS
+
+EXTRA_DIST = INSTALL.default $(doc_DATA)
 
 uninstall-devel:
 	rm -rf $(includedir)/${PACKAGE}
