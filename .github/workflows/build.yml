@@ -7,6 +7,28 @@ on:
         type: string
 
 jobs:
+  generate-manual-pdf:
+    if: ${{ inputs.target == 'manual-pdf' || inputs.target == 'all' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install TeX Dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y latex-make texlive-latex-base texlive-lang-portuguese
+
+      - name: Generate PDF from manual.tex
+        run: |
+          pdflatex -interaction=nonstopmode -output-directory=doc doc/manual/manual.tex
+
+      - name: Upload PDF Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: manual-pdf
+          path: doc/manual.pdf
+
   build-linux:
     if: ${{ inputs.target == 'linux' || inputs.target == 'all' }}
     runs-on: ubuntu-latest

@@ -193,7 +193,7 @@ Documentação na pasta [doc](doc) e o manual (LaTeX) em [doc/manual](doc/manual
 ### Instalar dependências no Debian/Ubuntu
 
 ```shell
-sudo apt install -y latex-make texlive-latex-base latex2html
+sudo apt install -y latex-make texlive-latex-base texlive-lang-portuguese latex2html
 ```
 
 ### Compilar o manual
