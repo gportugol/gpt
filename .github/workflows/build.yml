@@ -150,9 +150,9 @@ jobs:
       - shell: msys2 {0}
         name: Install NASM
         run: |
-          wget https://www.nasm.us/pub/nasm/releasebuilds/0.99.06/nasm-0.99.06-win32.zip
-          unzip nasm-0.99.06-win32.zip
-          cp nasm-0.99.06/nasm.exe /mingw64/bin/
+          wget https://www.nasm.us/pub/nasm/releasebuilds/0.99.05/nasm-0.99.05-win32.zip
+          unzip nasm-0.99.05-win32.zip
+          cp nasm.exe /mingw64/bin/
 
       - shell: msys2 {0}
         name: Run Tests
