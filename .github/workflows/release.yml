@@ -23,6 +23,11 @@ jobs:
           name: gpt-linux
           path: release/linux
 
+      - uses: actions/download-artifact@v4
+        with:
+          name: manual-pdf
+          path: release/manual
+
       - name: Repack Windows zip
         run: |
           cd release
@@ -45,6 +50,7 @@ jobs:
           files: |
             release/gpt-win-x86_64.zip
             release/gpt-linux-x86_64.tar.gz
+            release/manual/manual.pdf
 
         env:
           GITHUB_TOKEN: ${{ secrets.GH_RELEASE_TOKEN }}
