@@ -21,6 +21,11 @@ jobs:
 
       - name: Generate PDF from manual.tex
         run: |
+          # First run: generate .toc and auxiliary files
+          pdflatex -interaction=nonstopmode -output-directory=doc doc/manual/manual.tex
+          # Second run: resolve table of contents and references
+          pdflatex -interaction=nonstopmode -output-directory=doc doc/manual/manual.tex
+          # Third run:  Label(s) may have changed. Rerun to get cross-references right.
           pdflatex -interaction=nonstopmode -output-directory=doc doc/manual/manual.tex
 
       - name: Upload PDF Artifact

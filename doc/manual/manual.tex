@@ -1,244 +1,194 @@
-% TODO: -rever referencias a implementaÁ„o da gramatica%
-%       -Glossario e padronizacao de termos: uso de vetor e matriz,
-%        significando coisas distintas, e o que significam
-%       -ConvenÁıes (uso de shell unix, etc)
-%       -Mudar reticencias "..." pelo comando de reticencias
+% TODO: - rever refer√™ncias √† implementa√ß√£o da gram√°tica
+%       - Gloss√°rio e padroniza√ß√£o de termos: uso de vetor e matriz,
+%         significando coisas distintas, e o que significam
+%       - Conven√ß√µes (uso de shell Unix, etc)
+%       - Mudar retic√™ncias "..." pelo comando de retic√™ncias
 
-\documentclass[a4paper,10pt]{report}
+\documentclass[a4paper,11pt]{report}
+
+% Comandos Customizados e T√≠tulo
 \makeatletter
-
-% page setup
-\oddsidemargin  0.0in
-\evensidemargin 0.0in
-\textwidth      6.5in
-\headheight     0.2in
-\topmargin      0.0in
-\textheight=9.0in
-
-\pagestyle{myheadings}     % Go for customized headings
-\newcommand{\capitulo}[1]  % Re-define the chaptering command
-        {
-          \chapter{#1}
-
-          %http://www.devdaily.com/blog/Content/2/18/408/
-          %\lhead{\nouppercase{\rightmark} (\nouppercase{\leftmark})}
-
-          \lhead{CapÌtulo \thechapter. \nouppercase{\leftmark} }
-          \chead{}
-          \rhead{}
-          \lfoot{G-Portugol}
-          \cfoot{}
-          \rfoot{\thepage}
-          \renewcommand{\headrulewidth}{0.4pt}
-          \renewcommand{\footrulewidth}{0.4pt}
-          \renewcommand{\sectionmark}[1]{%
-            \markboth{#1}{}
-          }
-
-          % seta o footer das paginas de capitulo (sem isso, aparece o pagenum centralizado apenas)
-          \fancypagestyle{plain}{%
-            \fancyhead{} % remoev o header
-            \renewcommand{\headrulewidth}{0pt} % e a linha
-          }
-        }
-
-
-\usepackage{fancyhdr} %Declares the package fancyhdr
-\pagestyle{fancy} %Forces the page to use the fancy template
-
-\fancypagestyle{empty}
-\fancyhf{} %Clears all header and footer fields, in preparation.
-\fancyhead[EO]{\thepage} %Even and Odd pages: set the \thepage value
-\fancyhead[C]{} %clear center text
-\fancyhead[LO]{\rightmark} %Displays the lower-level (chapter) information - as
-
-
-\usepackage[brazilian]{babel} %traduz data, ''capitulo'', etc...
-\usepackage[latin1]{inputenc} %permite acentos diretamente
-\usepackage[T1]{fontenc} %to get the hyphenation right.
-%\usepackage{times}
-%\usepackage{aeguill}
-
-% \usepackage{hyperref} %referencias para PDF
-
-\usepackage{float}
-
-\floatstyle{ruled}
-\newfloat{program}{thp}{lop}
-\floatname{program}{Programa}
-
-\floatstyle{plain}
-\newfloat{code}{thp}{lop}
-\floatname{code}{Codigo}
-
-\renewcommand{\rmdefault}{phv} %helvetica
-
-
-% \def\thickhrulefill{\leavevmode \leaders \hrule height 1pt\hfill \kern \z@}
-\renewcommand{\maketitle}{
-
-  \begin{titlepage}%
-
-    %% remove footer (sem isso, aparece o numero da pagina)
-    \fancyhf{}
-    \fancypagestyle{empty}{%
-      \fancyhead{} % remoev o header
-      \renewcommand{\headrulewidth}{0pt} % e a linha
-    }
-
-
-    \let\footnotesize\small
-    \let\footnoterule\relax
-    \parindent \z@
-    \reset@font
-    \null
-    \vskip 50\p@
-    \begin{center}
-      \hrule
-      \vskip 1pt
-      \hrule
-      \vskip 1pt
-      {\huge \bfseries \strut \@title \strut}\par
-      \vskip 1pt
-      \hrule
-      \vskip 1pt
-      \hrule
-
-      \vskip 5pt
-      \Large Manual da vers„o \@version
-
-    \end{center}
-    \vskip 5\p@
-    \vfil
-    \null
-
-    \vskip 350pt
-    \begin{flushright}
-    {\Large \@author \par}
-    {\Large \@email \par}
-    \vskip 100pt
-    {\Large \@date\par}
-    \end{flushright}
-
-  \end{titlepage}%
-
-  \setcounter{footnote}{0}%
-
-}
-%\makeatother %nao sei pra que isso serve...
-
 \def\email#1{\def\@email{#1}}
 \def\version#1{\def\@version{#1}}
 
 \title{G-Portugol}
 \version{v1.1}
 \author{Thiago Silva}
-\email{\texttt{tsilva@sourcecraft.info}}
+\email{\texttt{https://gportugol.github.io/}}
 
+% Pacotes de Idioma e Fontes
+\usepackage[brazilian]{babel}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{helvet}
+\renewcommand{\familydefault}{\sfdefault}
 
-\usepackage[pdftex,                %%% hyper-references for pdflatex
-    bookmarks=true,%                   %%% generate bookmarks ...
-    bookmarksnumbered=true,%           %%% ... with numbers
-    hypertexnames=false,%              %%% needed for correct links to figures !!!
-    breaklinks=true,%                  %%% break links if exceeding a single line
+% Layout da P√°gina
+\usepackage[a4paper, margin=1in, headheight=15pt]{geometry}
+
+% Cabe√ßalhos e Rodap√©s
+\usepackage{fancyhdr}
+\pagestyle{empty}
+\fancyhf{}
+\fancyhead[L]{\nouppercase{\leftmark}}
+\fancyfoot[L]{G-Portugol}
+\fancyfoot[R]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+% Ajuste para p√°ginas onde o cap√≠tulo come√ßa (estilo plain)
+\fancypagestyle{plain}{
+  \fancyhf{}
+  \fancyfoot[L]{G-Portugol}
+  \fancyfoot[R]{\thepage}
+  \renewcommand{\headrulewidth}{0pt}
+}
+
+% Elementos Flutuantes
+\usepackage{float}
+\floatstyle{ruled}
+\newfloat{program}{thp}{lop}
+\floatname{program}{Programa}
+
+% Configura√ß√£o de Hyperlinks (Ajuste Final para Sequencial)
+\usepackage{hyperref}
+\hypersetup{
     colorlinks=true,
     linkcolor=blue,
-    pdfborder={0 0 0}]
-  {hyperref} %%% blue frames around links
-
-
-\hypersetup{
- pdfauthor = {\@author},
- pdftitle = {\@title},
- pdfsubject = {Linguagem de programaÁ„o},
- pdfkeywords = {pseudo-cÛdigo, portugol, programaÁ„o},
- pdfcreator = {LaTeX with hyperref package},
- pdfproducer = {dvips + ps2pdf}
+    citecolor=black,
+    filecolor=black,
+    urlcolor=blue,
+    pdfauthor={Thiago Silva},
+    pdftitle={G-Portugol},
+    hypertexnames=false,
+    breaklinks=true
 }
+
+% Customiza√ß√£o do T√≠tulo para N√ÉO resetar a p√°gina
+\renewcommand{\maketitle}{
+  \begin{center}
+    \null\vfill
+    \hrule\vskip 2pt\hrule\vskip 10pt
+    {\huge \bfseries \@title \par}
+    \vskip 10pt\hrule\vskip 2pt\hrule
+    \vskip 20pt
+    {\Large Manual da vers√£o \@version \par}
+    \vfill
+    \begin{flushright}
+        {\Large \@author \par}
+        {\Large \@email \par}
+        \vskip 20pt
+        {\Large \@date \par}
+    \end{flushright}
+    \vfill
+  \end{center}
+  \clearpage
+}
+\makeatother
 
 \begin{document}
 
+% For√ßa a numera√ß√£o ar√°bica e impede resets autom√°ticos
+\pagenumbering{arabic}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Capa
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \maketitle
-\tableofcontents
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Sum√°rio
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\cleardoublepage
+\begingroup
+  \fancypagestyle{plain}{
+    \fancyhf{}
+    \renewcommand{\headrulewidth}{0pt}
+    \renewcommand{\footrulewidth}{0pt}
+  }
+  \let\oldtableofcontents\tableofcontents
+  \renewcommand{\tableofcontents}{
+    \oldtableofcontents
+    \thispagestyle{empty}
+  }
+  \tableofcontents
+\endgroup
+\cleardoublepage
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Resumo
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\begin{abstract}
+\section*{Resumo}
+\thispagestyle{empty}
 
-Esse n„o È um livro que ensina programaÁ„o, algoritmos ou lÛgica. Seu objetivo È
+Esse n√£o √© um livro que ensina programa√ß√£o, algoritmos ou l√≥gica. Seu objetivo √©
 servir de manual para a linguagem G-Portugol e ferramentas relacionadas.
-Portanto, ele assume que o leitor seja versado em linguagens de programaÁ„o
-e desenvolvimento de software.
+Portanto, ele assume que o leitor seja versado em linguagens de programa√ß√£o e
+desenvolvimento de software.
 
-\end{abstract}
+\clearpage
 
+% Volta como cabe√ßalhos e rodap√©s normais
+\pagestyle{fancy}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Introdu√ß√£o
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%%%%%%%%%%%%%%%%% Introducao
+\chapter{Introdu√ß√£o}
 
+G-Portugol √© um dialeto da linguagem/pseudo-c√≥digo portugol (ou portugu√™s
+estruturado), que √© muito usada para descrever algoritmos em portugu√™s, de forma
+livre e espont√¢nea. Em geral, livros dedicados ao ensino de algoritmos, l√≥gica e
+estruturas de dados utilizam alguma forma dessa linguagem.
 
+A proposta de G-Portugol √© disponibilizar uma implementa√ß√£o da linguagem
+portugol, fornecendo ferramentas que ofere√ßam recursos de edi√ß√£o, compila√ß√£o,
+execu√ß√£o e depura√ß√£o de programas escritos nessa linguagem, de forma a favorecer
+aos estudantes que d√£o os primeiros passos no aprendizado de desenvolvimento de
+softwares, bem como professores que ensinam disciplinas relacionadas a
+computa√ß√£o. Portanto, seu foco √© primariamente did√°tico.
 
-\capitulo{IntroduÁ„o}
-\label{ch:intro}
+Encontram-se dispon√≠veis atualmente um compilador, tradutor e interpretador para
+a linguagem (GPT) e um ambiente visual simples (GPTEditor) que permite a edi√ß√£o,
+execu√ß√£o e depura√ß√£o de programas escritos em G-Portugol.
 
-G-Portugol È um dialeto da linguagem/pseudo-cÛdigo portugol (ou
-portuguÍs estruturado), que È muito usada para descrever algoritmos em
-portuguÍs, de forma livre e espont‚nea. Em geral, livros dedicados ao ensino
-de algoritmos, lÛgica e estruturas de dados utilizam alguma forma
-dessa linguagem.
-
-A proposta de G-Portugol È disponibilizar uma implementaÁ„o da
-linguagem portugol, fornecendo ferramentas que ofereÁam recursos de ediÁ„o,
-compilaÁ„o, execuÁ„o e depuraÁ„o de programas escritos nessa linguagem, de forma
-a favorecer aos estudantes que d„o os primeiros passos no aprendizado de
-desenvolvimento de softwares, bem como professores que ensinam disciplinas
-relacionadas a computaÁ„o. Portanto, seu foco È primariamente did·tico.
-
-Encontram-se disponÌveis atualmente um compilador, tradutor e interpretador para
-a linguagem (GPT) e um ambiente visual simples (GPTEditor) que permite a
-ediÁ„o, execuÁ„o e depuraÁ„o de programas escritos em G-Portugol.
-
-A seguir s„o apresentados os assuntos abordados nos capÌtulos seguintes:
+A seguir s√£o apresentados os assuntos abordados nos cap√≠tulos seguintes:
 
 \begin{itemize}
- \item
-  CapÌtulo 2: pretende discutir as caracterÌsticas gerais da linguagem.
-
-  \item
-  CapÌtulo 3: aborda a programaÁ„o em G-Portugol, suas estruturas e recursos, utilizando exemplos ilustrativos e
-  comparando com linguagens populares. Embora o capÌtulo trate da programaÁ„o, ele n„o tem como objetivo explicar
-  programaÁ„o em si ou a teoria/histÛria por tr·s das estruturas abordadas.
-
-  \item
-  CapÌtulo 4: trata da implementaÁ„o da linguagem. Discute as decisıes de design e recursos oferecidos por G-Portugol.
-
-  \item
-  CapÌtulo 5: descreve o programa GPT.
-
+  \item Cap√≠tulo 2: pretende discutir as caracter√≠sticas gerais da linguagem.
+  \item Cap√≠tulo 3: aborda a programa√ß√£o em G-Portugol, suas estruturas e
+    recursos, utilizando exemplos ilustrativos e comparando com linguagens
+    populares. Embora o cap√≠tulo trate da programa√ß√£o, ele n√£o tem como objetivo
+    explicar programa√ß√£o em si ou a teoria/hist√≥ria por tr√°s das estruturas
+    abordadas.
+  \item Cap√≠tulo 4: trata da implementa√ß√£o da linguagem. Discute as decis√µes de
+    design e recursos oferecidos por G-Portugol.
+  \item Cap√≠tulo 5: descreve o programa GPT.
 \end{itemize}
 
-No apÍndice deste livro pode ser encontrado a gram·tica da linguagem G-Portugol.
+No ap√™ndice deste livro pode ser encontrado a gram√°tica da linguagem G-Portugol.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Caracter√≠sticas Gerais
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\chapter{Caracter√≠sticas Gerais}
 
-%%%%%%%%%%%%%%%%% Caracteristicas Gerais
-
-
-
-\capitulo{CaracterÌsticas Gerais}
-\label{ch:caracgerais}
-
-A linguagem em si n„o difere fundamentalmente ou apresenta novidades em relaÁ„o ao uso popular de
-portugol. Semelhante ‡ linguagens como Pascal e C, È uma linguagem imperativa, com comandos de
-controle de fluxo, manipulaÁ„o de dados e recursos de entrada e saÌda b·sicos.
-A linguagem em \textit{case sensitive}, o que significa que, por exemplo, uma
-funÁ„o chamada ``leia'' È diferente de uma funÁ„o chamada ``Leia''.
+A linguagem em si n√£o difere fundamentalmente ou apresenta novidades em rela√ß√£o
+ao uso popular de portugol. Semelhante √† linguagens como Pascal e C, √© uma
+linguagem imperativa, com comandos de controle de fluxo, manipula√ß√£o de dados e
+recursos de entrada e sa√≠da b√°sicos. A linguagem em \textit{case sensitive}, o
+que significa que, por exemplo, uma fun√ß√£o chamada ``leia'' √© diferente de uma
+fun√ß√£o chamada ``Leia''.
 
 \section{Tipos de dados}
 
-Tipos primitivos como inteiro e literal s„o suportados. Literais s„o tipos
-integrais, e n„o, tipos construÌdos pelo usu·rio. A tabela
+Tipos primitivos como inteiro e literal s√£o suportados. Literais s√£o tipos
+integrais, e n√£o, tipos constru√≠dos pelo usu√°rio. A tabela
 \ref{tb_tipos_primitivos} apresenta os tipos com respectivos exemplos de dados:
 
 \begin{table}[ht]
@@ -253,23 +203,22 @@ integrais, e n„o, tipos construÌdos pelo usu·rio. A tabela
     real & 2.5 \\
     caractere & 'a' \\
     literal & ``uma frase'' \\
-    lÛgico & verdadeiro \\
+    l√≥gico & verdadeiro \\
     \hline
   \end{tabular}
-  \label{tb_tipos_primitivos}
   \caption{Tipos de dados primitivos}
+  \label{tb_tipos_primitivos}
 \end{center}
 \end{table}
 
 Com esses tipos, pode-se criar conjuntos como vetores ou matrizes ``n''
-dimensionais. Tipos mais complexos n„o s„o suportados.
-
+dimensionais. Tipos mais complexos n√£o s√£o suportados.
 
 \section{Estruturas de controle}
 
-O conjunto de estruturas de controle s„o os mais primitivos. Uma
-estrutura condicional (se/sen„o) e duas estruturas de repetiÁ„o (enquanto/para)
-s„o suportadas. Embora a estrutura ``para'' seja uma especializaÁ„o de um laÁo
+O conjunto de estruturas de controle s√£o os mais primitivos. Uma
+estrutura condicional (se/sen√£o) e duas estruturas de repeti√ß√£o (enquanto/para)
+s√£o suportadas. Embora a estrutura ``para'' seja uma especializa√ß√£o de um la√ßo
 simples como o ``enquanto'', ela foi implementada, visto que uma variedade
 de livros e muitos professores os discutem.
 
@@ -277,47 +226,45 @@ de livros e muitos professores os discutem.
   \begin{center}
     \begin{tabular}{|l|l|}
       \hline
-      \multicolumn{2}{|c|}{Estruturas de repetiÁ„o} \\
+      \multicolumn{2}{|c|}{Estruturas de repeti√ß√£o} \\
       \hline
         Estrutura & Tipo \\
       \hline
-      se/ent„o/sen„o/& condicional \\
-      enquanto & repetiÁ„o \\
-      repita & repetiÁ„o \\
-      para & repetiÁ„o \\
+      se/ent√£o/sen√£o/& condicional \\
+      enquanto & repeti√ß√£o \\
+      repita & repeti√ß√£o \\
+      para & repeti√ß√£o \\
       \hline
     \end{tabular}
 
-    \label{tb_estruturas_de_repeticao}
-    \caption{Estruturas de repetiÁ„o}
+    \caption{Estruturas de repeti√ß√£o}
   \end{center}
 \end{table}
 
+\section{Subprogramas (fun√ß√µes)}
 
-\section{Subprogramas (funÁıes)}
+Subprogramas s√£o como fun√ß√µes em C. Podem receber qualquer n√∫mero de par√¢metros,
+sejam tipos primitivos ou vetores/matrizes, e podem retornar apenas valores
+primitivos. Entretanto, n√£o √© permitido declarar fun√ß√µes aninhadas ou fun√ß√µes
+com par√¢metros vari√°veis. Vale ressaltar que passagem de par√¢metros √© sempre
+feita por \textit{valor}.
 
-Subprogramas s„o como funÁıes em C. Podem receber qualquer n˙mero de par‚metros, sejam tipos primitivos
-ou vetores/matrizes, e podem retornar apenas valores primitivos. Entretanto,
-n„o È permitido declarar funÁıes aninhadas ou funÁıes com par‚metros
-vari·veis. Vale ressaltar que passagem de par‚metros È sempre feita por
-\textit{valor}.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Programando em G-Portugol
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\chapter{Programando em G-Portugol}
 
-%%%%%%%%%%%%%%%%% Programando em G-Portugol
+A proposta desse cap√≠tulo √© mostrar os elementos da linguagem G-Portugol usando
+programas como exemplos. N√£o √© um cap√≠tulo sobre como programar, nem tem como
+intuito ensinar algor√≠tmos. Portanto, √© esperado que o leitor seja familiarizado
+com programa√ß√£o.
 
+\section{Ol√° Mundo}
 
-\capitulo{Programando em G-Portugol}
-\label{ch:programando}
-
-A proposta desse capÌtulo È mostrar os elementos da linguagem G-Portugol usando programas como exemplos. N„o
-È um capÌtulo sobre como programar, nem tem como intuito ensinar algorÌtmos. Portanto, È esperado que o
-leitor seja familiarizado com programaÁ„o.
-
-\section{Ol· Mundo}
-
-Mantendo a tradiÁ„o, vamos criar nosso primeiro programa. O propÛsito dele ser· exibir na tela o
-texto "Ol· mundo". Crie um arquivo  chamado "olamundo.gpt" com o seguinte
-conte˙do:
+Mantendo a tradi√ß√£o, vamos criar nosso primeiro programa. O prop√≥sito dele ser√°
+exibir na tela o texto "Ol√° mundo". Crie um arquivo chamado "olamundo.gpt" com o
+seguinte conte√∫do:
 
 \begin{program}
   \begin{verbatim}
@@ -327,216 +274,201 @@ conte˙do:
 
 algoritmo olamundo;
 
-inÌcio
-  imprima("Ol· mundo!");
+in√≠cio
+  imprima("Ol√° mundo!");
 fim
   \end{verbatim}
-  \caption{``Ol· Mundo'' em G-Portugol.}
+  \caption{``Ol√° Mundo'' em G-Portugol.}
 \end{program}
 
-\noindent
-ApÛs salvar o arquivo, digite o seguinte na linha de comando:
-\newline
+Ap√≥s salvar o arquivo, digite o seguinte na linha de comando:
 
-No Linux:
-\begin{verbatim}
-$ gpt -o olamundo olamundo.gpt
-\end{verbatim}
+\begin{itemize}
+  \item No Linux: \begin{verbatim} $ gpt -o olamundo olamundo.gpt \end{verbatim}
+\item No Windows: \begin{verbatim} \> gpt -o olamundo.exe olamundo.gpt
+  \end{verbatim}
+\end{itemize}
 
-No Windows:
-\begin{verbatim}
-\> gpt -o olamundo.exe olamundo.gpt
-\end{verbatim}
-
-Esse comando compila o algoritmo e salva o arquivo bin·rio resultante como
-``olamundo'' (ou ``olamundo.exe'') no diretÛrio atual. Se a opÁ„o ``-o
-<arquivo>'' n„o for informada, o GPT criar· o execut·vel usando o nome do
-algoritmo. ApÛs executar o programa criado, È exibido o texto ``Ola mundo!'' na
+Esse comando compila o algoritmo e salva o arquivo bin√°rio resultante como
+``olamundo'' (ou ``olamundo.exe'') no diret√≥rio atual. Se a op√ß√£o ``-o
+<arquivo>'' n√£o for informada, o GPT criar√° o execut√°vel usando o nome do
+algoritmo. Ap√≥s executar o programa criado, √© exibido o texto ``Ola mundo!'' na
 tela.
-\newline
+\bigskip
 
-Como j· deve ter assumido, coment·rios ao estilo C (/**/) e C++ (//) s„o
-permitidos e o que estiver entre aspas duplas (") È tratado como uma string ou
-constante literal. Escapes s„o permitidos como EOL ($\backslash$n), tabulaÁ„o
-($\backslash$t) dentre outros. N„o È permitido a concatenaÁ„o em m˙ltiplas
+Como j√° deve ter assumido, coment√°rios ao estilo C (/**/) e C++ (//) s√£o
+permitidos e o que estiver entre aspas duplas (") √© tratado como uma string ou
+constante literal. Escapes s√£o permitidos como EOL ($\backslash$n), tabula√ß√£o
+($\backslash$t) dentre outros. N√£o √© permitido a concatena√ß√£o em m√∫ltiplas
 linhas como na linguagem C:
 
 \begin{verbatim}
-  imprima("Isso È uma "
-          "ConcatenaÁ„o"); //erro!
+  imprima("Isso √© uma "
+          "Concatena√ß√£o"); //erro!
 \end{verbatim}
 
-Outro detalhe È a pontuaÁ„o. Da mesma forma que em C, o ``;'' È utilizado como
-finalizador de enunciados. Se for necess·rio utilizar uma aspa dupla em um literal,
-deve-se utilizar o escape:
+Outro detalhe √© a pontua√ß√£o. Da mesma forma que em C, o ``;'' √© utilizado como
+finalizador de enunciados. Se for necess√°rio utilizar uma aspa dupla em um
+literal, deve-se utilizar o escape:
 
 \begin{verbatim}
-  imprima("Isso È literal com aspas duplas ($\backslash$") ");
+  imprima("Isso √© literal com aspas duplas ($\backslash$") ");
 \end{verbatim}
 
-\section{Vari·veis}
+\section{Vari√°veis}
 
-A declaraÁ„o de vari·veis deve ser feita dentro de um bloco especÌfico, que deve aparecer logo apÛs a
-declaraÁ„o do algoritmo. O bloco È iniciado pela palavra-chave ``vari·veis'' (sim, com acento) e
-termina com a palavra chave ``fim-vari·veis''. Pelo menos uma vari·vel deve
-ser declarada dentro do bloco (embora o bloco em si seja opcional) e apenas
-um bloco em escopo global deve ser declarado. Eis um exemplo para estudo:
+A declara√ß√£o de vari√°veis deve ser feita dentro de um bloco espec√≠fico, que deve
+aparecer logo ap√≥s a declara√ß√£o do algoritmo. O bloco √© iniciado pela
+palavra-chave ``vari√°veis'' (sim, com acento) e termina com a palavra chave
+``fim-vari√°veis''. Pelo menos uma vari√°vel deve ser declarada dentro do bloco
+(embora o bloco em si seja opcional) e apenas um bloco em escopo global deve ser
+declarado. Eis um exemplo para estudo:
 
 \begin{program}
   \begin{verbatim}
 algoritmo teste_variaveis;
 
-vari·veis
+vari√°veis
   x    : inteiro;
   nome : literal;
-fim-vari·veis
+fim-vari√°veis
 
-inÌcio
+in√≠cio
 fim
   \end{verbatim}
-  \caption{DeclaraÁ„o de vari·veis globais.}
+  \caption{Declara√ß√£o de vari√°veis globais.}
   \label{programa_inutil}
 \end{program}
 
+\subsection{Vari√°veis primitivas}
 
-\subsection{Vari·veis primitivas}
-
-Vari·veis primitivas s„o declaradas seguindo o seguinte modelo:
+Vari√°veis primitivas s√£o declaradas seguindo o seguinte modelo:
 
 \begin{verbatim}
 <identificador> [, identificador]* : <tipo>;
 \end{verbatim}
 
-Isso È, um ou mais identificadores separados por virgula, seguido de um
-``:'', seguido de um tipo, seguido, finalmente, de ``;''. Como pode-se notar, È
-parecido com Pascal. Assim que um programa È executado, todas as vari·veis,
-primitivas ou vetores/matrizes, declaradas s„o iniciadas com um valor nulo ou
-``0'' automaticamente. Vale ressaltar que constantes (const, final, etc) n„o s„o
+Isso √©, um ou mais identificadores separados por virgula, seguido de um ``:'',
+seguido de um tipo, seguido, finalmente, de ``;''. Como pode-se notar, √©
+parecido com Pascal. Assim que um programa √© executado, todas as vari√°veis,
+primitivas ou vetores/matrizes, declaradas s√£o iniciadas com um valor nulo ou
+``0'' automaticamente. Vale ressaltar que constantes (const, final, etc) n√£o s√£o
 suportados. Os tipos primitivos suportados encontram-se na tabela
 \ref{tb_tipos_primitivos}
 
-A fim de explorar melhor os aspectos da declaraÁ„o, seguem-se alguns coment·rios a
-respeito do ˙ltimo exemplo (programa \ref{programa_inutil})
+A fim de explorar melhor os aspectos da declara√ß√£o, seguem-se alguns coment√°rios
+a respeito do √∫ltimo exemplo (programa \ref{programa_inutil})
 
 \begin{itemize}
- \item
-  Observe que o nome do algoritmo (``teste\_variaveis'')
-n„o tem
-acento. Se declarar o algoritmo como ``teste\_vari·veis'' e tentar
-compilar o cÛdigo, o seguinte erro ser· exibido:
-
-  \textbf{Linha: 1 - ``teste\_vari·veis'' n„o pode ter caracteres
-especiais.}
-
-  Portanto, identificadores (nomes de vari·veis, funÁıes e do algoritmo) n„o
-  podem ter acentos ou caracteres especiais como \$, \#, etc. A definiÁ„o
-  de um identificador em   G-Portugol È equivalente ao das linguagens populares:
-  uma letra (a-z ou A-Z) seguido de qualquer n˙mero de letras ou n˙meros.
-  Finalmente, underlines (\_) s„o permitidos. Cedilhas, portanto, tambÈm n„o
-  formam identificadores v·lidos.
-
- \item
-  O segundo ponto, È a palavra-chave ``vari·veis'': ela tem acento, e isso È
-permitido e obrigatÛrio.
-
-  \item
-  O terceiro, È a definiÁ„o do bloco e sua (falta de) semelhanÁa com o Pascal. Todas os blocos em G-Portugol
-  tentam seguir o formato ``nome/fim-nome'', em favor da uniformidade e em detrimento de exceÁıes linguÌsticas
-  que confundem os estudantes.
-
-  \item
-  E, finalmente, o quarto ponto È a ausÍncia de cÛdigo entre ``inÌcio'' e ``fim''.
-  O programa n„o È obrigado a ter enunciados ou comandos.
+  \item Observe que o nome do algoritmo (``teste\_variaveis'') n√£o tem acento.
+    Se declarar o algoritmo como ``teste\_vari√°veis'' e tentar compilar o
+    c√≥digo, o seguinte erro ser√° exibido: \textbf{Linha: 1 -
+      ``teste\_vari√°veis'' n√£o pode ter caracteres especiais.} Portanto,
+      identificadores (nomes de vari√°veis, fun√ß√µes e do algoritmo) n√£o podem ter
+      acentos ou caracteres especiais como \$, \#, etc. A defini√ß√£o de um
+      identificador em G-Portugol √© equivalente ao das linguagens populares: uma
+      letra (a-z ou A-Z) seguido de qualquer n√∫mero de letras ou n√∫meros.
+      Finalmente, underlines (\_) s√£o permitidos. Cedilhas, portanto, tamb√©m n√£o
+      formam identificadores v√°lidos.
+  \item O segundo ponto, √© a palavra-chave ``vari√°veis'': ela tem acento, e isso
+    √© permitido e obrigat√≥rio.
+  \item O terceiro, √© a defini√ß√£o do bloco e sua (falta de) semelhan√ßa com o
+    Pascal. Todas os blocos em G-Portugol tentam seguir o formato
+    ``nome/fim-nome'', em favor da uniformidade e em detrimento de exce√ß√µes
+    lingu√≠sticas que confundem os estudantes.
+  \item E, finalmente, o quarto ponto √© a aus√™ncia de c√≥digo entre ``in√≠cio'' e
+    ``fim''. O programa n√£o √© obrigado a ter enunciados ou comandos.
 \end{itemize}
 
-  Para maiores detalhes, veja o capÌtulo \ref{ch:impl}, sobre a implementaÁ„o
-da linguagem.
-
+Para maiores detalhes, veja o cap√≠tulo
+\ref{ch:impl}, sobre a
+implementa√ß√£o da linguagem.
 
 \subsection{Vetores e matrizes (conjuntos)}
 
-
-Vetores e matrizes ``n'' dimensionais de tipos primitivos s„o suportados. Um
-exemplo de declaraÁ„o de uma matriz:
-
+Vetores e matrizes ``n'' dimensionais de tipos primitivos s√£o suportados. Um
+exemplo de declara√ß√£o de uma matriz:
 
 \begin{verbatim}
-vari·veis
-   bitset : matriz[10] de lÛgicos;
+vari√°veis
+   bitset : matriz[10] de l√≥gicos;
    quadr : matriz[4][4] de inteiros;
-fim-vari·veis
+fim-vari√°veis
 \end{verbatim}
 
-O tipo do vetor ou matriz È dado pelo nome do tipo no plural (``inteiros'' para tipo inteiro, ``literais''
-para tipo literal, etc). Os subscritos na declaraÁ„o (delimitados por ``[]'') indicam o tamanho da matriz,
-e sua dimens„o È informada pelo n˙mero de subscritos. Portanto, ``bitset'' È um vetor de 10 valores lÛgicos,
-enquanto ``quadr'' È uma matriz bidimensional, onde as duas dimensıes tem tamanho 4.
+O tipo do vetor ou matriz √© dado pelo nome do tipo no plural (``inteiros'' para
+tipo inteiro, ``literais'' para tipo literal, etc). Os subscritos na declara√ß√£o
+(delimitados por ``[]'') indicam o tamanho da matriz, e sua dimens√£o √© informada
+pelo n√∫mero de subscritos. Portanto, ``bitset'' √© um vetor de 10 valores
+l√≥gicos, enquanto ``quadr'' √© uma matriz bidimensional, onde as duas dimens√µes
+tem tamanho 4.
 
-… importante observar que matrizes s„o ``0 based'', isso È, iniciam no
-Ìndice 0 e seus Ìndices s„o sempre inteiros positivos. Logo, a matriz ``bitset''
-pode ser usada do Ìndice 0 atÈ o Ìndice 9 (inclusive). Seu Ìndice 10 n„o È
-v·lido e seu uso poder· acarretar em erros de execuÁ„o (\textit{runtime
-errors}). Matrizes, assim como vari·veis de tipos primitivos, s„o inicializadas
-com o valor ``0'' ou ``nulo'' em todas as suas posiÁıes. Quando usadas como
-argumentos de funÁıes, matrizes s„o passadas \textit{por valor}.
+√â importante observar que matrizes s√£o ``0 based'', isso √©, iniciam no √≠ndice 0
+e seus √≠ndices s√£o sempre inteiros positivos. Logo, a matriz ``bitset'' pode ser
+usada do √≠ndice 0 at√© o √≠ndice 9 (inclusive). Seu √≠ndice 10 n√£o √© v√°lido e seu
+uso poder√° acarretar em erros de execu√ß√£o (\textit{runtime errors}). Matrizes,
+assim como vari√°veis de tipos primitivos, s√£o inicializadas com o valor ``0'' ou
+``nulo'' em todas as suas posi√ß√µes. Quando usadas como argumentos de fun√ß√µes,
+matrizes s√£o passadas \textit{por valor}.
 
 \begin{quotation}
-  \textit{``As pessoas s„o dividas em dois grupos: aquelas que comeÁam a
-contar a partir do '0', e aquelas que n„o.''}
+  \textit{``As pessoas s√£o dividas em dois grupos: aquelas que come√ßam a contar
+  a partir do '0', e aquelas que n√£o.''}
    \begin{flushright}
-  -- AnÙnimo
+  -- An√¥nimo
   \end{flushright}
 \end{quotation}
 
 \section{Estruturas condicionais}
 
-Por enquanto, apenas a estrutura se/ent„o/sen„o È suportada. Essa e as
-demais estruturas utilizam expressıes, que s„o avaliadas para que uma
-decis„o seja tomada (repetir execuÁ„o, selecionar bloco de instruÁıes,
-etc). Qualquer express„o pode ser avaliada como express„o lÛgica.
-Expressıes numÈricas de valor ``0'' s„o avaliadas como falso. Demais valores
-numÈricos s„o avaliados como verdadeiro. Valores literais nulos, da mesma forma,
-s„o avaliados como falso, e demais textos, como verdadeiro. Para maiores
-detalhes sobre expressıes, veja a seÁ„o \ref{sec:expr}.
+Por enquanto, apenas a estrutura se/ent√£o/sen√£o √© suportada. Essa e as demais
+estruturas utilizam express√µes, que s√£o avaliadas para que uma decis√£o seja
+tomada (repetir execu√ß√£o, selecionar bloco de instru√ß√µes, etc). Qualquer
+express√£o pode ser avaliada como express√£o l√≥gica. Express√µes num√©ricas de valor
+``0'' s√£o avaliadas como falso. Demais valores num√©ricos s√£o avaliados como
+verdadeiro. Valores literais nulos, da mesma forma, s√£o avaliados como falso, e
+demais textos, como verdadeiro. Para maiores detalhes sobre express√µes, veja a
+se√ß√£o \ref{sec:expr}.
 
- \begin{verbatim}
-enquanto x faÁa                   //depende do valor de x
-enquanto "nome" = "nome" faÁa     //avalia como verdadeiro
-enquanto verdadeiro faÁa          //avalia como verdadeiro
-enquanto 3+5 faÁa                 //avalia 8 como verdadeiro
-enquanto "nome" faÁa              //avalia como verdadeiro
-enquanto 0 faÁa                   //avalia 0 como falso
-enquanto "" faÁa                  //avalia como falso
-enquanto '' faÁa                  //avalia como falso
- \end{verbatim}
+\begin{verbatim}
+enquanto x fa√ßa                   //depende do valor de x
+enquanto "nome" = "nome" fa√ßa     //avalia como verdadeiro
+enquanto verdadeiro fa√ßa          //avalia como verdadeiro
+enquanto 3+5 fa√ßa                 //avalia 8 como verdadeiro
+enquanto "nome" fa√ßa              //avalia como verdadeiro
+enquanto 0 fa√ßa                   //avalia 0 como falso
+enquanto "" fa√ßa                  //avalia como falso
+enquanto '' fa√ßa                  //avalia como falso
+\end{verbatim}
 
-O programa \ref{programa_exemplo_condicional} ilustra um algoritmo simples
-que verifica se o usu·rio È maior de idade.
-\newline
+O programa \ref{programa_exemplo_condicional}
+ilustra um algoritmo simples que verifica se
+o usu√°rio √© maior de idade.
+\bigskip
 
 \begin{program}
  \begin{verbatim}
 algoritmo idade;
 
-vari·veis
+vari√°veis
   idade : inteiro;
   nome : literal;
-fim-vari·veis
+fim-vari√°veis
 
-inÌcio
+in√≠cio
   imprima("Digite seu nome:");
   nome := leia();
 
   imprima(nome, ", digite sua idade:");
   idade := leia();
 
-  se idade >= 18 ent„o
-    se idade < 60 ent„o
+  se idade >= 18 ent√£o
+    se idade < 60 ent√£o
       imprima("adulto!");
-    sen„o
-      imprima("anci„o", '!');
+    sen√£o
+      imprima("anci√£o", '!');
     fim-se
-  sen„o
+  sen√£o
     imprima("menor", "!");
   fim-se
 fim
@@ -547,53 +479,41 @@ fim
 
 Alguns pontos a serem considerados:
 
-
 \begin{itemize}
-  \item
-  O nome do algoritmo È ``idade'', assim como o nome de uma vari·vel. N„o h·
-conflitos.
-
-  \item
-  O operador de atribuiÁ„o È o \textit{pascal-like} ``:=''.
-
-  \item
-  A funÁ„o interna ``leia'' pode ser usada por vari·veis primitivas de qualquer
-tipo.
-
-  \item
-  A funÁ„o ``imprima'' recebe um n˙mero vari·vel de argumentos de qualquer tipo primitivo,
-sendo que pelo menos um argumento deve ser passado, que podem ser constantes literais
-(n˙meros, textos entre aspas, caracteres entre aspas simples,...), vari·veis primitivas ou
-Ìndices de vetores/matrizes. Os valores s„o concatenados e adicionados de um caractere EOL
-(end of line, ou fim de linha).
-
-  \item
-  J· vimos que strings/literais constantes s„o denotados por texto entre aspas duplas ("). Tal qual em C,
-  um caractere entre aspas simples (') È um caractere constante que,
-tambÈm, permite escapes para representar caracteres como EOL ('$\backslash$n').
-
-  \item
-  Assim como a palavra-chave ``vari·veis'', ``ent„o'' e ``sen„o'' devem ser acentuadas.
-
-  \item
-  ParÍntesis ao redor da express„o da estrutura ``se/ent„o'' s„o opcionais.
-
-  \item
-  Como em ``vari·veis/fim-vari·veis'', blocos ``se'' tem seus respectivos e obrigatÛrios ``fim-se''.
-  N„o h· a opÁ„o de ignorar a definiÁ„o do bloco quando apenas um enunciado È
-  usado, como na linguagem C onde o uso de ``\{\}'' È opcional. TambÈm, n„o h·
-  imposiÁıes  sobre a indentaÁ„o. O programa \ref{programa_se_incorreto}
-ilustra esse assunto.
-
+  \item O nome do algoritmo √© ``idade'', assim como o nome de uma vari√°vel. N√£o
+    h√° conflitos.
+  \item O operador de atribui√ß√£o √© o \textit{pascal-like} ``:=''.
+  \item A fun√ß√£o interna ``leia'' pode ser usada por vari√°veis primitivas de
+    qualquer tipo.
+  \item A fun√ß√£o ``imprima'' recebe um n√∫mero vari√°vel de argumentos de qualquer
+    tipo primitivo, sendo que pelo menos um argumento deve ser passado, que
+    podem ser constantes literais (n√∫meros, textos entre aspas, caracteres entre
+    aspas simples,...), vari√°veis primitivas ou √≠ndices de vetores/matrizes. Os
+    valores s√£o concatenados e adicionados de um caractere EOL (end of line, ou
+    fim de linha).
+  \item J√° vimos que strings/literais constantes s√£o denotados por texto entre
+    aspas duplas ("). Tal qual em C, um caractere entre aspas simples (') √© um
+    caractere constante que, tamb√©m, permite escapes para representar caracteres
+    como EOL ('$\backslash$n').
+  \item Assim como a palavra-chave ``vari√°veis'', ``ent√£o'' e ``sen√£o'' devem
+    ser acentuadas.
+  \item Par√™ntesis ao redor da express√£o da estrutura ``se/ent√£o'' s√£o
+    opcionais.
+  \item Como em ``vari√°veis/fim-vari√°veis'', blocos ``se'' tem seus respectivos
+    e obrigat√≥rios ``fim-se''. N√£o h√° a op√ß√£o de ignorar a defini√ß√£o do bloco
+    quando apenas um enunciado √© usado, como na linguagem C onde o uso de
+    ``\{\}'' √© opcional. Tamb√©m, n√£o h√° imposi√ß√µes sobre a indenta√ß√£o. O
+    programa \ref{programa_se_incorreto}
+    ilustra esse assunto.
 \end{itemize}
 
 \begin{program}
   \begin{verbatim}
-//cÛdigo inv·lido: faltando fim-se
+//c√≥digo inv√°lido: faltando fim-se
 algoritmo se_invalido;
 
-inÌcio
-  se x = 2 ent„o
+in√≠cio
+  se x = 2 ent√£o
     imprima("ok");
   imprima("estou dentro ou fora do bloco \"se\"?");
 fim
@@ -602,65 +522,65 @@ fim
 \label{programa_se_incorreto}}
 \end{program}
 
-
-\section{Estruturas de repetiÁ„o}
+\section{Estruturas de repeti√ß√£o}
 
 \subsection{A estrutura ``enquanto''}
 
-A estrutura ``enquanto'' È a mais b·sica e comum das estruturas de repetiÁ„o. Seu funcionamento È o mesmo que
-em outras linguagens populares, onde um conjunto de instruÁıes È executado repetidamente enquanto o valor
-lÛgico de uma dada express„o for avaliado como ``verdadeiro''.
+A estrutura ``enquanto'' √© a mais b√°sica e comum das estruturas de repeti√ß√£o.
+Seu funcionamento √© o mesmo que em outras linguagens populares, onde um conjunto
+de instru√ß√µes √© executado repetidamente enquanto o valor l√≥gico de uma dada
+express√£o for avaliado como ``verdadeiro''.
 
 \begin{program}
   \begin{verbatim}
 algoritmo fatorial;
 
-vari·veis
+vari√°veis
   res : inteiro;
   fat : inteiro;
   x : inteiro;
-fim-vari·veis
+fim-vari√°veis
 
-inÌcio
-  imprima("Digite um n˙mero:");
+in√≠cio
+  imprima("Digite um n√∫mero:");
   x := leia();
 
   fat := x;
   res := 1;
 
-  enquanto x <> 0 faÁa
+  enquanto x <> 0 fa√ßa
     res := res * x;
     x   := x - 1;
   fim-enquanto
 
-  imprima("fatorial de ",fat," È igual a ",res);
+  imprima("fatorial de ",fat," √© igual a ",res);
 fim
   \end{verbatim}
   \caption{Exemplo de programa que utiliza a estrutura ``enquanto''.}
 \end{program}
 
-
-Assim como na estrutura ``se/ent„o'', parÍnteses em volta da express„o s„o
-opcionais e as expressıes seguem as mesmas regras.
+Assim como na estrutura ``se/ent√£o'', par√™nteses em volta da express√£o s√£o
+opcionais e as express√µes seguem as mesmas regras.
 
 \subsection{A estrutura ``repita''}
 
-A estrutura ``repita'' tem o funcionamento semelhante ‡ ``enquanto''. A
-diferenÁa est· na ordem da avaliaÁ„o da condiÁ„o de repetiÁ„o: ``enquanto''
-avalia a condiÁ„o antes de iniciar o laÁo, e ``repita'' avalia ao final do bloco.
+A estrutura ``repita'' tem o funcionamento semelhante √† ``enquanto''. A
+diferen√ßa est√° na ordem da avalia√ß√£o da condi√ß√£o de repeti√ß√£o: ``enquanto''
+avalia a condi√ß√£o antes de iniciar o la√ßo, e ``repita'' avalia ao final do
+bloco.
 
 \begin{program}
   \begin{verbatim}
 algoritmo fatorial2;
 
-vari·veis
+vari√°veis
   res : inteiro;
   fat : inteiro;
   x   : inteiro;
-fim-vari·veis
+fim-vari√°veis
 
-inÌcio
-  imprima("Digite um n˙mero:");
+in√≠cio
+  imprima("Digite um n√∫mero:");
   fat := leia();
   res := 1;
   x := fat;
@@ -668,302 +588,290 @@ inÌcio
   repita
     res := res * x;
     x   := x - 1;
-  atÈ x <= 0;
+  at√© x <= 0;
 
-  imprima("fatorial de ",fat," È igual a ",res);
+  imprima("fatorial de ",fat," √© igual a ",res);
 fim
   \end{verbatim}
   \caption{Exemplo de programa que utiliza a estrutura ``repita.''}
 \end{program}
 
-
-
 \subsection{A estrutura ``para''}
 
-A estrutura ``para'' È uma especializaÁ„o da estrutura ``enquanto'', e costuma ser ensinada em cursos de programaÁ„o.
-Sua sintaxe È semelhante ao que se vÍ em literatura sobre algoritmos e estruturas de dados, entretanto, È uma sintaxe
+A estrutura ``para'' √© uma especializa√ß√£o da estrutura ``enquanto'', e costuma
+ser ensinada em cursos de programa√ß√£o. Sua sintaxe √© semelhante ao que se v√™ em
+literatura sobre algoritmos e estruturas de dados, entretanto, √© uma sintaxe
 diferente de linguagens populares como C e Java.
 
 A estrutura ``para'' tem a seguinte forma:
 
 \begin{verbatim}
- para <vari·vel> de <express„o> atÈ <express„o> [passo <inteiro>] faÁa
+ para <vari√°vel> de <express√£o> at√© <express√£o> [passo <inteiro>] fa√ßa
   [lista de comandos]
  fim-para
 \end{verbatim}
 
-
 Onde:
 \begin{itemize}
- \item
-  ``vari·vel'' deve ser uma vari·vel numÈrica;
-  \item
-  ``express„o'' deve ser uma express„o que tem seu valor avaliado como numÈrico;
-  \item
-  ``passo'', se existir, deve ser seguido por um inteiro constante.
+  \item ``vari√°vel'' deve ser uma vari√°vel num√©rica;
+  \item ``express√£o'' deve ser uma express√£o que tem seu valor avaliado como
+    num√©rico;
+  \item ``passo'', se existir, deve ser seguido por um inteiro constante.
 \end{itemize}
 
-As expressıes de/atÈ controlam os valores que a vari·vel numÈrica ter· no
-inÌcio e no fim do laÁo, respectivamente. Tanto o controle da frequÍncia, quanto
-a decis„o de incrementar ou decrementar a vari·vel de controle È feita pelo
-termo opcional ``passo'', e seu valor padr„o È 1. Por exemplo, para iterar o
-valor de uma vari·vel numÈrica ``x'' de 0 atÈ 10, escreve-se:
+As express√µes de/at√© controlam os valores que a vari√°vel num√©rica ter√° no in√≠cio
+e no fim do la√ßo, respectivamente. Tanto o controle da frequ√™ncia, quanto a
+decis√£o de incrementar ou decrementar a vari√°vel de controle √© feita pelo termo
+opcional ``passo'', e seu valor padr√£o √© 1. Por exemplo, para iterar o valor de
+uma vari√°vel num√©rica ``x'' de 0 at√© 10, escreve-se:
 
   \begin{verbatim}
-para x de 0 atÈ 10 faÁa
+para x de 0 at√© 10 fa√ßa
   //comandos...
 fim-para
   \end{verbatim}
 
-
-Da mesma forma, para uma iteraÁ„o decrescente, de 2 em 2, escreve-se:
-
+Da mesma forma, para uma itera√ß√£o decrescente, de 2 em 2, escreve-se:
 
   \begin{verbatim}
-para x de 10 atÈ 0 passo -2 faÁa
+para x de 10 at√© 0 passo -2 fa√ßa
   //comandos...
 fim-para
   \end{verbatim}
-
-
 
 \begin{program}
   \begin{verbatim}
 algoritmo fatorial;
 
-vari·veis
+vari√°veis
   res : inteiro;
   fat : inteiro;
   x   : inteiro;
-fim-vari·veis
+fim-vari√°veis
 
-inÌcio
-  imprima("Digite um n˙mero:");
+in√≠cio
+  imprima("Digite um n√∫mero:");
   fat := leia();
 
   res := 1;
-  para x de fat atÈ 1 passo -1 faÁa
+  para x de fat at√© 1 passo -1 fa√ßa
     res := res * x;
   fim-para
 
-  imprima("fatorial de ",fat," È igual a ",res);
+  imprima("fatorial de ",fat," √© igual a ",res);
 fim
 
   \end{verbatim}
   \caption{Exemplo de programa que utiliza a estrutura ``para''.}
 \end{program}
 
-
-Em comparaÁ„o com a estrutura ``for'' de linguagens com sintaxe baseadas em C,
-h· diferenÁas n„o sÛ de sintaxe, mas de implementaÁ„o. Um ``for'' que itera
-sobre uma vari·vel numÈrica de 0 atÈ (incluindo) 10, ao sair do laÁo, o
-valor dessa vari·vel ser· 11. Em G-Portugol, a vari·vel ter· o valor 10 ao
-sair do laÁo. Essa diferenÁa acontece porque a sintaxe do ``para'' induz a esse
+Em compara√ß√£o com a estrutura ``for'' de linguagens com sintaxe baseadas em C,
+h√° diferen√ßas n√£o s√≥ de sintaxe, mas de implementa√ß√£o. Um ``for'' que itera
+sobre uma vari√°vel num√©rica de 0 at√© (incluindo) 10, ao sair do la√ßo, o valor
+dessa vari√°vel ser√° 11. Em G-Portugol, a vari√°vel ter√° o valor 10 ao sair do
+la√ßo. Essa diferen√ßa acontece porque a sintaxe do ``para'' induz a esse
 comportamento, diferente da sintaxe do ``for'', que tem um aspecto de mais
-baixo nÌvel.
+baixo n√≠vel.
 
 \begin{verbatim}
-//cÛdigo em C
+//c√≥digo em C
 for(x = 0; x <= 10; x++);
 printf("%d", x); //imprime "11"
 //--------------
 
-//cÛdigo equivalente em G-Portugol
-para x de 0 atÈ 10 faÁa
+//c√≥digo equivalente em G-Portugol
+para x de 0 at√© 10 fa√ßa
 fim-para
 
 imprima(x); //imprime "10"
 \end{verbatim}
 
-Ademais, da mesma forma que o ``for'', È possÌvel que a vari·vel de controle tenha seu valor
-alterado pelos comandos aninhados. Isso permite que o laÁo seja encerrado prematuramente, como tambÈm È comum
-em estruturas como ``enquanto''. A utilidade dessa tÈcnica est· no fato de G-Portugol n„o incorporar mecanismos
-para refinar o controle de laÁos (como ``break'' e ``continue'', encontrados em linguagens populares).
+Ademais, da mesma forma que o ``for'', √© poss√≠vel que a vari√°vel de controle
+tenha seu valor alterado pelos comandos aninhados. Isso permite que o la√ßo seja
+encerrado prematuramente, como tamb√©m √© comum em estruturas como ``enquanto''. A
+utilidade dessa t√©cnica est√° no fato de G-Portugol n√£o incorporar mecanismos
+para refinar o controle de la√ßos (como ``break'' e ``continue'', encontrados em
+linguagens populares).
 
-\section{FunÁıes}
+\section{Fun√ß√µes}
 
-Subprogramas em G-Portugol s„o implementados no modelo de funÁıes, que podem
-ter zero ou mais par‚metros de qualquer tipo, tanto primitivos quanto
-complexos (vetores e matrizes). Opcionalmente, elas podem definir valores de
-retorno, que deve ser de tipo primitivo. Tanto o retorno de dados como a
-passagem de argumentos s„o feitos \textit{por valor}.
+Subprogramas em G-Portugol s√£o implementados no modelo de fun√ß√µes, que podem ter
+zero ou mais par√¢metros de qualquer tipo, tanto primitivos quanto complexos
+(vetores e matrizes). Opcionalmente, elas podem definir valores de retorno, que
+deve ser de tipo primitivo. Tanto o retorno de dados como a passagem de
+argumentos s√£o feitos \textit{por valor}.
 
-Para retorno prematuro ou retorno de dados, a palavra chave ``retorne'' È usada. Para funÁıes que retornam dados,
-``retorne'' deve ser seguido de um operando, que È uma express„o cujo valor deve ser compatÌvel com o tipo da funÁ„o.
-J· funÁıes que n„o declaram um tipo de retorno expliticamente  (equivalente a funÁıes de retorno ``void'' em C),
-``retorne'' deve ser usado sem operando.
+Para retorno prematuro ou retorno de dados, a palavra chave ``retorne'' √© usada.
+Para fun√ß√µes que retornam dados, ``retorne'' deve ser seguido de um operando,
+que √© uma express√£o cujo valor deve ser compat√≠vel com o tipo da fun√ß√£o. J√°
+fun√ß√µes que n√£o declaram um tipo de retorno explicitamente (equivalente a
+fun√ß√µes de retorno ``void'' em C), ``retorne'' deve ser usado sem operando.
 
 \begin{program}[h!t]
  \begin{verbatim}
 algoritmo fatorial_recursivo;
 
-vari·veis
+vari√°veis
   x : inteiro;
-fim-vari·veis
+fim-vari√°veis
 
-inÌcio
-  imprima("Digite um n˙mero:");
+in√≠cio
+  imprima("Digite um n√∫mero:");
   x := leia();
-  imprima("fatorial de ",x," È igual a ",fatorial(x));
+  imprima("fatorial de ",x," √© igual a ",fatorial(x));
 fim
 
-funÁ„o fatorial(z:inteiro) : inteiro
-inÌcio
-  se z = 1 ent„o
+fun√ß√£o fatorial(z:inteiro) : inteiro
+in√≠cio
+  se z = 1 ent√£o
     retorne 1;
-  sen„o
+  sen√£o
     retorne z * fatorial(z-1);
   fim-se
 fim
   \end{verbatim}
-  \caption{Exemplo de algoritmo que utiliza funÁıes.}
+  \caption{Exemplo de algoritmo que utiliza fun√ß√µes.}
 \end{program}
 
+\subsection{Fun√ß√µes internas}
 
-\subsection{FunÁıes internas}
-\label{sec:func_internas}
+Como j√° foi visto em exemplos anteriores, G-Portugol oferece duas fun√ß√µes
+internas: ``leia'' e ``imprima'', que permitem uso b√°sico de entrada e sa√≠da,
+respectivamente.
 
-Como j· foi visto em exemplos anteriores, G-Portugol oferece duas funÁıes internas: ``leia'' e ``imprima'', que
-permitem uso b·sico de entrada e saÌda, respectivamente.
+A fun√ß√£o ``leia'' n√£o recebe argumentos e retorna o valor lido da entrada padr√£o
+(``STDIN''), o que significa, geralmente, ler os dados que o usu√°rio digitar no
+teclado, seguido do caractere ``nova linha'' (em geral, associado a tecla
+``Enter'' no teclado). O tipo de dado retornado por ``leia'' √© implicitamente
+convertido para o tipo primitivo exigido no contexto em que ela √© usada.
 
-A funÁ„o ``leia'' n„o recebe argumentos e retorna o valor lido da entrada padr„o
-(``STDIN''), o que significa, geralmente, ler os dados que o usu·rio digitar
-no teclado, seguido do caractere ``nova linha'' (em geral, associado a
-tecla ``Enter'' no teclado). O tipo de dado retornado por ``leia''
-È implicitamente convertido para o tipo primitivo exigido no contexto em que ela
-È usada.
-
-A funÁ„o ``imprima'' recebe um n˙mero vari·vel de argumentos de qualquer tipo
-primitivo, sendo que pelo menos um argumento deve ser passado. Os
-valores passados como argumentos s„o convertidos para texto, concatenados
-na ordem definida e enviados para ``STDOUT'' (em geral, associado ao
-\textit{display} ou monitor). N„o h· retorno de valor para esta funÁ„o.
+A fun√ß√£o ``imprima'' recebe um n√∫mero vari√°vel de argumentos de qualquer tipo
+primitivo, sendo que pelo menos um argumento deve ser passado. Os valores
+passados como argumentos s√£o convertidos para texto, concatenados na ordem
+definida e enviados para ``STDOUT'' (em geral, associado ao \textit{display} ou
+monitor). N√£o h√° retorno de valor para esta fun√ß√£o.
 
 \begin{program}
  \begin{verbatim}
 algoritmo io;
 
-vari·veis
+vari√°veis
   c: caractere;
   i: inteiro;
   r: real;
   l: literal;
-  z: lÛgico;
+  z: l√≥gico;
   mat: matriz[2] de inteiros;
-fim-vari·veis
+fim-vari√°veis
 
-inÌcio
+in√≠cio
   imprima("digite um caractere");
   c := leia();
-  imprima("Digite um n˙mero inteiro");
+  imprima("Digite um n√∫mero inteiro");
   i := leia();
-  imprima("Digite um n˙mero real:");
+  imprima("Digite um n√∫mero real:");
   r := leia();
   imprima("Digite um texto:");
   l := leia();
-  imprima("Digite um valor lÛgico (\"verdadeiro\" ou \"falso\"), um n˙mero ou um texto:");
+  imprima("Digite um valor l√≥gico (\"verdadeiro\" ou \"falso\"), \
+    um n√∫mero ou um texto:");
   z := leia();
 
-  imprima("caractere: ",c,", inteiro: ",i, ", real: ",r,", texto: ",l, ", lÛgico: ", z,"\n");
+  imprima("caractere: ",c,", inteiro: ",i, ", real: ",r,", \
+    texto: ",l, ", l√≥gico: ", z,"\n");
 fim
   \end{verbatim}
 
-  \caption{Exemplo de usos das funÁıes internas ``leia'' e ``imprima''.}
+  \caption{Exemplo de usos das fun√ß√µes internas ``leia'' e ``imprima''.}
 \end{program}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Implementa√ß√£o da linguagem G-Portugol
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
-%%%%%%%%%%%%%%%%% ImplementaÁ„o da linguagem G-Portugol
-
-
-
-
-\capitulo{ImplementaÁ„o da linguagem G-Portugol}
+\chapter{Implementa√ß√£o da linguagem G-Portugol}
 \label{ch:impl}
 
-\section{IntroduÁ„o}
+\section{Introdu√ß√£o}
 
-Ao definir uma linguagem de programaÁ„o voltada para o ensino de lÛgica e
-algoritmos, v·rios aspectos devem ser considerados. Ao contr·rio de linguagens
-de produÁ„o, n„o h· preocupaÁıes como o poder expressivo da linguagem,
-dicion·rio em inglÍs, acesso a recursos de sistema, etc. A preocupaÁ„o central
-est· em oferecer uma ferramenta que:
+Ao definir uma linguagem de programa√ß√£o voltada para o ensino de l√≥gica e
+algoritmos, v√°rios aspectos devem ser considerados. Ao contr√°rio de linguagens
+de produ√ß√£o, n√£o h√° preocupa√ß√µes como o poder expressivo da linguagem,
+dicion√°rio em ingl√™s, acesso a recursos de sistema, etc. A preocupa√ß√£o central
+est√° em oferecer uma ferramenta que:
 
 \begin{itemize}
- \item
-  reflita os processos computacionais, exigindo o mÌnimo de conhecimento e experiÍncia do estudante;
-
-  \item
-  evidencie os processos relacionados com o desenvolvimento de softwares;
-
-  \item
-  estimule a abstraÁ„o e raciocÌnio lÛgico do estudante.
-
+  \item reflita os processos computacionais, exigindo o m√≠nimo de conhecimento e
+    experi√™ncia do estudante;
+  \item evidencie os processos relacionados com o desenvolvimento de softwares;
+  \item estimule a abstra√ß√£o e racioc√≠nio l√≥gico do estudante.
 \end{itemize}
 
 \section{A linguagem}
 
-O ponto fundamental que guia as diretrizes da linguagem G-Portugol È seu
-propÛsito educacional: ela deve expressar processos computacionais de forma
-que um leigo os compreenda sem enfatizar a si mesma. Isso È, a linguagem em
-si deve chamar o mÌnimo de atenÁ„o possÌvel, fazendo com que a compreens„o
-dos processos computacionais seja t„o natural quanto ler sua descriÁ„o
-informal, ou n„o-estruturada.
+O ponto fundamental que guia as diretrizes da linguagem G-Portugol √© seu
+prop√≥sito educacional: ela deve expressar processos computacionais de forma que
+um leigo os compreenda sem enfatizar a si mesma. Isso √©, a linguagem em si deve
+chamar o m√≠nimo de aten√ß√£o poss√≠vel, fazendo com que a compreens√£o dos processos
+computacionais seja t√£o natural quanto ler sua descri√ß√£o informal, ou
+n√£o-estruturada.
 
-Esse objetivo encontra restriÁıes, quando se leva em consideraÁ„o a natureza
-das linguagens artificiais e o uso e forma popular atual da linguagem
-portugol, principalmente em literaturas. … de interesse que G-Portugol
-ofereÁa compatibilidade com essas formas, o que pode gerar conflitos quanto
-a decisıes de design e restringir suas caracterÌsticas. Portanto, embora
-as diretrizes marquem a base do design, muitas vezes, elas devem ser
-sacrificadas ou ajustadas para incorporar formas populares.
+Esse objetivo encontra restri√ß√µes, quando se leva em considera√ß√£o a natureza das
+linguagens artificiais e o uso e forma popular atual da linguagem portugol,
+principalmente em literaturas. √â de interesse que G-Portugol ofere√ßa
+compatibilidade com essas formas, o que pode gerar conflitos quanto a decis√µes
+de design e restringir suas caracter√≠sticas. Portanto, embora as diretrizes
+marquem a base do design, muitas vezes, elas devem ser sacrificadas ou ajustadas
+para incorporar formas populares.
 
-… interessante ressaltar que criar uma linguagem totalmente nova, que
-utiliza outros paradigmas como, por exemplo, orientaÁ„o a objeto, possa ser
-interessantes e, talvez, mais eficientes como ferramentas de ensino,
-mas G-Portugol est·, no momento, comprometida com a compatibilidade.
+√â interessante ressaltar que criar uma linguagem totalmente nova, que utiliza
+outros paradigmas como, por exemplo, orienta√ß√£o a objeto, possa ser
+interessantes e, talvez, mais eficientes como ferramentas de ensino, mas
+G-Portugol est√°, no momento, comprometida com a compatibilidade.
 
-A seguir, alguns tÛpicos ser„o comentados quanto as diretrizes por tr·s
-das formas lÈxicas e gramaticais da linguagem G-Portugol.
+A seguir, alguns t√≥picos ser√£o comentados quanto as diretrizes por tr√°s das
+formas l√©xicas e gramaticais da linguagem G-Portugol.
 
 \subsection{Diretrizes para o design da linguagem}
 
-\subsubsection{A linguagem deve ser totalmente em portuguÍs e deve respeitar acentuaÁıes}
+\subsubsection{A linguagem deve ser totalmente em portugu√™s e deve respeitar
+acentua√ß√µes}
 
-Linguagens de programaÁ„o, em geral, n„o se utilizam de caracteres especiais
-(ex. caracteres acentuados, cedilhas, e outros que n„o pertencem ao
-alfabeto inglÍs) para definiÁ„o de seu dicion·rio, visto que s„o baseadas
-na lÌngua inglesa. Portanto, letras acentuadas n„o s„o consideradas.
+Linguagens de programa√ß√£o, em geral, n√£o se utilizam de caracteres especiais
+(ex. caracteres acentuados, cedilhas, e outros que n√£o pertencem ao alfabeto
+ingl√™s) para defini√ß√£o de seu dicion√°rio, visto que s√£o baseadas na l√≠ngua
+inglesa. Portanto, letras acentuadas n√£o s√£o consideradas.
 
-A decis„o de incorporar palavras que respeitam a lÌngua portuguesa È
-importante, visto que modificar a linguagem de forma a se afastar de
-sua lÌngua natural (o portuguÍs) pode evidenciar excessıes as quais forÁariam os
-usu·rios (estudantes e professores) a se ater mais com o estudo da linguagem do
-que com o estudo da disciplina em quest„o. Isso È, a ausÍncia de acentos, por
-exemplo, obriga o usu·rio a aprender seus termos excepcionais. AlÈm do mais,
-o uso de termos como ``nao'', chama a atenÁ„o constante do usu·rio para o fato
-de a palavra n„o estar acentuada, o que costuma desviar atenÁ„o do estudo.
+A decis√£o de incorporar palavras que respeitam a l√≠ngua portuguesa √© importante,
+visto que modificar a linguagem de forma a se afastar de sua l√≠ngua natural (o
+portugu√™s) pode evidenciar excess√µes as quais for√ßariam os usu√°rios (estudantes
+e professores) a se ater mais com o estudo da linguagem do que com o estudo da
+disciplina em quest√£o. Isso √©, a aus√™ncia de acentos, por exemplo, obriga o
+usu√°rio a aprender seus termos excepcionais. Al√©m do mais, o uso de termos como
+``nao'', chama a aten√ß√£o constante do usu√°rio para o fato de a palavra n√£o estar
+acentuada, o que costuma desviar aten√ß√£o do estudo.
 
-Consequentemente, o uso de acentos permite que a linguagem seja o mais prÛximo
-do portuguÍs quanto for possÌvel, apoiando a regra de n„o chamar atenÁ„o para
-si. Ademais, o cÛdigo fica mais legÌvel e permite uma leitura mais agrad·vel.
+Consequentemente, o uso de acentos permite que a linguagem seja o mais pr√≥ximo
+do portugu√™s quanto for poss√≠vel, apoiando a regra de n√£o chamar aten√ß√£o para
+si. Ademais, o c√≥digo fica mais leg√≠vel e permite uma leitura mais agrad√°vel.
 
-AlÈm dos acentos, È exigido que as palavras-chave usadas sejam completas ou por
-extenso, sem permitir abreviaÁıes (ex. ``proc'', ``func'', ``char'', ``int'',
+Al√©m dos acentos, √© exigido que as palavras-chave usadas sejam completas ou por
+extenso, sem permitir abrevia√ß√µes (ex. ``proc'', ``func'', ``char'', ``int'',
 ...), o que dificulta a leitura de programas por um leigo.
 
-H· tambÈm decisıes quanto a forma verbal de comandos e funÁıes. Em geral,
-na literatura, os verbos nos algoritmos s„o expressos no imperativo, visto que
-a linguagem È caracterizada como imperativa. Por outro lado, vale notar que,
-mesmo em linguagens imperativas, È comum ver programas que utilizam
-termos em portuguÍs usando verbos no infinitivo.
+H√° tamb√©m decis√µes quanto a forma verbal de comandos e fun√ß√µes. Em geral, na
+literatura, os verbos nos algoritmos s√£o expressos no imperativo, visto que a
+linguagem √© caracterizada como imperativa. Por outro lado, vale notar que, mesmo
+em linguagens imperativas, √© comum ver programas que utilizam termos em
+portugu√™s usando verbos no infinitivo.
 
 Mesmo com essa perspectiva em vista, G-Portugol se utiliza de verbos no
 imperativo para seus termos, de forma a se aproximar das formas utilizadas nas
 literaturas sobre algoritmos.
 
 \begin{quotation}
-  \textit{``Programas devem ser escritos para pessoas lerem e, apenas incidentalmente, para m·quinas executarem.''}
+  \textit{``Programas devem ser escritos para pessoas lerem e, apenas
+  incidentalmente, para m√°quinas executarem.''}
    \begin{flushright}
   -- Abelson e Sussman
   \end{flushright}
@@ -971,124 +879,117 @@ literaturas sobre algoritmos.
 
 \subsubsection{A linguagem deve ser simples, uniforme e coerente}
 
-Essa diretriz diz respeito a evitar excessıes entre as formas gramaticais e
-comportamentos sem‚nticos na medida do possÌvel. Isso significa n„o sÛ que as
-estruturas e comandos devem ser simples, claros e Ûbvios, como tambÈm, sua forma
-e comportamento devem ter um princÌpio em comum, evidenciando um formato
-uniforme. Naturalmente, a linguagem portugol j· detÈm uma parcela relevante
-de caracterÌsticas que se acomodam nessas diretrizes, no entanto, alguns
-detalhes ainda merecem atenÁ„o, como a representaÁ„o de blocos estruturais.
+Essa diretriz diz respeito a evitar excess√µes entre as formas gramaticais e
+comportamentos sem√¢nticos na medida do poss√≠vel. Isso significa n√£o s√≥ que as
+estruturas e comandos devem ser simples, claros e √≥bvios, como tamb√©m, sua forma
+e comportamento devem ter um princ√≠pio em comum, evidenciando um formato
+uniforme. Naturalmente, a linguagem portugol j√° det√©m uma parcela relevante de
+caracter√≠sticas que se acomodam nessas diretrizes, no entanto, alguns detalhes
+ainda merecem aten√ß√£o, como a representa√ß√£o de blocos estruturais.
 
-A simplicidade implica em evitar construÁıes e recursos que desviam a atenÁ„o do
-propÛsito original para detalhes da linguagem. Isso È, apenas recursos
-essenciais devem fazer parte de seu n˙cleo. Portanto, em um primeiro momento,
-n„o È interessante equipar a linguagem com recursos como alocaÁ„o din‚mica de
-memÛria, controle de threads, etc.
+A simplicidade implica em evitar constru√ß√µes e recursos que desviam a aten√ß√£o do
+prop√≥sito original para detalhes da linguagem. Isso √©, apenas recursos
+essenciais devem fazer parte de seu n√∫cleo. Portanto, em um primeiro momento,
+n√£o √© interessante equipar a linguagem com recursos como aloca√ß√£o din√¢mica de
+mem√≥ria, controle de threads, etc.
 
-\subsubsection{Deve ser configur·vel naquilo que diz respeito a
+\subsubsection{Deve ser configur√°vel naquilo que diz respeito a
 diferentes abordagens de ensino e estilo do professor}
 
 Essa diretriz diz respeito a permitir que a linguagem mude em certos aspectos
-(ou disponibilizar meios simples para realizar essas mudanÁas) de acordo com
-o gosto do professor, ou como modo de adaptar a forma de portugol de uma
-dada literatura. Dialetos e formas da linguagem portugol variam de
-literatura para literatura, e pode ser interessante permitir que a linguagem se
-adapte ou oferecer diferentes formas da linguagem.
+(ou disponibilizar meios simples para realizar essas mudan√ßas) de acordo com o
+gosto do professor, ou como modo de adaptar a forma de portugol de uma dada
+literatura. Dialetos e formas da linguagem portugol variam de literatura para
+literatura, e pode ser interessante permitir que a linguagem se adapte ou
+oferecer diferentes formas da linguagem.
 
-Entre os aspectos que podem ser adaptados com facilidade se encontram os
-termos lÈxicos (palavras-chave, operadores,etc), e algumas formas de expressar
-estruturas, como algumas declaraÁıes e enunciados.
+Entre os aspectos que podem ser adaptados com facilidade se encontram os termos
+l√©xicos (palavras-chave, operadores,etc), e algumas formas de expressar
+estruturas, como algumas declara√ß√µes e enunciados.
 
-Por exemplo, pode ser interessante que, para se declarar uma varÌavel, n„o se
-use um bloco iniciado por ``vari·veis'' e terminado por ``fim-vari·veis'', mas
-como um bloco parecido com a declaraÁ„o de vari·veis em Pascal, ou atÈ em C (que
-sequer exige delimitaÁ„o de bloco de vari·veis).
+Por exemplo, pode ser interessante que, para se declarar uma var√≠avel, n√£o se
+use um bloco iniciado por ``vari√°veis'' e terminado por ``fim-vari√°veis'', mas
+como um bloco parecido com a declara√ß√£o de vari√°veis em Pascal, ou at√© em C (que
+sequer exige delimita√ß√£o de bloco de vari√°veis).
 
 Isso pode ser interessante quando se quer, por exemplo, ensinar uma linguagem
-especÌfica como Pascal, fazendo com que G-Portugol possa usar estruturas
-e operadores semelhantes a esta linguagem, de forma a oferecer uma transiÁ„o
-mais direta e que aproveita melhor os conhecimentos do estudante.
+espec√≠fica como Pascal, fazendo com que G-Portugol possa usar estruturas e
+operadores semelhantes a esta linguagem, de forma a oferecer uma transi√ß√£o mais
+direta e que aproveita melhor os conhecimentos do estudante.
 
-Atualmente, o programa GPT n„o implementa mecanismos para esse tipo de
-mudanÁa, sendo necess·rio modificar seu cÛdigo fonte e recompil·-lo.
+Atualmente, o programa GPT n√£o implementa mecanismos para esse tipo de mudan√ßa,
+sendo necess√°rio modificar seu c√≥digo fonte e recompil√°-lo.
 
 \section{Formato Estrutural}
 
 Um programa escrito em G-Portugol tem o seguinte formato:
 
 \begin{itemize}
- \item
-  declaraÁ„o do algoritmo
-
-  \item
-  declaraÁ„o de vari·veis globais
-
-  \item
-  bloco principal
-
-  \item
-  declaraÁ„o de funÁıes
+  \item declara√ß√£o do algoritmo
+  \item declara√ß√£o de vari√°veis globais
+  \item bloco principal
+  \item declara√ß√£o de fun√ß√µes
 \end{itemize}
 
-  A seguir, alguns pontos ser„o discutidos a respeito do formato da linguagem.
+  A seguir, alguns pontos ser√£o discutidos a respeito do formato da linguagem.
 
-\subsection{DeclaraÁ„o do algoritmo}
+\subsection{Declara√ß√£o do algoritmo}
 
-A declaraÁ„o do algoritmo n„o influencia o programa ou sua execuÁ„o, visto que È
-apenas uma sess„o informativa no cÛdigo que, embora n„o seja um coment·rio, tem
-o mesmo efeito pr·tico. A adoÁ„o dessa declaraÁ„o pode ser discutida, e
-foi escolhida por ser bastante utilizada em literaturas.
+A declara√ß√£o do algoritmo n√£o influencia o programa ou sua execu√ß√£o, visto que √©
+apenas uma sess√£o informativa no c√≥digo que, embora n√£o seja um coment√°rio, tem
+o mesmo efeito pr√°tico. A ado√ß√£o dessa declara√ß√£o pode ser discutida, e foi
+escolhida por ser bastante utilizada em literaturas.
 
-\subsection{DeclaraÁ„o de vari·veis globais}
+\subsection{Declara√ß√£o de vari√°veis globais}
 
-  Como visto no capÌtulo 2, essa declaraÁ„o È opcional, e seu formato pode ser
+Como visto no cap√≠tulo 2, essa declara√ß√£o √© opcional, e seu formato pode ser
 visto no exemplo a seguir:
 
 \begin{verbatim}
-vari·veis
+vari√°veis
   x : inteiro;
-fim-vari·veis
+fim-vari√°veis
 \end{verbatim}
 
-Esse formato difere de linguagens como Pascal e C. Em Pascal, o bloco n„o tem um
-delimitador final (como ``fim-vari·veis'') e em C, n„o existe qualquer
+Esse formato difere de linguagens como Pascal e C. Em Pascal, o bloco n√£o tem um
+delimitador final (como ``fim-vari√°veis'') e em C, n√£o existe qualquer
 delimitador.
 
-Delimitar o bloco permite maior consistÍncia com outras formas gramaticais
-como os blocos de comando e estruturas de controle, e torna o cÛdigo mais
-claro e explÌcito, embora adicione construÁıes redundantes.
+Delimitar o bloco permite maior consist√™ncia com outras formas gramaticais como
+os blocos de comando e estruturas de controle, e torna o c√≥digo mais claro e
+expl√≠cito, embora adicione constru√ß√µes redundantes.
 
-Os tipos primitivos englobam os tipos mais b·sicos das linguagens populares.
-No momento, agregados heterogÍneos como, por exemplo, estruturas/registros
-(``struct'' em C) n„o s„o suportados. Para uma lista dos tipos suportados, veja
+Os tipos primitivos englobam os tipos mais b√°sicos das linguagens populares. No
+momento, agregados heterog√™neos como, por exemplo, estruturas/registros
+(``struct'' em C) n√£o s√£o suportados. Para uma lista dos tipos suportados, veja
 a tabela \ref{tb_tipos_primitivos}.
 
 \subsection{Bloco Principal}
 
-As linguagens de programaÁ„o devem, de alguma forma, oferecer um ``entry point''
-(ponto de entrada), de onde se inicia a execuÁ„o do programa. O ponto de entrada
-pode ser uma funÁ„o ou um bloco anÙnimo. Na literatura, em geral, o bloco
-principal È delimitado pelos termos ``inÌcio''e ``fim'' e G-Portugol segue
-essa convenÁ„o. Essa decis„o mantÈm um nÌvel satisfatÛrio de coerÍncia
-com o bloco de vari·veis globais e estruturas de controle, embora n„o sejam
-intimamente relacionados.
+As linguagens de programa√ß√£o devem, de alguma forma, oferecer um ``entry point''
+(ponto de entrada), de onde se inicia a execu√ß√£o do programa. O ponto de entrada
+pode ser uma fun√ß√£o ou um bloco an√¥nimo. Na literatura, em geral, o bloco
+principal √© delimitado pelos termos ``in√≠cio''e ``fim'' e G-Portugol segue essa
+conven√ß√£o. Essa decis√£o mant√©m um n√≠vel satisfat√≥rio de coer√™ncia com o bloco de
+vari√°veis globais e estruturas de controle, embora n√£o sejam intimamente
+relacionados.
 
-Vale ressaltar que n„o se faz imposiÁ„o sobre a identaÁ„o do cÛdigo. Esse
-recurso pode ser vantajoso no ensino, promovendo a clareza de cÛdigo,
-portanto, sua implementaÁ„o pode ser discutida para versıes futuras.
+Vale ressaltar que n√£o se faz imposi√ß√£o sobre a identa√ß√£o do c√≥digo. Esse
+recurso pode ser vantajoso no ensino, promovendo a clareza de c√≥digo, portanto,
+sua implementa√ß√£o pode ser discutida para vers√µes futuras.
 
 Embora a sintaxe seja bem diferente, o bloco principal pode ser visto como uma
-funÁ„o (como \textit{main} na linguagem C). H·, portanto, a possibilidade de
-retornar um valor inteiro atravÈs do comando ``retorne''.
+fun√ß√£o (como \textit{main} na linguagem C). H√°, portanto, a possibilidade de
+retornar um valor inteiro atrav√©s do comando ``retorne''.
 
 \begin{program}
   \begin{verbatim}
 algoritmo bloco_principal;
 
-inÌcio
+in√≠cio
   imprima("Retornando valor do bloco principal");
   retorne 42;
-  imprima("Essa linha n„o ser· impressa");
+  imprima("Essa linha n√£o ser√° impressa");
 fim
   \end{verbatim}
 
@@ -1097,158 +998,146 @@ fim
 
   \subsubsection{Estruturas de Controle}
 
-Estruturas de controle s„o formadas por um cabeÁalho seguido por
-um bloco de comandos e terminados por um delimitador final. Embora os
-delimitadores do bloco n„o sejam ``inÌcio'' e ``fim'', h· um grau de semelhanÁa
-mantido: o delimitador inicial È omitido (uma vez que o cabeÁalho È entendido
-como delimitador inicial) e o delimitador final È o termo ``fim-'' seguido do
-nome da estrutura.
+Estruturas de controle s√£o formadas por um cabe√ßalho seguido por um bloco de
+comandos e terminados por um delimitador final. Embora os delimitadores do bloco
+n√£o sejam ``in√≠cio'' e ``fim'', h√° um grau de semelhan√ßa mantido: o delimitador
+inicial √© omitido (uma vez que o cabe√ßalho √© entendido como delimitador inicial)
+e o delimitador final √© o termo ``fim-'' seguido do nome da estrutura.
 
-No cabeÁalho das estruturas como ``enquanto'' e ``se'', as expressıes n„o
-precisam ser delimitadas por parÍnteses.
+No cabe√ßalho das estruturas como ``enquanto'' e ``se'', as express√µes n√£o
+precisam ser delimitadas por par√™nteses.
 
+\subsubsection{Express√µes}
+\label{sec:expr}
 
-  \subsubsection{Expressıes}
-  \label{sec:expr}
+Express√µes s√£o opera√ß√µes que sintetizam, ao final, um valor. Em geral constituem
+valores ou opera√ß√µes aritm√©ticas com um ou mais termos que podem ser vari√°veis,
+constantes ou chamadas a fun√ß√µes e s√£o usadas em atribui√ß√µes, estruturas de
+controle e subscritos de matrizes e vetores. Enunciados (como atribui√ß√µes) n√£o
+podem ser avaliados como express√µes.
 
-Expressıes s„o operaÁıes que sintetizam, ao final, um valor. Em geral
-constituem valores ou operaÁıes aritmÈticas com um ou mais termos que podem
-ser vari·veis, constantes ou chamadas a funÁıes e s„o usadas em atribuiÁıes,
-estruturas de controle e subscritos de matrizes e vetores. Enunciados (como
-atribuiÁıes) n„o podem ser avaliados como expressıes.
-
-Constantes s„o valores \textit{inline}, e cada tipo de dado tem uma forma de
+Constantes s√£o valores \textit{inline}, e cada tipo de dado tem uma forma de
 ser representada.
 
 \begin{itemize}
- \item
-  Inteiros: Podem ser representados em base decimal, hexadecimal, octal e
-bin·ria. RepresentaÁıes decimais s„o formadas, opcionalmente, por um sinal
-(``+'' ou ``-'') seguido de um mais algarismos(ex.``120'', ``+5'', e ``-2'').
-RepresentaÁıes hexadecimais s„o representadas com o prefixo ``0x'' ou
-`` 0X'', seguido de algarismos entre ``0'' e ``9'' e letras entre ``a'' e ``f''
-ou ``A'' e ``F'' (ex. ``0xF1A5''). RepresentaÁıes octais s„o representadas com o
-prefixo ``0c'' ou ``0C'', seguido de algarismos entre ``0'' e ``7'' (ex.
-``0c61''). Finalmente, representaÁıes bin·rias s„o formadas pelo prefixo ``0b''
-ou ``0B'', seguido de algarismos ``0'' e ``1'' (ex. ``0b101'').
-
-  \item
-  Reais: s„o representados por, opcionalmente, um sinal (``+'' ou
-``-''), seguido de algarismos separados por um ``.'' como ``-1.2345''.
-
-  \item
-  Caracteres: s„o representados por um ˙nico simbolo entre aspas simples.
-Alguns caracteres especiais s„o representados com escape (``$\backslash$'')
-seguido de sÌmbolo identificador. Esses caracteres s„o o LF (``$\backslash$n''),
-CR (``$\backslash$r'') e barra invertida (``$\backslash$$\backslash$''). A
-ausÍncia de sÌmbolos entre as aspas simples indica um caractere ``nulo''.
-Internamente, caracteres s„o representados como n˙meros inteiros, o que permite
-sua compatibilidade numÈrica.
-
-  \item
-  Literais: s„o representados por um conjunto de caracteres entre aspas duplas.
-Eles podem conter caracteres especiais como ``$\backslash$n'' e devem ser
-definidos em apenas uma linha de cÛdigo. Valores literais s„o os ˙nicos que n„o
-tem uma representaÁ„o numÈrica, impedindo sua participaÁ„o em expressıes com
-operadores aritmÈticos (soma, divis„o, etc). ComparaÁıes de igualdade
-para valores literais s„o feitas caractere por caractere em \textit{case
-sensitive}. Portanto, a express„o ``portugol'' = ``Portugol'' È avaliada como
-falsa. J· comparaÁıes de grandeza s„o feitos calculando o n˙mero de caracteres
-que compıem os valores literais. Ent„o, a express„o ``maria'' > ``josÈ'' È
-avaliada como verdadeira.
-
-  \item
-  LÛgicos: s„o representados pelas palavras ``verdadeiro'' e ``falso''.
-Numericamente, qualquer valor diferente de ``0'' representa o valor verdadeiro e
-``0'' representa o valor falso.
-
+  \item Inteiros: Podem ser representados em base decimal, hexadecimal, octal e
+    bin√°ria. Representa√ß√µes decimais s√£o formadas, opcionalmente, por um sinal
+    (``+'' ou ``-'') seguido de um mais algarismos(ex.``120'', ``+5'', e
+    ``-2''). Representa√ß√µes hexadecimais s√£o representadas com o prefixo ``0x''
+    ou `` 0X'', seguido de algarismos entre ``0'' e ``9'' e letras entre ``a'' e
+    ``f'' ou ``A'' e ``F'' (ex. ``0xF1A5''). Representa√ß√µes octais s√£o
+    representadas com o prefixo ``0c'' ou ``0C'', seguido de algarismos entre
+    ``0'' e ``7'' (ex. ``0c61''). Finalmente, representa√ß√µes bin√°rias s√£o
+    formadas pelo prefixo ``0b'' ou ``0B'', seguido de algarismos ``0'' e ``1''
+    (ex. ``0b101'').
+  \item Reais: s√£o representados por, opcionalmente, um sinal (``+'' ou ``-''),
+    seguido de algarismos separados por um ``.'' como ``-1.2345''.
+  \item Caracteres: s√£o representados por um √∫nico simbolo entre aspas simples.
+    Alguns caracteres especiais s√£o representados com escape (``$\backslash$'')
+    seguido de s√≠mbolo identificador. Esses caracteres s√£o o LF
+    (``$\backslash$n''), CR (``$\backslash$r'') e barra invertida
+    (``$\backslash$$\backslash$''). A aus√™ncia de s√≠mbolos entre as aspas
+    simples indica um caractere ``nulo''. Internamente, caracteres s√£o
+    representados como n√∫meros inteiros, o que permite sua compatibilidade
+    num√©rica.
+  \item Literais: s√£o representados por um conjunto de caracteres entre aspas
+    duplas. Eles podem conter caracteres especiais como ``$\backslash$n'' e
+    devem ser definidos em apenas uma linha de c√≥digo. Valores literais s√£o os
+    √∫nicos que n√£o tem uma representa√ß√£o num√©rica, impedindo sua participa√ß√£o em
+    express√µes com operadores aritm√©ticos (soma, divis√£o, etc). Compara√ß√µes de
+    igualdade para valores literais s√£o feitas caractere por caractere em
+    \textit{case sensitive}. Portanto, a express√£o ``portugol'' = ``Portugol'' √©
+    avaliada como falsa. J√° compara√ß√µes de grandeza s√£o feitos calculando o
+    n√∫mero de caracteres que comp√µem os valores literais. Ent√£o, a express√£o
+    ``maria'' > ``jos√©'' √© avaliada como verdadeira.
+  \item L√≥gicos: s√£o representados pelas palavras ``verdadeiro'' e ``falso''.
+    Numericamente, qualquer valor diferente de ``0'' representa o valor
+    verdadeiro e ``0'' representa o valor falso.
 \end{itemize}
 
-A precedÍncia de operadores È mostrada na tabela \ref{tb_precedencia_op} (da
-menor precedÍncia para a maior) e pode ser explicicamente modificada com o uso
-de parÍnteses.
-
+A preced√™ncia de operadores √© mostrada na tabela \ref{tb_precedencia_op} (da
+menor preced√™ncia para a maior) e pode ser explicicamente modificada com o uso
+de par√™nteses.
 
 \begin{table}[ht]
 \begin{center}
   \begin{tabular}{|l|l|}
     \hline
-    \multicolumn{2}{|c|}{PrecedÍncia de Operadores} \\
+    \multicolumn{2}{|c|}{Preced√™ncia de Operadores} \\
     \hline
       Operador & Nome \\
     \hline
-    ou              & OR lÛgico  \\
-    e               & AND lÛgico \\
-    |               & OR bin·rio \\
-    \^{}            &  XOR bin·rio \\
-    \&              & AND bin·rio \\
+    ou              & OR l√≥gico \\
+    e               & AND l√≥gico \\
+    |               & OR bin√°rio \\
+    \^{}            & XOR bin√°rio \\
+    \&              & AND bin√°rio \\
     =, <>           & operadores igual e diferente \\
     >, >=, <, <=    & operadores relacionais maior, maior ou igual, menor,
 menor ou igual\\
-    +, -            & operadores aritmÈticos soma e subtraÁ„o \\
-    \symbol{42}, /, \%     & operadores aritmÈticos multiplicaÁ„o,
-divis„o, mÛdulo \\
-    +, -, \~{}, n„o, () & operadores un·rios positivo, negativo, NOT bin·rio, NOT
-lÛgico, parÍnteses \\
+    +, -            & operadores aritm√©ticos soma e subtra√ß√£o \\
+    \symbol{42}, /, \%     & operadores aritm√©ticos multiplica√ß√£o,
+divis√£o, m√≥dulo \\
+    +, -, \~{}, n√£o, () & operadores un√°rios positivo, negativo, NOT bin√°rio,
+    NOT l√≥gico, par√™nteses \\
     \hline
   \end{tabular}
-  \caption{PrecedÍncia de Operadores \label{tb_precedencia_op}}
+  \caption{Preced√™ncia de Operadores \label{tb_precedencia_op}}
 \end{center}
 \end{table}
 
+Em G-Portugol, n√£o h√° coer√ß√£o ou \textit{casting} de tipos expliticamente. Todos
+os tipos num√©ricos (inteiro, real, l√≥gico e caractere) s√£o compat√≠veis entre si.
+√â importante ressaltar que express√µes envolvendo igualdade ou diferen√ßa de
+valores reais n√£o s√£o apropriadas dado a forma como esses valores s√£o
+representados internamente. Tais compara√ß√µes podem ter resultados imprevis√≠veis,
+e at√© diferentes, ao serem executados nos modos compilado, interpretado ou
+traduzido.
 
-Em G-Portugol, n„o h· coerÁ„o ou \textit{casting} de tipos expliticamente.
-Todos os tipos numÈricos (inteiro, real, lÛgico e caractere) s„o compatÌveis
-entre si. … importante ressaltar que expressıes envolvendo igualdade ou
-diferenÁa de valores reais n„o s„o apropriadas dado a forma como esses valores
-s„o representados internamente. Tais comparaÁıes podem ter resultados
-imprevisÌveis, e atÈ diferentes, ao serem executados nos modos compilado,
-interpretado ou traduzido.
+Existem dois casos em que ocorre uma coer√ß√£o impl√≠cita. O primeiro caso ocorre
+durante a avalia√ß√£o de uma express√£o que tem operandos de tipos diferentes (mas
+compat√≠veis entre si), onde n√£o h√° perda de dados e um dos termos √© promovido
+para o tipo do seu termo complementar. Por exemplo, na express√£o ``2 + 1.5'', o
+termo ``2'' √© promovido para o tipo ``real'', tendo o valor ``2.0'' antes que a
+soma seja processada. Da mesma forma, sendo ``x'' uma vari√°vel de tipo real, a
+express√£o ``x := 5 / 2'' atribuir√° a ``x'' o valor ``2.00''. Esse comportamento
+n√£o muito √≥bvio √© similar ao da linguagem C, onde ``5 / 2'' √© avaliado como uma
+divis√£o de inteiros, onde apenas o valor inteiro final √© relevante. Para obter o
+resultado real, a express√£o deve ser ``5.0 / 2'', para informar ao compilador
+que a divis√£o usar√° valores reais, produzindo a promo√ß√£o de tipos mencionada
+anteriormente.
 
-Existem dois casos em que ocorre uma coerÁ„o implÌcita. O primeiro caso ocorre
-durante a avaliaÁ„o de uma express„o que tem operandos de tipos diferentes (mas
-compatÌveis entre si), onde n„o h· perda de dados e um dos termos È promovido
-para o tipo do seu termo complementar. Por exemplo, na express„o ``2 + 1.5'', o
-termo ``2'' È promovido para o tipo ``real'', tendo o valor ``2.0'' antes
- que  a soma seja processada. Da mesma forma, sendo ``x'' uma vari·vel de tipo
-real, a express„o ``x := 5 / 2'' atribuir· a ``x'' o valor ``2.00''. Esse
-comportamento n„o muito Ûbvio È similar ao da linguagem C, onde ``5 / 2'' È
-avaliado como uma divis„o de inteiros, onde apenas o valor inteiro final È
-relevante. Para obter o resultado real, a express„o deve ser ``5.0 / 2'', para
-informar ao compilador que a divis„o usar· valores reais, produzindo a promoÁ„o
-de tipos mencionada anteriormente.
+O segundo caso em que ocorre uma coer√ß√£o impl√≠cita √© discutido na se√ß√£o
+\ref{subsec:atribuicoes}.
 
-O segundo caso em que ocorre uma coerÁ„o implÌcita È
-discutido na
-seÁ„o \ref{subsec:atribuicoes}.
+\subsection{Atribui√ß√µes}
+\label{subsec:atribuicoes}
 
-  \subsection{AtribuiÁıes}
-  \label{subsec:atribuicoes}
-AtribuiÁıes permitem a manipulaÁ„o de valores na memÛria. Em G-Portugol,
-como j· foi visto, È usado o operador ``:='', onde o termo a esquerda ou
-``\textit{lvalue}'' deve ser uma vari·vel primitiva ou Ìndice de uma
-matriz/vetor, e o termo a direita, uma express„o que, quando avaliada, tem seu
-tipo compatÌvel com o \textit{lvalue}.
+Atribui√ß√µes permitem a manipula√ß√£o de valores na mem√≥ria. Em G-Portugol, como j√°
+foi visto, √© usado o operador ``:='', onde o termo a esquerda ou
+``\textit{lvalue}'' deve ser uma vari√°vel primitiva ou √≠ndice de uma
+matriz/vetor, e o termo a direita, uma express√£o que, quando avaliada, tem seu
+tipo compat√≠vel com o \textit{lvalue}.
 
-Pode haver coerÁ„o de tipos durante a atribuiÁ„o, quando o resultado da
-express„o È de um tipo diferente (mas compatÌvel) do tipo de \textit{lvalue}.
-… possÌvel que dados sejam comprometidos, por exemplo, tendo uma express„o
-avaliada como real sendo atribuida a uma vari·vel de tipo inteiro (o valor ser·
+Pode haver coer√ß√£o de tipos durante a atribui√ß√£o, quando o resultado da
+express√£o √© de um tipo diferente (mas compat√≠vel) do tipo de \textit{lvalue}. √â
+poss√≠vel que dados sejam comprometidos, por exemplo, tendo uma express√£o
+avaliada como real sendo atribuida a uma vari√°vel de tipo inteiro (o valor ser√°
 truncado).
 
-Matrizes n„o s„o aceitas como \textit{lvalue}, como pode ser visto no programa
+Matrizes n√£o s√£o aceitas como \textit{lvalue}, como pode ser visto no programa
 \ref{bad_matrix}.
 
 \begin{program}
   \begin{verbatim}
 algoritmo atribuicao_de_matrizes;
 
-vari·veis
+vari√°veis
   m1 : matriz[2] de inteiros;
   m2 : matriz[2] de inteiros;
-fim-vari·veis
+fim-vari√°veis
 
-inÌcio
+in√≠cio
   m1 := m2;    //erro
   imprima(m1); //erro
 fim
@@ -1257,91 +1146,87 @@ fim
   \caption{Uso incorreto de matrizes. \label{bad_matrix}}
 \end{program}
 
+\section{Fun√ß√µes}
 
-\section{FunÁıes}
+Fun√ß√µes s√£o os subprogramas de G-Portugol. S√£o definidas ap√≥s o bloco principal
+e podem receber argumentos e retornar valores. Em tempo de execu√ß√£o, as fun√ß√µes
+criam um novo escopo sobreposto ao escopo principal. Isso permite recursos como
+recurs√£o e possibilita que vari√°veis locais (no escopo da fun√ß√£o) tenham o mesmo
+nome que vari√°veis globais, onde essas √∫ltimas ficam ``escondidas'', isso √©,
+incapazes de serem acessadas enquanto o escopo durar. Ressalta-se que n√£o h√°
+suporte para fun√ß√µes aninhadas, isso √©, fun√ß√µes declaradas dentro de fun√ß√µes.
 
-FunÁıes s„o os subprogramas de G-Portugol. S„o definidas apÛs o bloco principal
-e podem receber argumentos e retornar valores. Em tempo de execuÁ„o, as funÁıes
-criam um novo escopo sobreposto ao escopo principal. Isso permite recursos
-como recurs„o e possibilita que vari·veis locais (no escopo da funÁ„o) tenham o
-mesmo nome que vari·veis globais, onde essas ˙ltimas ficam ``escondidas'', isso
-È, incapazes de serem acessadas enquanto o escopo durar. Ressalta-se que n„o h·
-suporte para funÁıes aninhadas, isso È, funÁıes declaradas dentro de funÁıes.
+O retorno de dados √© feito por meio da instru√ß√£o ``retorne'' e o valor de
+retorno (se houver) deve ser compat√≠vel com o tipo da fun√ß√£o. Esse tipo n√£o pode
+ser um tipo agregado como matrizes e vetores.
 
-O retorno de dados È feito por meio da instruÁ„o ``retorne'' e o valor de
-retorno (se houver) deve ser compatÌvel com o tipo da funÁ„o. Esse tipo n„o
-pode ser um tipo agregado como matrizes e vetores.
+Tanto a passagem de argumentos quanto o retorno √© feito \textit{por valor}, isso
+√©, a c√≥pia do valor √© feita, ao inv√©s de a c√≥pia de endere√ßo ou passagem
+\textit{por refer√™ncia}.
 
-Tanto a passagem de argumentos quanto o retorno È feito \textit{por valor},
-isso È, a cÛpia do valor È feita, ao invÈs de a cÛpia de endereÁo ou passagem
-\textit{por referÍncia}.
+As vari√°veis locais de uma fun√ß√£o s√£o formadas por seus par√¢metros e pelas
+vari√°veis declaradas em seu escopo. A declara√ß√£o de vari√°veis locais √© feita
+entre o cabe√ßalho da fun√ß√£o e a palavra-chave ``in√≠cio'', portanto, n√£o √©
+uniforme em rela√ß√£o a declara√ß√£o global, onde se usa as palavras-chave
+``vari√°veis'' e ``fim-vari√°veis''.
 
-As vari·veis locais de uma funÁ„o s„o formadas por seus par‚metros e pelas
-vari·veis declaradas em seu escopo. A declaraÁ„o de vari·veis locais È feita
-entre o cabeÁalho da funÁ„o e a palavra-chave ``inÌcio'', portanto, n„o È
-uniforme em relaÁ„o a declaraÁ„o global, onde se usa as palavras-chave
-``vari·veis'' e ``fim-vari·veis''.
-
-A declaraÁ„o dos par‚metros da funÁ„o tambÈm n„o segue estritamente o formato
-de declaraÁ„o de vari·veis. O programa \ref{exemplo_funcao} ilustra a
-declaraÁ„o de uma funÁ„o.
-
+A declara√ß√£o dos par√¢metros da fun√ß√£o tamb√©m n√£o segue estritamente o formato de
+declara√ß√£o de vari√°veis. O programa \ref{exemplo_funcao}
+ilustra a declara√ß√£o de uma fun√ß√£o.
 
 \begin{program}
  \begin{verbatim}
 algoritmo exemplo_funcao;
 
-inÌcio
+in√≠cio
   imprima(soma(2,2));
 fim
 
-funÁ„o soma(x: inteiro, y: inteiro) : inteiro
+fun√ß√£o soma(x: inteiro, y: inteiro) : inteiro
   res : inteiro;
-inÌcio
+in√≠cio
   res := x + y;
   retorne res;
 fim
   \end{verbatim}
 
-  \caption{Exemplo de usos de funÁıes. \label{exemplo_funcao}}
+  \caption{Exemplo de usos de fun√ß√µes. \label{exemplo_funcao}}
 \end{program}
 
-\section {FunÁıes internas}
+\section {Fun√ß√µes internas}
 
-G-Portugol oferece duas funÁıes internas para manipulaÁ„o b·sica de entrada e
-saÌda. Ambas as funÁıes tem comportamentos excepcionais quando comparadas
-com as funÁıes de usu·rio. Essas funÁıes s„o discutidas na sess„o a seguir.
+G-Portugol oferece duas fun√ß√µes internas para manipula√ß√£o b√°sica de entrada e
+sa√≠da. Ambas as fun√ß√µes tem comportamentos excepcionais quando comparadas com as
+fun√ß√µes de usu√°rio. Essas fun√ß√µes s√£o discutidas na sess√£o a seguir.
 
-  \subsection{A funÁ„o ``imprima''}
+\subsection{A fun√ß√£o ``imprima''}
 
-A funÁ„o imprima tem como objetivo imprimir texto no dispositivo de saÌda.
-Ela recebe um n˙mero vari·vel de argumentos (pelo menos um), onde cada
-argumento deve ser um valor primitivo, e os imprime em sequÍncia. Ao final, È
-impresso um caractere de nova linha (LF) e a funÁ„o retorna.
+A fun√ß√£o imprima tem como objetivo imprimir texto no dispositivo de sa√≠da. Ela
+recebe um n√∫mero vari√°vel de argumentos (pelo menos um), onde cada argumento
+deve ser um valor primitivo, e os imprime em sequ√™ncia. Ao final, √© impresso um
+caractere de nova linha (LF) e a fun√ß√£o retorna.
 
-Essa funÁ„o se comporta de forma excepcional visto que n„o È
-possÌvel declarar funÁıes em G-Portugol que recebem um n˙mero vari·vel de
-argumentos.
+Essa fun√ß√£o se comporta de forma excepcional visto que n√£o √© poss√≠vel declarar
+fun√ß√µes em G-Portugol que recebem um n√∫mero vari√°vel de argumentos.
 
+\subsection{A fun√ß√£o ``leia''}
 
-  \subsection{A funÁ„o ``leia''}
-
-A funÁ„o ``leia'' espera por uma entrada do teclado seguida do caractere LF (em
-geral, associado a tecla ``Enter'') e retorna o valor lido. Esse valor È
+A fun√ß√£o ``leia'' espera por uma entrada do teclado seguida do caractere LF (em
+geral, associado a tecla ``Enter'') e retorna o valor lido. Esse valor √©
 convertido implicitamente para o tipo do \textit{lvalue}. A tabela
-\ref{tb_leia_casts} apresenta conversıes implÌcitas processadas pela
-funÁ„o ``leia'' para o enunciado de exemplo ``x := leia()''.
+\ref{tb_leia_casts} apresenta convers√µes impl√≠citas processadas pela fun√ß√£o
+``leia'' para o enunciado de exemplo ``x := leia()''.
 
-Nota: n˙meros reais s„o arredondados, se necess·rio, e exibidos no formato
-.xx (com duas casas decimais). Portanto, o n˙mero ``250.0'' ou ``250'' seria
+Nota: n√∫meros reais s√£o arredondados, se necess√°rio, e exibidos no formato .xx
+(com duas casas decimais). Portanto, o n√∫mero ``250.0'' ou ``250'' seria
 impresso como ``250.00'' e ``1.449'' seria impresso como ``1.45''. Se o
-par‚metro for uma vari·vel, seu valor n„o ser· modificado.
+par√¢metro for uma vari√°vel, seu valor n√£o ser√° modificado.
 
 \begin{table}[ht]
 \begin{center}
   \begin{tabular}{|l|l|l|}
     \hline
-    \multicolumn{3}{|c|}{Conversıes da funÁ„o ``leia''} \\
+    \multicolumn{3}{|c|}{Convers√µes da fun√ß√£o ``leia''} \\
     \hline
       Tipo do LValue ``x'' & Texto lido & Valor final de ``x'' \\
     \hline
@@ -1349,273 +1234,249 @@ par‚metro for uma vari·vel, seu valor n„o ser· modificado.
       inteiro & 123 456 & 123 \\
       inteiro & abc & 0 \\
       inteiro & 123s & 123 \\
-      lÛgico  & falso & falso \\
-      lÛgico & ``0'' & falso \\
-      lÛgico & falso 12wtc & verdadeiro \\
-      lÛgico & 0 umdois3 & verdadeiro\\
+      l√≥gico  & falso & falso \\
+      l√≥gico & ``0'' & falso \\
+      l√≥gico & falso 12wtc & verdadeiro \\
+      l√≥gico & 0 umdois3 & verdadeiro\\
     \hline
   \end{tabular}
-  \caption{Conversıes implÌcitas da funÁ„o ``leia'' \label{tb_leia_casts}}
+  \caption{Convers√µes impl√≠citas da fun√ß√£o ``leia'' \label{tb_leia_casts}}
 \end{center}
 \end{table}
 
+Essa fun√ß√£o se comporta de forma excepcional visto que seu tipo de retorno n√£o √©
+absoluto (\textit{overloaded}, depende do tipo de \textit{lvalue}) e, no
+momento, √© restrita express√µes isentas de operadores. Isso √©, n√£o √© permitido
+aplic√°-la como um termo em uma express√£o com m√∫ltiplos operandos (ex. ``x := y
++ leia()''), embora seja poss√≠vel utiliz√°-la em subscritos de vetores e
+matrizes, assim como em express√µes de estruturas de controle.
 
-Essa funÁ„o se comporta de forma excepcional visto que seu tipo de retorno n„o
-È absoluto (\textit{overloaded}, depende do tipo de \textit{lvalue}) e, no
-momento, È restrita expressıes isentas de operadores. Isso È, n„o È permitido
-aplic·-la como um termo em uma express„o com m˙ltiplos operandos (ex. ``x :=  y
-+ leia()''), embora seja possÌvel utiliz·-la em subscritos de vetores e
-matrizes, assim como em expressıes de estruturas de controle.
+Em princ√≠pio, pode-se levar em conta duas formas de implementar uma fun√ß√£o de
+leitura em alto n√≠vel. A primeira, e mais simples √© o uso de fun√ß√µes
+sobrecarregadas, que n√£o retornam valor e recebem um par√¢metro de um dado tipo
+(inteiro, real, etc), que √© alimentado com o valor lido. Essa forma exige que a
+passagem seja feita por refer√™ncia. A outra forma, √© a implementada em
+G-Portugol, onde a fun√ß√£o n√£o recebe par√¢metros e retorna o valor lido.
 
-Em princÌpio, pode-se levar em conta duas formas de implementar uma funÁ„o de
-leitura em alto nÌvel. A primeira, e mais simples È o uso de funÁıes
-sobrecarregadas, que n„o retornam valor e recebem um par‚metro de um dado tipo
-(inteiro, real, etc), que È alimentado com o valor lido. Essa forma exige que a
-passagem seja feita por referÍncia. A outra forma, È a implementada em
-G-Portugol, onde a funÁ„o n„o recebe par‚metros e retorna o valor lido.
+As duas formas exigem comportamentos excepcionais, visto que G-Portugol n√£o tem
+suporte para sobrecarga de fun√ß√µes (por par√¢metro ou retorno) ou passagem de
+par√¢metros por refer√™ncia.
 
-As duas formas exigem comportamentos excepcionais, visto que G-Portugol n„o tem
-suporte para sobrecarga de funÁıes (por par‚metro ou retorno) ou passagem de
-par‚metros por referÍncia.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% O programa GPT
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\capitulo{O programa GPT}
+\chapter{O programa GPT}
 
-\section{IntroduÁ„o}
+\section{Introdu√ß√£o}
 
-GPT È a ferramenta principal da linguagem G-Portugol. Entre suas funÁıes
-principais est„o:
+GPT √© a ferramenta principal da linguagem G-Portugol. Entre suas fun√ß√µes
+principais est√£o:
 
 \begin{itemize}
-  \item
-  Compilar algoritmos;
- \item
-  Traduzir algoritmos para outras linguagens;
-  \item
-  Executar algoritmos.
+  \item Compilar algoritmos;
+  \item Traduzir algoritmos para outras linguagens;
+  \item Executar algoritmos.
 \end{itemize}
 
-Na vers„o atual È possÌvel compilar algoritmos para sistemas Windows e
-Unices que suportam o formato ELF e o assembler NASM. TambÈm, h· suporte apenas
-para a traduÁ„o de algoritmos para a linguagem C. O resultado È um cÛdigo em C
-100\% equivalente ao algoritmo.
+Na vers√£o atual √© poss√≠vel compilar algoritmos para sistemas Windows e Unices
+que suportam o formato ELF e o assembler NASM. Tamb√©m, h√° suporte apenas para a
+tradu√ß√£o de algoritmos para a linguagem C. O resultado √© um c√≥digo em C 100\%
+equivalente ao algoritmo.
 
-… possÌvel, tambÈm, executar algoritmos sem gerar cÛdigo ou arquivos extra, de
-forma interpretada. TambÈm, com a interpretaÁ„o, È possÌvel depurar passo a
-passo o algorÌtmo com o uso de uma ferramenta auxiliar (um cliente de
-depuraÁ„o).
+√â poss√≠vel, tamb√©m, executar algoritmos sem gerar c√≥digo ou arquivos extra, de
+forma interpretada. Tamb√©m, com a interpreta√ß√£o, √© poss√≠vel depurar passo a
+passo o algor√≠tmo com o uso de uma ferramenta auxiliar (um cliente de
+depura√ß√£o).
 
-Vale ressaltar que, qualquer que seja o modo de uso do algoritmo
-(compilado, interpretado ou traduzido), se espera que eles tenham sempre
-comportamentos equivalentes. Isso È, o resultado de uma execuÁ„o interpretada
-deve ser o mesmo se a execuÁ„o fosse feita por meio de um bin·rio compilado.
+Vale ressaltar que, qualquer que seja o modo de uso do algoritmo (compilado,
+interpretado ou traduzido), se espera que eles tenham sempre comportamentos
+equivalentes. Isso √©, o resultado de uma execu√ß√£o interpretada deve ser o mesmo
+se a execu√ß√£o fosse feita por meio de um bin√°rio compilado.
 
-\section{OpÁıes gerais}
+\section{Op√ß√µes gerais}
 \label{sec:opcoes_gerais}
 
-Ao executar o programa ``gpt'' com o argumento ``-h'', È mostrado:
+Ao executar o programa ``gpt'' com o argumento ``-h'', √© mostrado:
 
 \begin{verbatim}
-Modo de uso: gpt [opÁıes] arquivos
+Modo de uso: gpt [op√ß√µes] arquivos
 
-OpÁıes:
-   -v            mostra vers„o do programa
+Op√ß√µes:
+   -v            mostra vers√£o do programa
    -h            mostra esse texto
-   -o <arquivo>  compila e salva execut·vel como <arquivo>
-   -t <arquivo>  salva o cÛdigo em linguagem C como <arquivo>
-   -s <arquivo>  salva o cÛdigo em linguagem assembly como <arquivo>
+   -o <arquivo>  compila e salva execut√°vel como <arquivo>
+   -t <arquivo>  salva o c√≥digo em linguagem C como <arquivo>
+   -s <arquivo>  salva o c√≥digo em linguagem assembly como <arquivo>
    -i            interpreta
-   -d            exibe dicas no relatÛrio de erros
+   -d            exibe dicas no relat√≥rio de erros
 
-   Maiores informaÁıes no manual.
+   Maiores informa√ß√µes no manual.
 \end{verbatim}
 
-As opÁıes s„o comentadas a seguir.
+As op√ß√µes s√£o comentadas a seguir.
 
 \begin{itemize}
- \item
-  v: Exibe a vers„o do programa ``gpt'', assim como informaÁıes de copyright;
-
-  \item
-  h: exibe todas as opÁıes suportadas pelo programa ``gpt'';
-
-  \item
-  o <arquivo>: Ao compilar um algoritmo, salva o execut·vel com o nome de
-\textit{<arquivo>}. Se essa opÁ„o for omitida na compilaÁ„o, o nome do
-algoritmo ser· usado para criar o arquivo execut·vel.
-
-  \item
-  t <arquivo>: Traduz o algoritmo para C, salva o cÛdigo fonte com o nome de
-\textit{<arquivo>};
-
-  \item
-  s <arquivo>: Compila o algoritmo mas n„o cria cÛdigo execut·vel. Salva o
-cÛdigo em assembly com o nome de \textit{<arquivo>};
-
-  \item
-  i: Executa o algoritmo diretamente, sem compilar ou criar arquivos. OpÁ„o
-conhecida como ``interpretaÁ„o'' ou ``scripting''.
-
-  \item
-  d: Exibe mais informaÁıes no relatÛrio de erros, como dicas de como proceder
-para solucionar errors de sintaxe.
+  \item v: Exibe a vers√£o do programa ``gpt'', assim como informa√ß√µes de
+    copyright;
+  \item h: exibe todas as op√ß√µes suportadas pelo programa ``gpt'';
+  \item o <arquivo>: Ao compilar um algoritmo, salva o execut√°vel com o nome de
+    \textit{<arquivo>}. Se essa op√ß√£o for omitida na compila√ß√£o, o nome do
+    algoritmo ser√° usado para criar o arquivo execut√°vel.
+  \item t <arquivo>: Traduz o algoritmo para C, salva o c√≥digo fonte com o nome
+    de \textit{<arquivo>};
+  \item s <arquivo>: Compila o algoritmo mas n√£o cria c√≥digo execut√°vel. Salva o
+    c√≥digo em assembly com o nome de \textit{<arquivo>};
+  \item i: Executa o algoritmo diretamente, sem compilar ou criar arquivos. Op√ß√£o
+    conhecida como ``interpreta√ß√£o'' ou ``scripting''.
+  \item d: Exibe mais informa√ß√µes no relat√≥rio de erros, como dicas de como
+    proceder para solucionar errors de sintaxe.
 \end{itemize}
 
-A ˙ltima opÁ„o (``arquivos'') È uma lista de arquivos contendo o cÛdigo fonte
-em G-Portugol, embora seja mais comum utilizar um arquivo apenas para cada
+A √∫ltima op√ß√£o (``arquivos'') √© uma lista de arquivos contendo o c√≥digo fonte em
+G-Portugol, embora seja mais comum utilizar um arquivo apenas para cada
 algoritmo.
 
 \section{Tratamento de erros}
 
-Em geral, as ferramentas de diversas linguagens de programaÁ„o oferecem o
-mÌnimo de informaÁıes a cerca de erros de compilaÁ„o, ‡s vezes, tendo uma
-forma ``criptica'' dificultando seu entendimento e posterior correÁ„o.
-Comum, tambÈm a possibilidade de que determinados erros sejam reportados em
-localizaÁıes distantes de onde o erro efetivamente se encontra no cÛdigo
-fonte. Ademais, È importante notar que nessas linguagens, os erros s„o
-reportados em inglÍs.
+Em geral, as ferramentas de diversas linguagens de programa√ß√£o oferecem o m√≠nimo
+de informa√ß√µes a cerca de erros de compila√ß√£o, √†s vezes, tendo uma forma
+``criptica'' dificultando seu entendimento e posterior corre√ß√£o. Comum, tamb√©m a
+possibilidade de que determinados erros sejam reportados em localiza√ß√µes
+distantes de onde o erro efetivamente se encontra no c√≥digo fonte. Ademais, √©
+importante notar que nessas linguagens, os erros s√£o reportados em ingl√™s.
 
-O tratamento de erros È um aspecto importante do programa GPT. A reportagem de
-erros deve ser o mais claro possÌvel e ter um formato uniforme, informando o
-local exato onde o erro foi localizado. Deve, tambÈm, fornecer dicas de como
+O tratamento de erros √© um aspecto importante do programa GPT. A reportagem de
+erros deve ser o mais claro poss√≠vel e ter um formato uniforme, informando o
+local exato onde o erro foi localizado. Deve, tamb√©m, fornecer dicas de como
 proceder para corrigir o erro, em alguns casos.
 
-No momento, o analisador do GPT percorre o cÛdigo fonte a procura de erros e,
-mesmo que encontre, continua a an·lise a procura de mais erros. Uma outra
-abordagem, seria interromper a an·lise assim que um erro fosse encontrado.
+No momento, o analisador do GPT percorre o c√≥digo fonte a procura de erros e,
+mesmo que encontre, continua a an√°lise a procura de mais erros. Uma outra
+abordagem, seria interromper a an√°lise assim que um erro fosse encontrado.
 
-\section{ExecuÁ„o de programas}
+\section{Execu√ß√£o de programas}
 
-\subsection{CompilaÁ„o e geraÁ„o de cÛdigo execut·vel}
+\subsection{Compila√ß√£o e gera√ß√£o de c√≥digo execut√°vel}
 
-O programa GPT È capaz de gerar cÛdigo execut·vel para arquiteturas compatÌveis
+O programa GPT √© capaz de gerar c√≥digo execut√°vel para arquiteturas compat√≠veis
 com x86 e em dois formatos: ELF (\textit{Executable and linking format}) e PE
-(\textit{Portable Executable}). Sistemas Unix, em geral, suportam o formato
-ELF, e o formato PE È conhecido nos sistemas Microsoft Windows. ApÛs o processo
-de an·lise, o compilador gera cÛdigo em Assembly para, ent„o, usar o NASM
-(Netwide Assembler) como \textit{backend} para montar e criar um execut·vel
-v·lido. Consequentemente, n„o existe etapa de linkagem. A fase de otimizaÁ„o de
-cÛdigo tambÈm n„o foi implementada.
+(\textit{Portable Executable}). Sistemas Unix, em geral, suportam o formato ELF,
+e o formato PE √© conhecido nos sistemas Microsoft Windows. Ap√≥s o processo de
+an√°lise, o compilador gera c√≥digo em Assembly para, ent√£o, usar o NASM (Netwide
+Assembler) como \textit{backend} para montar e criar um execut√°vel v√°lido.
+Consequentemente, n√£o existe etapa de linkagem. A fase de otimiza√ß√£o de c√≥digo
+tamb√©m n√£o foi implementada.
 
-Para usar esse recurso, È necess·rio que o NASM esteja instalado no sistema.
-Ele pode ser encontrado em http://www.sf.net/projects/nasm.
+Para usar esse recurso, √© necess√°rio que o NASM esteja instalado no sistema. Ele
+pode ser encontrado em http://www.sf.net/projects/nasm.
 
-\subsection{TraduÁ„o para a linguagem C}
+\subsection{Tradu√ß√£o para a linguagem C}
 
-… possÌvel usar o GPT para traduzir algoritmos escritos em G-Portugol para
-linguagem C. O cÛdigo resultante, entretanto, n„o È criado com o intuito de ser
-facilmente lido, visto que a traduÁ„o n„o È direta. Isso È, o comportamento
-esperado pelo algoritmo deve refletir o comportamento que o cÛdigo em C. Sendo
-assim, cÛdigos extras s„o adicionados no arquivo resultante, para, por exemplo,
-permitir passagem de matrizes por valor, inicializaÁ„o autom·tica de vari·veis
-e outras abstraÁıes.
+√â poss√≠vel usar o GPT para traduzir algoritmos escritos em G-Portugol para
+linguagem C. O c√≥digo resultante, entretanto, n√£o √© criado com o intuito de ser
+facilmente lido, visto que a tradu√ß√£o n√£o √© direta. Isso √©, o comportamento
+esperado pelo algoritmo deve refletir o comportamento que o c√≥digo em C. Sendo
+assim, c√≥digos extras s√£o adicionados no arquivo resultante, para, por exemplo,
+permitir passagem de matrizes por valor, inicializa√ß√£o autom√°tica de vari√°veis e
+outras abstra√ß√µes.
 
-A traduÁ„o para C È limitada no que diz respeito a nomes e identificadores. …
-possÌvel, por exemplo, declarar uma vari·vel em G-Portugol com o nome de
-\textit{printf}. Ao traduzir para C e tentar compilar o cÛdigo resultante, o
-compilador pode emitir avisos e erros, visto que \textit{printf} È uma funÁ„o da
-biblioteca padr„o, usada no cÛdigo C resultante. Da mesma forma,
-identificadores com \textit{underlines} antes ou depois em seus nomes
-(como ``\_\_leia\_texto'') devem ser evitados,
-pois muitos identificadores internos utilizam essas convenÁıes de nomeaÁ„o, e
-seu uso pode acarretar em conflitos durante a traduÁ„o.
+A tradu√ß√£o para C √© limitada no que diz respeito a nomes e identificadores. √â
+poss√≠vel, por exemplo, declarar uma vari√°vel em G-Portugol com o nome de
+\textit{printf}. Ao traduzir para C e tentar compilar o c√≥digo resultante, o
+compilador pode emitir avisos e erros, visto que \textit{printf} √© uma fun√ß√£o da
+biblioteca padr√£o, usada no c√≥digo C resultante. Da mesma forma, identificadores
+com \textit{underlines} antes ou depois em seus nomes (como ``\_\_leia\_texto'')
+devem ser evitados, pois muitos identificadores internos utilizam essas
+conven√ß√µes de nomea√ß√£o, e seu uso pode acarretar em conflitos durante a
+tradu√ß√£o.
 
-\subsection{InterpretaÁ„o de cÛdigo}
+\subsection{Interpreta√ß√£o de c√≥digo}
 
-O programa GPT permite que o algoritmo seja executado sem gerar cÛdigo bin·rio.
-Esse modo È conhecido como ``interpretaÁ„o'' e linguagens como Perl, PHP e Ruby
-utilizam esta tÈcnica.
+O programa GPT permite que o algoritmo seja executado sem gerar c√≥digo bin√°rio.
+Esse modo √© conhecido como ``interpreta√ß√£o'' e linguagens como Perl, PHP e Ruby
+utilizam esta t√©cnica.
 
 Esse modo permite depurar algoritmos passo a passo (por meio de um
-\textit{client debugger} como o GPTEditor) e inspecionar vari·veis e a pilha de
-funÁıes enquanto o algoritmo est· em execuÁ„o.
+\textit{client debugger} como o GPTEditor) e inspecionar vari√°veis e a pilha de
+fun√ß√µes enquanto o algoritmo est√° em execu√ß√£o.
 
-A ˙nica diferenÁa na execuÁ„o de algoritmos em modo interpretado em relaÁ„o a
-outros modos È que as matrizes/vetores tem seus subscritos checados
-(``\textit{bound checking}''). Isso È, erros de execuÁ„o s„o emitidos se um
-Ìndice n„o existir em uma matriz/vetor.
+A √∫nica diferen√ßa na execu√ß√£o de algoritmos em modo interpretado em rela√ß√£o a
+outros modos √© que as matrizes/vetores tem seus subscritos checados
+(``\textit{bound checking}''). Isso √©, erros de execu√ß√£o s√£o emitidos se um
+√≠ndice n√£o existir em uma matriz/vetor.
 
-\subsubsection{DepuraÁ„o interativa}
+\subsubsection{Depura√ß√£o interativa}
 
-A depuraÁ„o interativa È feita em modo ``interpretaÁ„o'', portanto n„o gera
-cÛdigo bin·rio, executando o algoritmo diretamente. Para depurar
-interativamente um algoritmo È necess·rio um programa extra: o \textit{client
-debugger}. Atualmente, o programa GPTEditor suporta a depuraÁ„o interativa.
+A depura√ß√£o interativa √© feita em modo ``interpreta√ß√£o'', portanto n√£o gera
+c√≥digo bin√°rio, executando o algoritmo diretamente. Para depurar interativamente
+um algoritmo √© necess√°rio um programa extra: o \textit{client debugger}.
+Atualmente, o programa GPTEditor suporta a depura√ß√£o interativa.
 
-Entre os recursos disponÌveis, pode-se citar a execuÁ„o passo a passo em 3
-modos (comumente conhecidas como ``step into'', ``step over'' e ``step out''),
-inspeÁ„o de vari·veis locais/globais e pontos de
-parada (``\textit{breakpoints}'').
+Entre os recursos dispon√≠veis, pode-se citar a execu√ß√£o passo a passo em 3 modos
+(comumente conhecidas como ``step into'', ``step over'' e ``step out''),
+inspe√ß√£o de vari√°veis locais/globais e pontos de parada
+(``\textit{breakpoints}'').
 
-A depuraÁ„o ocorre tendo o programa GPT se comunicando via socket com o cliente
-(ex: GPTEditor), iniciando transmiss„o de dados entre esses dois pontos. As
-informaÁıes enviadas pelo GPT (vari·veis, breakpoints, etc) usam o formato
+A depura√ß√£o ocorre tendo o programa GPT se comunicando via socket com o cliente
+(ex: GPTEditor), iniciando transmiss√£o de dados entre esses dois pontos. As
+informa√ß√µes enviadas pelo GPT (vari√°veis, breakpoints, etc) usam o formato
 baseado em XML, enquanto o cliente envia comandos simples (o que evita que o
 programa GPT necessite de um XML parser).
 
-Por exemplo, a pilha de funÁıes pode ser representada da seguinte forma:
+Por exemplo, a pilha de fun√ß√µes pode ser representada da seguinte forma:
 
 \begin{verbatim}
 <stackinfo>
-  <entry id="0"  function="@global" line="10"/>
-  <entry id="1"  function="funcTeste" line="18"/>
+  <entry id="0" function="@global" line="10"/>
+  <entry id="1" function="funcTeste" line="18"/>
 </stackinfo>
 \end{verbatim}
 
-
 \subsection{Processando algoritmos divididos em multiplos arquivos}
 
-A partir da vers„o 1.0, o GPT suporta processar algoritmos divididos em
-m˙ltiplos arquivos. Esse recurso È possÌvel utilizando duas formas:
-
+A partir da vers√£o 1.0, o GPT suporta processar algoritmos divididos em
+m√∫ltiplos arquivos. Esse recurso √© poss√≠vel utilizando duas formas:
 
 \begin{itemize}
-
- \item
-  Passando os arquivos como opÁıes na linha de comando;
-
- \item
-  Utilizando a vari·vel de ambiente GPT\_INCLUDE.
-
+  \item Passando os arquivos como op√ß√µes na linha de comando;
+  \item Utilizando a vari√°vel de ambiente GPT\_INCLUDE.
 \end{itemize}
 
-A primeira forma È explicada na sess„o \ref{sec:opcoes_gerais}. A segunda forma
-pretende facilitar a utilizaÁ„o de funÁıes que devem estar disponÌveis por
-padr„o a cada execuÁ„o/compilaÁ„o dos algoritmos. Pode-se definir a vari·vel de
-ambiente GPT\_INCLUDE contendo v·rios caminhos de arquivos separados por ``:''.
-Em sistemas Unix, por exemplo, pode-se criar a essa vari·vel da seguinte forma
+A primeira forma √© explicada na sess√£o
+\ref{sec:opcoes_gerais}. A segunda forma pretende
+facilitar a utiliza√ß√£o de fun√ß√µes que devem estar dispon√≠veis por padr√£o a cada
+execu√ß√£o/compila√ß√£o dos algoritmos. Pode-se definir a vari√°vel de ambiente
+GPT\_INCLUDE contendo v√°rios caminhos de arquivos separados por ``:''. Em
+sistemas Unix, por exemplo, pode-se criar a essa vari√°vel da seguinte forma
 (utilizando Bash):
 
 \begin{verbatim}
 $ export GPT_INCLUDE="/usr/local/lib/gpt/base.gpt:/usr/local/lib/gpt/util.gpt"
 \end{verbatim}
 
-Onde ``base.gpt'' e ``util.gpt'' s„o arquivos contendo funÁıes escritas em
+Onde ``base.gpt'' e ``util.gpt'' s√£o arquivos contendo fun√ß√µes escritas em
 G-Portugol.
 
-Os arquivos passados pela linha de comando e/ou que se encontram na vari·vel
-GPT\_INCLUDE s„o concatenados e processados como se o algoritmo estivesse em
-apenas um arquivo. Portanto, arquivos extras n„o devem ter declaraÁ„o de
-algoritmo, bloco de vari·veis globais ou bloco principal.
+Os arquivos passados pela linha de comando e/ou que se encontram na vari√°vel
+\nolinkurl{GPT\_INCLUDE} s√£o concatenados e processados como se o algoritmo
+estivesse em apenas um arquivo. Portanto, arquivos extras n√£o devem ter
+declara√ß√£o de algoritmo, bloco de vari√°veis globais ou bloco principal.
 
-
-%      *estrutura do XML
-%      *command line debugger.
-
-%\subsection{CompilaÁ„o para codigo nativo (ELF)}
-
-%  *opcao default
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Gram√°tica da linguagem G-Portugol
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \appendix
 
-\capitulo{Gram·tica da linguagem G-Portugol}
+\chapter{Gram√°tica da linguagem G-Portugol}
 
+\section{Termos l√©xicos}
 
-\section{Termos lÈxicos}
-
-A seguir È apresentado as convenÁıes lÈxicas usadas em G-Portugol.
+A seguir √© apresentado as conven√ß√µes l√©xicas usadas em G-Portugol.
 
 \begin{verbatim}
-    Regras para identificar literais numÈricos
+    Regras para identificar literais num√©ricos
 
 T_INT_LIT : T_OCTAL_LIT | T_HEX_LIT | T_BIN_LIT | T_DEC_LIT
 
@@ -1631,22 +1492,22 @@ T_REAL_LIT : T_DEC_LIT+ '.' T_DEC_LIT+
 
     Regras para identificar caracteres e cadeias de caracteres
 
-T_CARAC_LIT  : ''' ( ~('''|'\') |'\' . )? '''
+T_CARAC_LIT : ''' ( ~('''|'\') |'\' . )? '''
 
 T_STRING_LIT : '"' ( ~( '"' | '\' | CR | LF ) | '\' . )* '"'
 
-  Regras para identificar coment·rios
+  Regras para identificar coment√°rios
 
-SL_COMMENT  : "//" [^LF]* ('\n')?
+SL_COMMENT : "//" [^LF]* ('\n')?
 
-ML_COMMENT  : "/*" ( ~('*') | '*' ~'/' )* "*/"
+ML_COMMENT : "/*" ( ~('*') | '*' ~'/' )* "*/"
 
-  Regra para identificar nomes de vari·veis, funÁıes, etc.
+  Regra para identificar nomes de vari√°veis, fun√ß√µes, etc.
 
-T_IDENTIFICADOR  : [a-zA-Z_] [a-zA-Z0-9_]*
+T_IDENTIFICADOR : [a-zA-Z_] [a-zA-Z0-9_]*
 \end{verbatim}
 
-A tabela \ref{tb_palavras_chave} contÈm as palavras-chave padr„o da linguagem
+A tabela \ref{tb_palavras_chave} cont√©m as palavras-chave padr√£o da linguagem
 G-Portugol.
 
 \begin{table}[ht]
@@ -1655,23 +1516,22 @@ G-Portugol.
     \hline
     \multicolumn{5}{|c|}{Palavras-chave de G-Portugol} \\
     \hline
-  fim-vari·veis & algoritmo & vari·veis  & inteiro & real \\
-  caractere & literal & lÛgico & inÌcio & verdadeiro \\
-  falso & fim & ou & e & n„o \\
-  se & sen„o & ent„o & fim-se &  enquanto \\
-  faÁa & fim-enquanto & para & de & atÈ \\
-  fim-para  & matriz  & inteiros  & reais  & caracteres \\
-  literais  & lÛgicos  & funÁ„o  & retorne  & passo \\
+  fim-vari√°veis & algoritmo & vari√°veis & inteiro & real \\
+  caractere & literal & l√≥gico & in√≠cio & verdadeiro \\
+  falso & fim & ou & e & n√£o \\
+  se & sen√£o & ent√£o & fim-se & enquanto \\
+  fa√ßa & fim-enquanto & para & de & at√© \\
+  fim-para & matriz & inteiros & reais & caracteres \\
+  literais & l√≥gicos & fun√ß√£o & retorne & passo \\
   \hline
   \end{tabular}
   \caption{Palavras-chave de G-Portugol\label{tb_palavras_chave}}
 \end{center}
 \end{table}
 
+\section{Gram√°tica}
 
-\section{Gram·tica}
-
-A seguir È apresentado a gram·tica da linguagem G-Portugol.
+A seguir √© apresentado a gram√°tica da linguagem G-Portugol.
 
 \begin{verbatim}
 algoritmo
@@ -1683,7 +1543,7 @@ declaracao_algoritmo
   ;
 
 var_decl_block
-  : "vari·veis" (var_decl ";")+ "fim-vari·veis"
+  : "vari√°veis" (var_decl ";")+ "fim-vari√°veis"
   ;
 
 var_decl
@@ -1695,11 +1555,11 @@ tp_primitivo
   | "real"
   | "caractere"
   | "literal"
-  | "lÛgico"
+  | "l√≥gico"
   ;
 
 tp_matriz
-  : "matriz" ("[" T_INT_LIT  "]")+ "de" tp_prim_pl
+  : "matriz" ("[" T_INT_LIT "]")+ "de" tp_prim_pl
   ;
 
 tp_prim_pl
@@ -1707,11 +1567,11 @@ tp_prim_pl
   | "reais"
   | "caracteres"
   | "literais"
-  | "lÛgicos"
+  | "l√≥gicos"
   ;
 
 stm_block
-  : "inÌcio" (stm_list)* "fim"
+  : "in√≠cio" (stm_list)* "fim"
   ;
 
 stm_list
@@ -1736,19 +1596,19 @@ stm_attr
   ;
 
 stm_se
-  : "se" expr "ent„o" stm_list ("sen„o" stm_list)? "fim-se"
+  : "se" expr "ent√£o" stm_list ("sen√£o" stm_list)? "fim-se"
   ;
 
 stm_enquanto
-  : "enquanto" expr "faÁa" stm_list "fim-enquanto"
+  : "enquanto" expr "fa√ßa" stm_list "fim-enquanto"
   ;
 
 stm_repita
-  : "repita" stm_list "atÈ" expr ";"
+  : "repita" stm_list "at√©" expr ";"
   ;
 
 stm_para
-  : "para" lvalue "de" expr "atÈ" expr  passo? "faÁa" stm_list "fim-para"
+  : "para" lvalue "de" expr "at√©" expr passo? "fa√ßa" stm_list "fim-para"
   ;
 
 passo
@@ -1765,7 +1625,7 @@ expr
   | expr (">"|">="|"<"|"<=") expr
   | expr ("+" | "-") expr
   | expr ("/"|"*"|"%") expr
-  | ("+"|"-"|"~"|"n„o")? termo
+  | ("+"|"-"|"~"|"n√£o")? termo
   ;
 
 termo
@@ -1793,7 +1653,7 @@ literal
   ;
 
 func_decls
-  : "funÁ„o" T_IDENTIFICADOR "(" fparams? ")" (":" tb_primitivo)?
+  : "fun√ß√£o" T_IDENTIFICADOR "(" fparams? ")" (":" tb_primitivo)?
     fvar_decl
     stm_block
   ;
@@ -1811,5 +1671,6 @@ fparam
   ;
 
 \end{verbatim}
+
 
 \end{document}
