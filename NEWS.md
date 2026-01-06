@@ -5,6 +5,19 @@ Notícias e destaques das versões do **GPT (GPortugol)**.
 Este arquivo apresenta um resumo das principais mudanças de cada versão, com
 foco em funcionalidades e correções relevantes para os usuários.
 
+## 1.2.0 — 2026-01-06
+
+- Novo site oficial do projeto e ampliação da documentação, agora
+  padronizada em Markdown.
+- Geração e publicação automática do manual em PDF (LaTeX) como parte da release.
+- Adição de novos exemplos de código instalados com o projeto.
+- Migração do mecanismo de expressões regulares para PCRE2.
+- Melhorias no sistema de build e na integração contínua, com builds e testes
+  automatizados em GNU/Linux e Windows (MinGW64).
+- Limpeza geral do código-fonte, correção de warnings e melhorias de estabilidade.
+- Refatoração do manual, com ajustes de layout, codificação UTF-8 e correções na
+  geração do PDF.
+
 ## 1.1 — 2010-03-24
 
 - Implementação da nova estrutura de repetição `repita`.

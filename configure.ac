@@ -4,7 +4,7 @@
 
 AC_PREREQ([2.71])
 
-AC_INIT([gpt],[1.1])
+AC_INIT([gpt],[1.2.0])
 AM_INIT_AUTOMAKE([foreign subdir-objects])
 AC_CONFIG_MACRO_DIRS([m4])
 AC_CONFIG_HEADERS([config.h])

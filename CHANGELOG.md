@@ -3,6 +3,47 @@
 Todas as mudanças relevantes do **GPT (GPortugol)** organizadas por release.
 Este arquivo foi consolidado a partir do ChangeLog histórico (CVS/SVN).
 
+## [1.2.0] - 2026-01-06
+
+### Adicionado
+
+- Geração automática do manual em LaTeX durante o processo de build.
+- Publicação do manual em PDF como artefato da release.
+- Novos exemplos de código, instalados junto com o projeto.
+- Novo site oficial do projeto: gportugol.github.io.
+- Workflows de GitHub Actions para:
+- Execução de testes unitários.
+- Build e testes de binários.
+- Build em ambiente Windows (MinGW64).
+- Upload automático de artefatos de CI para as releases.
+- Hooks de pre-commit para padronização e qualidade de código.
+- Arquivo de configuração .markdownlint.yaml.
+
+### Alterado
+
+- Port do projeto para PCRE2, substituindo a biblioteca anterior.
+- Conversão da documentação para Markdown:
+  - README
+  - INSTALL
+  - HACKING
+  - ChangeLog
+  - NEWS
+- Reorganização e refatoração geral dos arquivos README.
+- Atualização da seção de referências do README.
+- Ajustes no sistema de build (autoupdate e limpeza de arquivos).
+- Atualização do EXTRA_DIST para usar variantes em Markdown.
+- Remoção do diretório debian do repositório principal.
+- Refatoração do manual (layout, codificação UTF-8 e correções na geração do
+  PDF).
+
+### Corrigido
+
+- Diversos warnings de compilação.
+- Problemas de compilação em ambientes mais antigos (ex.: GCC 4.7).
+- Ajustes e melhorias na suíte de testes.
+- Padronização e formatação completa do código-fonte.
+- Inclusão de headers ausentes que causavam falhas de build (FTBFS).
+
 ## [1.1] - 2010-03-24
 
 ### Adicionado
