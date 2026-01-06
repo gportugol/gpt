@@ -104,7 +104,9 @@ void GPT::showVersion() {
     << VERSION
     << "\n"
        "Website : https://gportugol.github.io\n"
-       "Copyright (C) 2003-2009 Thiago Silva <tsilva@sourcecraft.info>\n\n";
+       "Copyright (C) 2003-2009 Thiago Silva <tsilva@sourcecraft.info>\n"
+       "Copyright (C) 2026 G-Portugol contributors "
+       "<gportugol@googlegroups.com>\n\n";
   GPTDisplay::self()->showMessage(s);
 }
 
