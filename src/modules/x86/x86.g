@@ -336,7 +336,8 @@ fcall[int expct_type] returns [int type]
 stm_ret
 {
   int expecting_type=TIPO_NULO;
-  int etype;
+  int etype=TIPO_NULO;
+  bool hasRetExpr=false;
   bool isGlobalEscope = (x86.currentScope()==SymbolTable::GlobalScope);
   if (isGlobalEscope){
     expecting_type = TIPO_INTEIRO; // o retorno no bloco principal é do TIPO_INTEIRO
@@ -344,7 +345,7 @@ stm_ret
     expecting_type = stable.getSymbol(SymbolTable::GlobalScope, x86.currentScope(), true).type.primitiveType();
   }
 }
-  : #(T_KW_RETORNE (TI_NULL|etype=expr[expecting_type]))
+  : #(T_KW_RETORNE (TI_NULL|etype=expr[expecting_type] {hasRetExpr=true;}))
     {
       if (isGlobalEscope){
         x86.writeTEXT("pop ecx");
@@ -357,7 +358,8 @@ stm_ret
         	x86.writeTEXT("addarg eax");
         	x86.writeTEXT("call clone_literal");
         	x86.writeTEXT("clargs 1");
-      	} else {
+      	} else if(hasRetExpr) {
+        	// sem expressão de retorno não há valor a converter
         	x86.writeCast(etype, expecting_type);
       	}
 
