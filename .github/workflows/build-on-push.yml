@@ -3,10 +3,13 @@ name: Build on Commit
 on:
   push:
     branches:
-      - "*"
+      - master
   pull_request:
-    branches:
-      - "*"
+  workflow_dispatch:
+
+concurrency:
+  group: build-${{ github.ref == 'refs/heads/master' && github.sha || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
