@@ -28,6 +28,17 @@ jobs:
           name: manual-pdf
           path: release/manual
 
+      # Issue #11 -- o manual em HTML acompanha o PDF na release.
+      - uses: actions/download-artifact@v4
+        with:
+          name: manual-html
+          path: release/manual-html
+
+      # O artefato guarda `index.html` porque e o nome que um site espera na
+      # raiz; como ativo de release, `manual.html` diz o que e.
+      - name: Nomear o manual HTML
+        run: mv release/manual-html/index.html release/manual-html/manual.html
+
       - name: Repack Windows zip
         run: |
           cd release
@@ -51,6 +62,7 @@ jobs:
             release/gpt-win-x86_64.zip
             release/gpt-linux-x86_64.tar.gz
             release/manual/manual.pdf
+            release/manual-html/manual.html
 
         env:
           GITHUB_TOKEN: ${{ secrets.GH_RELEASE_TOKEN }}
