@@ -12,3 +12,16 @@ repos:
     hooks:
       - id: clang-format
         files: \.(cpp|cc|cxx|c|h|hpp)$
+
+  # Issue #17 -- o repositorio e UTF-8, com excecoes contadas.
+  #
+  # Hook local (`language: system`) porque o pre-commit nao traz um pronto
+  # para codificacao, e a lista de excecoes precisa carregar o MOTIVO de
+  # cada arquivo -- coisa que `exclude:` com regex nao comporta.
+  - repo: local
+    hooks:
+      - id: check-encoding
+        name: arquivos de texto em UTF-8
+        entry: stuff/check-encoding.py
+        language: system
+        types: [text]
