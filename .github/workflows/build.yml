@@ -6,13 +6,16 @@ on:
         required: true
         type: string
 
+permissions:
+  contents: read
+
 jobs:
   generate-manual-pdf:
     if: ${{ inputs.target == 'manual-pdf' || inputs.target == 'all' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Install TeX Dependencies
         run: |
@@ -29,7 +32,7 @@ jobs:
           pdflatex -interaction=nonstopmode -output-directory=doc doc/manual/manual.tex
 
       - name: Upload PDF Artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: manual-pdf
           path: doc/manual.pdf
@@ -39,7 +42,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Install Build Dependencies
         run: |
@@ -63,7 +66,7 @@ jobs:
           mv release/usr/local/* dist/
 
       - name: Upload Linux Artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: gpt-linux
           path: dist/*
@@ -74,10 +77,10 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Setup MSYS2 Environment
-        uses: msys2/setup-msys2@v2
+        uses: msys2/setup-msys2@ec48f7c5447b3140e2b088413ae3a55687bccb6e # v2.33.0
         with:
           update: true
           msystem: MINGW64
@@ -98,33 +101,39 @@ jobs:
 
       - name: Cache JDK 25
         id: cache-jdk
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: D:\a\gpt\gpt\jdk-25.0.1
-          key: jdk-25.0.1-cache
+          key: jdk-25.0.1-2bbae75b-cache
 
       - shell: msys2 {0}
         name: Install Java JDK 25
         if: steps.cache-jdk.outputs.cache-hit != 'true'
         run: |
           wget https://download.java.net/java/GA/jdk25.0.1/2fbf10d8c78e40bd87641c434705079d/8/GPL/openjdk-25.0.1_windows-x64_bin.zip
+          echo "2bbae75bc31a848b7cb5f297270efb7bef9bba0deeec6a671625563dc090ad69  openjdk-25.0.1_windows-x64_bin.zip" | sha256sum -c -
           unzip openjdk-25.0.1_windows-x64_bin.zip
-          echo "PATH=$PATH:$(pwd)/jdk-25.0.1/bin" >> $GITHUB_ENV
-          export PATH=$PATH:$(pwd)/jdk-25.0.1/bin
+
+      - shell: msys2 {0}
+        name: Configure Java JDK 25 PATH
+        run: |
+          cygpath -w "$(pwd)/jdk-25.0.1/bin" >> "$GITHUB_PATH"
+          export PATH="$(pwd)/jdk-25.0.1/bin:$PATH"
           java -version
 
       - name: Cache ANTLR2 Build
         id: cache-antlr
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: D:/a/_temp/msys64/usr/local
-          key: antlr2.7.7-msys2-static
+          key: antlr2.7.7-853aeb02-jdk25.0.1-msys2-static
 
       - shell: msys2 {0}
         name: Build ANTLR 2.7.7 (if not cached)
         if: steps.cache-antlr.outputs.cache-hit != 'true'
         run: |
-          wget http://www.antlr2.org/download/antlr-2.7.7.tar.gz
+          wget https://www.antlr2.org/download/antlr-2.7.7.tar.gz
+          echo "853aeb021aef7586bda29e74a6b03006bcb565a755c86b66032d8ec31b67dbb9  antlr-2.7.7.tar.gz" | sha256sum -c -
           tar xvfz antlr-2.7.7.tar.gz
           cd antlr-2.7.7
 
@@ -156,6 +165,7 @@ jobs:
         name: Install NASM
         run: |
           wget https://www.nasm.us/pub/nasm/releasebuilds/0.99.05/nasm-0.99.05-win32.zip
+          echo "cc9d5e2890e230f51db617e414b9a5e6e107d1cd3a80d19018c8a53bde277408  nasm-0.99.05-win32.zip" | sha256sum -c -
           unzip nasm-0.99.05-win32.zip
           cp nasm.exe /mingw64/bin/
 
@@ -178,7 +188,7 @@ jobs:
           done
 
       - name: Upload Windows ZIP Artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: gpt-windows
           path: dist/*
