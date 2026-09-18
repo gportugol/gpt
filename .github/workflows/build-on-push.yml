@@ -1,12 +1,28 @@
 name: Build on Commit
 
 on:
+  # Issue #9 -- `push` apenas no branch padrao.
+  #
+  # Antes eram `push: branches: ["*"]` e `pull_request: branches: ["*"]`,
+  # e um push num branch COM PR aberto disparava os dois: duas execucoes
+  # identicas do mesmo commit.
+  #
+  # Com `push` restrito ao master, cada commit constroi uma vez so:
+  # branch de PR pelo evento `pull_request`, master pelo `push`.
   push:
     branches:
-      - "*"
+      - master
   pull_request:
-    branches:
-      - "*"
+
+# Um push novo cancela a execucao anterior do mesmo branch.
+#
+# Sem isto, quem empurra tres commits seguidos deixa tres builds na fila e
+# espera os tres, sendo que so o ultimo interessa. No master o cancelamento
+# fica DESLIGADO de proposito: ali cada commit e um estado publicado, e
+# perder o build de um deles esconderia uma quebra.
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
 
 jobs:
   build:

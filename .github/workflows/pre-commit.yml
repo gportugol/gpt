@@ -1,8 +1,21 @@
 name: pre-commit
 
 on:
+  # Issue #9 -- `push` apenas no branch padrao.
+  #
+  # Com `push` e `pull_request` ambos sem filtro, um push num branch COM PR
+  # aberto dispara os dois: duas execucoes identicas do mesmo commit.
   push:
+    branches:
+      - master
   pull_request:
+
+# Um push novo cancela a execucao anterior do mesmo branch. No master fica
+# DESLIGADO de proposito: ali cada commit e um estado publicado, e perder o
+# resultado de um deles esconderia uma quebra.
+concurrency:
+  group: pre-commit-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
 
 jobs:
   pre-commit:
