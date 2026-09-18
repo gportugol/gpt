@@ -6,13 +6,23 @@ on:
         required: true
         type: string
 
+# Issue #26 -- privilegio minimo para o GITHUB_TOKEN.
+#
+# Sem bloco `permissions:`, o escopo do token vem da configuracao do
+# repositorio/organizacao, que nao aparece no codigo e pode mudar sem que
+# ninguem note. Declarado aqui, o escopo fica versionado. Nenhum job deste
+# arquivo escreve no repositorio: so faz checkout e sobe artefatos (o
+# upload/download de artefatos usa o token de runtime, nao o GITHUB_TOKEN).
+permissions:
+  contents: read
+
 jobs:
   generate-manual-pdf:
     if: ${{ inputs.target == 'manual-pdf' || inputs.target == 'all' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
       - name: Install TeX Dependencies
         run: |
@@ -29,7 +39,7 @@ jobs:
           pdflatex -interaction=nonstopmode -output-directory=doc doc/manual/manual.tex
 
       - name: Upload PDF Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: manual-pdf
           path: doc/manual.pdf
@@ -39,7 +49,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
       - name: Install Build Dependencies
         run: |
@@ -63,7 +73,7 @@ jobs:
           mv release/usr/local/* dist/
 
       - name: Upload Linux Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: gpt-linux
           path: dist/*
@@ -74,10 +84,10 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
       - name: Setup MSYS2 Environment
-        uses: msys2/setup-msys2@v2
+        uses: msys2/setup-msys2@66cd2cce69caa17b53920067426061ca1de3a884 # v2.32.0
         with:
           update: true
           msystem: MINGW64
@@ -98,7 +108,7 @@ jobs:
 
       - name: Cache JDK 25
         id: cache-jdk
-        uses: actions/cache@v3
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: D:\a\gpt\gpt\jdk-25.0.1
           key: jdk-25.0.1-cache
@@ -107,7 +117,11 @@ jobs:
         name: Install Java JDK 25
         if: steps.cache-jdk.outputs.cache-hit != 'true'
         run: |
+          # Issue #26 -- e este JDK que executa o antlr.jar que gera o parser.
+          # Hash conferido contra o .sha256 publicado pela propria Oracle
+          # ao lado do arquivo.
           wget https://download.java.net/java/GA/jdk25.0.1/2fbf10d8c78e40bd87641c434705079d/8/GPL/openjdk-25.0.1_windows-x64_bin.zip
+          echo "2bbae75bc31a848b7cb5f297270efb7bef9bba0deeec6a671625563dc090ad69  openjdk-25.0.1_windows-x64_bin.zip" | sha256sum -c -
           unzip openjdk-25.0.1_windows-x64_bin.zip
           echo "PATH=$PATH:$(pwd)/jdk-25.0.1/bin" >> $GITHUB_ENV
           export PATH=$PATH:$(pwd)/jdk-25.0.1/bin
@@ -115,7 +129,7 @@ jobs:
 
       - name: Cache ANTLR2 Build
         id: cache-antlr
-        uses: actions/cache@v3
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: D:/a/_temp/msys64/usr/local
           key: antlr2.7.7-msys2-static
@@ -124,7 +138,16 @@ jobs:
         name: Build ANTLR 2.7.7 (if not cached)
         if: steps.cache-antlr.outputs.cache-hit != 'true'
         run: |
-          wget http://www.antlr2.org/download/antlr-2.7.7.tar.gz
+          # Issue #26 -- era `http://`, sem TLS e sem conferir o conteudo.
+          #
+          # Este tarball traz o `antlr.jar` ja compilado, e e ele que gera
+          # PortugolLexer.cpp / PortugolParser.cpp / SemanticWalker.cpp, que
+          # entram no `gpt.exe` publicado. Quem respondesse por aquele
+          # `http://` escolheria o codigo do analisador. O sha256 abaixo foi
+          # conferido em duas origens independentes (antlr2.org e
+          # distfiles.macports.org).
+          wget https://www.antlr2.org/download/antlr-2.7.7.tar.gz
+          echo "853aeb021aef7586bda29e74a6b03006bcb565a755c86b66032d8ec31b67dbb9  antlr-2.7.7.tar.gz" | sha256sum -c -
           tar xvfz antlr-2.7.7.tar.gz
           cd antlr-2.7.7
 
@@ -155,7 +178,11 @@ jobs:
       - shell: msys2 {0}
         name: Install NASM
         run: |
+          # Issue #26 -- o nasm.exe nao e so ferramenta de build: ele e copiado
+          # para dist/bin/ e vai dentro do gpt-win-x86_64.zip que o usuario
+          # executa. Binario de 2007, redistribuido sem conferencia.
           wget https://www.nasm.us/pub/nasm/releasebuilds/0.99.05/nasm-0.99.05-win32.zip
+          echo "cc9d5e2890e230f51db617e414b9a5e6e107d1cd3a80d19018c8a53bde277408  nasm-0.99.05-win32.zip" | sha256sum -c -
           unzip nasm-0.99.05-win32.zip
           cp nasm.exe /mingw64/bin/
 
@@ -178,7 +205,7 @@ jobs:
           done
 
       - name: Upload Windows ZIP Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: gpt-windows
           path: dist/*
