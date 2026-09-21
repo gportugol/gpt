@@ -1,9 +1,9 @@
-AM_CPPFLAGS = -I$(top_srcdir) -I$(top_srcdir)/src/parser -Iparser $(ANTLR_INC) $(all_includes)
+AM_CPPFLAGS = -I$(top_srcdir) -I$(top_srcdir)/src/parser -Iparser $(ANTLR4_INC) $(all_includes)
 
 SUBDIRS = parser c_translator interpreter x86
 
-headers = GPTDisplay.hpp PortugolAST.hpp Symbol.hpp SymbolTable.hpp
-sources = GPTDisplay.cpp PortugolAST.cpp Symbol.cpp SymbolTable.cpp
+headers = GPTDisplay.hpp Symbol.hpp SymbolTable.hpp
+sources = GPTDisplay.cpp Symbol.cpp SymbolTable.cpp
 
 if INSTALL_DEVEL
 lib_LTLIBRARIES = libgportugol.la
