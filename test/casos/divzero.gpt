@@ -1,0 +1,10 @@
+algoritmo divzero;
+variáveis
+  a, b : inteiro;
+fim-variáveis
+início
+  a := 1; b := 0;
+  imprima("antes");
+  imprima(a / b);
+  imprima("depois");
+fim

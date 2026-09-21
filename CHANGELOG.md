@@ -3,6 +3,29 @@
 Todas as mudanças relevantes do **GPT (GPortugol)** organizadas por release.
 Este arquivo foi consolidado a partir do ChangeLog histórico (CVS/SVN).
 
+## [Unreleased]
+
+### Alterado
+
+- Migração do ANTLR 2.7.7 para o ANTLR 4: a gramática passa a ser
+  `src/modules/parser/Portugol.g4` e o lexer/parser são gerados pela
+  ferramenta `antlr4` (Java) com o runtime C++ `libantlr4-runtime`. A
+  análise semântica, o interpretador, o gerador x86 e o tradutor para C são
+  agora classes C++ que percorrem a árvore sintática, portadas dos walkers
+  ANTLR2 originais, e produzem a mesma saída da versão 1.2.0.
+- Mensagens de erro sintático e léxico mantêm o formato
+  `arquivo:linha - Esperando X, encontrado Y` e as dicas da opção `-d`.
+- Literais de caractere e strings aceitam qualquer caractere UTF-8.
+- Chamar uma variável como função é reportado como erro em vez de abortar o
+  compilador.
+- `gpt -o` retorna código de saída diferente de zero quando o NASM falha.
+
+### Adicionado
+
+- Suíte de regressão em `test/casos/` e `test/erros/`: `test/run_test.sh`
+  compara a saída dos três modos de execução com as saídas esperadas e as
+  mensagens de erro de compilação.
+
 ## [1.2.0] - 2026-01-06
 
 ### Adicionado

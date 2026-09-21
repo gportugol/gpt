@@ -4,19 +4,26 @@
 
 G-Portugol é uma implementação em C++ da linguagem didática Portugol. O binário
 `gpt` pode interpretar programas, compilá-los para executáveis x86, gerar
-assembly e traduzir para C. O projeto usa Autotools, ANTLR 2.x e PCRE2, e deve
+assembly e traduzir para C. O projeto usa Autotools, ANTLR 4.x e PCRE2, e deve
 continuar compatível com GNU/Linux e Windows/MSYS2.
 
 ## Estrutura do repositório
 
 - `src/`: ponto de entrada e coordenação do compilador.
-- `src/modules/parser/`: lexer, parser e análise semântica. As gramáticas
-  ANTLR são `lexer.g`, `parser.g` e `semantic.g`.
-- `src/modules/interpreter/`: interpretador e depurador.
-- `src/modules/x86/`: gerador de assembly x86 e trechos de runtime.
-- `src/modules/c_translator/`: tradutor de Portugol para C.
+- `src/modules/parser/`: gramática ANTLR4 (`Portugol.g4`), relatório de erros
+  sintáticos em português (`PortugolErrorStrategy`) e análise semântica
+  (`SemanticAnalyzer`/`SemanticEval`), que também anota o tipo de cada
+  expressão em `SymbolTable::setEvalType()` para os geradores de código.
+- `src/modules/interpreter/`: interpretador (`Interpreter`, sobre
+  `InterpreterEval`) e depurador.
+- `src/modules/x86/`: gerador de assembly x86 (`X86Generator`, sobre `X86`) e
+  trechos de runtime.
+- `src/modules/c_translator/`: tradutor de Portugol para C
+  (`Portugol2CTranslator`).
 - `lib/base.gpt`: biblioteca padrão da linguagem.
-- `test/`: programa de regressão `tester.gpt` e `run_test.sh`.
+- `test/`: `run_test.sh`, o programa `tester.gpt`, os casos de regressão em
+  `casos/` (programas com saída esperada) e `erros/` (programas inválidos com
+  a mensagem esperada).
 - `exemplos/`: programas de exemplo.
 - `doc/`: páginas de manual e fonte LaTeX do manual.
 - `packages/win_setup/`: empacotamento e recursos do instalador Windows.
@@ -24,8 +31,9 @@ continuar compatível com GNU/Linux e Windows/MSYS2.
 ## Ambiente, build e testes
 
 No GNU/Linux, instale as dependências descritas em `HACKING.md`: compilador
-C++, make, autoconf, automake, libtool, pkg-config, ANTLR 2.x (`runantlr` e
-`antlr-config`), PCRE2 e NASM.
+C++, make, autoconf, automake, libtool, pkg-config, ANTLR 4.x (a ferramenta
+`antlr4`, que roda em Java, e o runtime C++ `libantlr4-runtime`), PCRE2 e
+NASM.
 
 ```bash
 autoreconf -i
@@ -34,9 +42,12 @@ make -j$(nproc)
 bash test/run_test.sh
 ```
 
-O teste requer `src/gpt` já compilado. Ele verifica interpretação, compilação
-nativa, geração de assembly e, quando disponível, montagem com NASM. Em hosts
-que não são x86, a execução do binário nativo é pulada intencionalmente.
+O teste requer `src/gpt` já compilado. Ele executa `test/tester.gpt` e cada
+programa de `test/casos/` nos três modos (interpretação, binário nativo e
+tradução para C compilada com `gcc`), comparando stdout e código de saída com
+os arquivos `.saida`/`.codigo`, e verifica que cada programa de `test/erros/`
+é rejeitado com a mensagem em `.msg`. Em hosts que não são x86, a execução do
+binário nativo é pulada intencionalmente.
 
 Para uma verificação rápida e manual:
 
@@ -57,7 +68,9 @@ sem alterar o sistema, use `make install DESTDIR="$PWD/release"`.
   `clang-format` a C/C++ e também verifica espaços finais, conflitos e arquivos
   grandes.
 - Ao alterar comportamento da linguagem, adicione ou ajuste um caso em
-  `test/tester.gpt` (ou crie um teste específico) e execute o script de testes.
+  `test/casos/` ou `test/erros/` (ou em `test/tester.gpt`) e execute o script
+  de testes. Os três modos de execução devem produzir a mesma saída; use
+  `NOME.saida.nativo` ou `NOME.saida.c` apenas para divergências conhecidas.
 - Ao alterar opções da CLI, atualize a ajuda em `src/GPT.cpp` e a documentação
   aplicável.
 - Preserve os avisos de licença/copyright existentes nos arquivos C++ que forem
@@ -65,15 +78,17 @@ sem alterar o sistema, use `make install DESTDIR="$PWD/release"`.
 
 ## ANTLR e arquivos gerados
 
-As fontes dos walkers, lexer e parser são geradas durante o build e estão em
-`BUILT_SOURCES`/`CLEANFILES` nos respectivos `Makefile.am`. Edite as gramáticas
-`.g`, não arquivos como `PortugolLexer.cpp`, `PortugolParser.cpp`,
-`SemanticWalker.cpp`, `InterpreterWalker.cpp`, `Portugol2CWalker.cpp` ou
-`X86Walker.cpp` quando eles tiverem sido gerados localmente.
+O lexer, o parser e as classes de visitor são gerados durante o build a partir
+de `src/modules/parser/Portugol.g4` (`BUILT_SOURCES`/`CLEANFILES` em
+`src/modules/parser/Makefile.am`). Edite a gramática, não os arquivos gerados
+(`PortugolLexer.cpp`, `PortugolParser.cpp`, `PortugolVisitor.cpp`,
+`PortugolBaseVisitor.cpp` e headers correspondentes).
 
-Ao mudar uma gramática, faça um build limpo o suficiente para forçar a geração
-e confira os consumidores correspondentes. O lexer também distribui
-`PortugolTokenTypes.txt` aos módulos de tradução, interpretação e x86.
+A análise semântica e os três geradores de código são classes C++ escritas à
+mão que percorrem a árvore sintática (`PortugolParser::*Context`). Ao mudar a
+gramática, faça um build limpo o suficiente para forçar a geração e confira os
+quatro consumidores. Os geradores dependem dos tipos anotados pelo
+`SemanticAnalyzer` (`SymbolTable::getEvalType`).
 
 ## Portabilidade
 

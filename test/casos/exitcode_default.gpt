@@ -1,0 +1,4 @@
+algoritmo exitcode_default;
+início
+  imprima("nada");
+fim

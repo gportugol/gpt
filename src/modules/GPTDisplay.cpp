@@ -26,6 +26,7 @@
 #endif
 
 #include <iostream>
+#include <vector>
 
 using namespace std;
 
@@ -58,11 +59,10 @@ string GPTDisplay::toLatin1(const string &str) {
 
 string GPTDisplay::toOEM(const string &str) {
 #ifdef WIN32
-  string ret;
-  char buffer[str.length()];
-  CharToOem(toLatin1(str.c_str()).c_str(), buffer);
-  ret = buffer;
-  return ret;
+  string latin1 = toLatin1(str);
+  vector<char> buffer(latin1.length() + 1);
+  CharToOem(latin1.c_str(), buffer.data());
+  return string(buffer.data());
 #else
   return str;
 #endif
@@ -120,15 +120,15 @@ int GPTDisplay::add(const string &msg, int line) {
   }
 
   ErrorMsg err;
+  string file = _currentFile;
+  mapLine(line, file, line);
   err.line = line;
   err.msg = msg;
-  err.file = _currentFile;
+  err.file = file;
 
-  //_errors[line].push_back(err);
-  _errors[_file_map[_currentFile]][line].push_back(err);
+  _errors[_file_map[file]][line].push_back(err);
 
-  return _errors[_file_map[_currentFile]][line].size();
-  // return _errors[line].size();
+  return _errors[_file_map[file]][line].size();
 }
 
 void GPTDisplay::showError(ErrorMsg &err) {
@@ -144,8 +144,9 @@ void GPTDisplay::showTip(ErrorMsg &err) {
 }
 
 void GPTDisplay::addTip(const string &msg, int line, int cd) {
-  // list<ErrorMsg>::iterator it = _errors[line].begin();
-  list<ErrorMsg>::iterator it = _errors[_file_map[_currentFile]][line].begin();
+  string file = _currentFile;
+  mapLine(line, file, line);
+  list<ErrorMsg>::iterator it = _errors[_file_map[file]][line].begin();
 
   for (int i = 0; i < cd - 1; ++i, ++it)
     ;
@@ -154,6 +155,24 @@ void GPTDisplay::addTip(const string &msg, int line, int cd) {
 }
 
 void GPTDisplay::setCurrentFile(const string &file) { _currentFile = file; }
+
+void GPTDisplay::addFileRange(int firstLine, const string &file) {
+  _file_ranges.push_back(pair<int, string>(firstLine, file));
+}
+
+void GPTDisplay::clearFileRanges() { _file_ranges.clear(); }
+
+void GPTDisplay::mapLine(int line, string &file, int &localLine) {
+  localLine = line;
+  for (file_ranges_t::reverse_iterator it = _file_ranges.rbegin();
+       it != _file_ranges.rend(); ++it) {
+    if (line >= it->first) {
+      file = it->second;
+      localLine = line - it->first + 1;
+      return;
+    }
+  }
+}
 
 string GPTDisplay::getCurrentFile() { return _currentFile; }
 

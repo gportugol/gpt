@@ -1,4 +1,4 @@
-/***************************************************************************
+/*
  *   Copyright (C) 2003-2006 by Thiago Silva                               *
  *   thiago.silva@kdemal.net                                               *
  *                                                                         *
@@ -16,130 +16,43 @@
  *   along with this program; if not, write to the                         *
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- ***************************************************************************/
+ */
 
-#ifndef BASEPORTUGOLPARSER_H
-#define BASEPORTUGOLPARSER_H
+#ifndef BASEPORTUGOLPARSER_HPP
+#define BASEPORTUGOLPARSER_HPP
 
-#include <antlr/LLkParser.hpp>
-#include <antlr/NoViableAltException.hpp>
-#include <antlr/TokenBuffer.hpp>
-#include <antlr/TokenStream.hpp>
-#include <antlr/config.hpp>
+#include <string>
 
-#include "PortugolParserTokenTypes.hpp"
-
-// #include "SymbolTable.hpp"
-
-using namespace std;
-using namespace antlr;
-
-class BasePortugolParser : public LLkParser {
-
+/**
+ * Parser error messages and reporting helpers inherited from the ANTLR2
+ * parser.
+ */
+class BasePortugolParser {
 public:
-  BasePortugolParser(const ParserSharedInputState &lexer, int k_);
-  BasePortugolParser(TokenBuffer &tokenBuf, int k_);
-  BasePortugolParser(TokenStream &lexer, int k_);
+  static int reportParserError(int line, const std::string &expecting,
+                               const std::string &found = "",
+                               const std::string &after = "");
 
-  virtual void match(int t);
-  virtual void matchNot(int t);
-  virtual void match(const BitSet &b);
+  static void printTip(const std::string &tip, int line, int code);
 
-  string nomeAlgoritmo();
-
-protected:
-  static string expecting_algorithm_name;
-  static string expecting_variable;
-  static string expecting_datatype;
-  static string expecting_datatype_pl;
-  static string expecting_identifier;
-  static string expecting_expression;
-  static string expecting_valid_sentence;
-  static string expecting_attr_op;
-  static string expecting_fimse;
-  static string expecting_fimvar_or_var;
-  static string expecting_stm_or_fim;
-  static string expecting_stm_or_fimse;
-  static string expecting_stm_or_fimenq;
-  static string expecting_stm_or_fimpara;
-  static string expecting_stm_or_ate;
-  static string expecting_eof_or_function;
-  static string expecting_function_name;
-  static string expecting_param_or_fparen;
-  static string expecting_inicio_or_vardecl;
-
-  RefToken lastToken;
-
-  bool isDatatype(int tk) {
-    return (tk == PortugolParserTokenTypes::T_KW_INTEIRO) ||
-           (tk == PortugolParserTokenTypes::T_KW_INTEIROS) ||
-           (tk == PortugolParserTokenTypes::T_KW_REAL) ||
-           (tk == PortugolParserTokenTypes::T_KW_REAIS) ||
-           (tk == PortugolParserTokenTypes::T_KW_CARACTERE) ||
-           (tk == PortugolParserTokenTypes::T_KW_CARACTERES) ||
-           (tk == PortugolParserTokenTypes::T_KW_LITERAL) ||
-           (tk == PortugolParserTokenTypes::T_KW_LITERAIS) ||
-           (tk == PortugolParserTokenTypes::T_KW_LOGICO) ||
-           (tk == PortugolParserTokenTypes::T_KW_LOGICOS);
-  }
-
-  bool isKeyword(int tk) {
-    return (tk == PortugolParserTokenTypes::T_KW_FIM_VARIAVEIS) ||
-           (tk == PortugolParserTokenTypes::T_KW_ALGORITMO) ||
-           (tk == PortugolParserTokenTypes::T_KW_VARIAVEIS) ||
-           (tk == PortugolParserTokenTypes::T_KW_INTEIRO) ||
-           (tk == PortugolParserTokenTypes::T_KW_REAL) ||
-           (tk == PortugolParserTokenTypes::T_KW_CARACTERE) ||
-           (tk == PortugolParserTokenTypes::T_KW_LITERAL) ||
-           (tk == PortugolParserTokenTypes::T_KW_LOGICO) ||
-           (tk == PortugolParserTokenTypes::T_KW_INICIO) ||
-           (tk == PortugolParserTokenTypes::T_KW_VERDADEIRO) ||
-           (tk == PortugolParserTokenTypes::T_KW_FALSO) ||
-           (tk == PortugolParserTokenTypes::T_KW_FIM) ||
-           (tk == PortugolParserTokenTypes::T_KW_OU) ||
-           (tk == PortugolParserTokenTypes::T_KW_E) ||
-           (tk == PortugolParserTokenTypes::T_KW_NOT) ||
-           (tk == PortugolParserTokenTypes::T_KW_SE) ||
-           (tk == PortugolParserTokenTypes::T_KW_SENAO) ||
-           (tk == PortugolParserTokenTypes::T_KW_ENTAO) ||
-           (tk == PortugolParserTokenTypes::T_KW_FIM_SE) ||
-           (tk == PortugolParserTokenTypes::T_KW_ENQUANTO) ||
-           (tk == PortugolParserTokenTypes::T_KW_FACA) ||
-           (tk == PortugolParserTokenTypes::T_KW_FIM_ENQUANTO) ||
-           (tk == PortugolParserTokenTypes::T_KW_PARA) ||
-           (tk == PortugolParserTokenTypes::T_KW_DE) ||
-           (tk == PortugolParserTokenTypes::T_KW_ATE) ||
-           (tk == PortugolParserTokenTypes::T_KW_PASSO) ||
-           (tk == PortugolParserTokenTypes::T_KW_FIM_PARA) ||
-           (tk == PortugolParserTokenTypes::T_KW_REPITA) ||
-           (tk == PortugolParserTokenTypes::T_KW_FUNCAO) ||
-           (tk == PortugolParserTokenTypes::T_KW_RETORNE)
-           //            || (tk == PortugolParserTokenTypes::T_KW_CONJUNTO)
-           || (tk == PortugolParserTokenTypes::T_KW_MATRIZ) ||
-           (tk == PortugolParserTokenTypes::T_KW_INTEIROS) ||
-           (tk == PortugolParserTokenTypes::T_KW_REAIS) ||
-           (tk == PortugolParserTokenTypes::T_KW_CARACTERES) ||
-           (tk == PortugolParserTokenTypes::T_KW_LITERAIS) ||
-           (tk == PortugolParserTokenTypes::T_KW_LOGICOS);
-  }
-
-  string getTokenDescription(const RefToken &t);
-
-  int reportParserError(int line, string expecting, string found = "",
-                        string after = "");
-
-  void handleVarDeclColonMissing(const MismatchedTokenException &e,
-                                 const RefToken &id);
-
-  //   void handleVarDecl(const RefToken& id);
-  //   void checkVarDecl(const RefToken& id);
-
-  void printTip(const string &msg, int line, int cd);
-
-  //   SymbolTable symbtable;
-  string currentScope; // global,f1(),...
-
-  string _name;
+  static const std::string expecting_algorithm_name;
+  static const std::string expecting_variable;
+  static const std::string expecting_datatype;
+  static const std::string expecting_datatype_pl;
+  static const std::string expecting_identifier;
+  static const std::string expecting_expression;
+  static const std::string expecting_valid_sentence;
+  static const std::string expecting_attr_op;
+  static const std::string expecting_fimse;
+  static const std::string expecting_fimvar_or_var;
+  static const std::string expecting_stm_or_fim;
+  static const std::string expecting_stm_or_fimse;
+  static const std::string expecting_stm_or_fimenq;
+  static const std::string expecting_stm_or_fimpara;
+  static const std::string expecting_stm_or_ate;
+  static const std::string expecting_eof_or_function;
+  static const std::string expecting_function_name;
+  static const std::string expecting_param_or_fparen;
 };
 
-#endif
+#endif // BASEPORTUGOLPARSER_HPP

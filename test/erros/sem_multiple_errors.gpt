@@ -1,0 +1,10 @@
+algoritmo erro;
+variáveis
+  a : inteiro;
+fim-variáveis
+início
+  a := "x";
+  b := 1;
+  c := 2;
+  se 1 então fim-se
+fim

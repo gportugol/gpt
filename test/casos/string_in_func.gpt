@@ -1,0 +1,28 @@
+algoritmo string_in_func;
+variáveis
+  s : literal;
+  m : matriz[2] de literais;
+fim-variáveis
+início
+  s := "global";
+  m[0] := "m0"; m[1] := "m1";
+  mostra(s);
+  mostra(m[1]);
+  mostra("direto");
+  s := devolve("x");
+  imprima(s);
+  imprima(devolve(devolve("y")));
+  imprima(tam("abc"));
+fim
+função mostra(t: literal)
+início
+  imprima("[", t, "]");
+fim
+função devolve(t: literal): literal
+início
+  retorne t;
+fim
+função tam(t: literal): inteiro
+início
+  retorne 3;
+fim

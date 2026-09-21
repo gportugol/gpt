@@ -1,0 +1,13 @@
+algoritmo array_oob;
+variáveis
+  v : matriz[3] de inteiros;
+  i : inteiro;
+fim-variáveis
+início
+  i := 5;
+  imprima("antes");
+  v[i] := 1;
+  imprima(v[i]);
+  imprima(v[-1]);
+  imprima("depois");
+fim

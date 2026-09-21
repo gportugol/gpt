@@ -1,0 +1,11 @@
+algoritmo erro;
+variáveis
+  a : inteiro;
+fim-variáveis
+início
+  a := f;
+fim
+função f(): inteiro
+início
+  retorne 1;
+fim

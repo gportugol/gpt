@@ -1,0 +1,7 @@
+algoritmo erro;
+variáveis
+  a : inteiro;
+fim-variáveis
+início
+  a := leia(1);
+fim
