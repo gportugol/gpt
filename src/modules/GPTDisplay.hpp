@@ -71,10 +71,24 @@ public:
   void addFileName(const string &);
 
   int add(const string &msg, int line);
+  // line is already a line of file, not of the concatenated input.
+  int add(const string &msg, const string &file, int line);
   void addTip(const string &msg, int line, int cd);
 
   void setCurrentFile(const string &file);
   string getCurrentFile();
+
+  // Input files are concatenated before parsing; each range maps the first
+  // line of a file in the concatenated input back to its name.
+  void addFileRange(int firstLine, const string &file);
+  void clearFileRanges();
+  void mapLine(int line, string &file, int &localLine);
+  // Line of its own file for a line of the concatenated input.
+  int sourceLine(int line);
+  // Whether line is the first line of an input file other than the first.
+  bool isFileStart(int line);
+  // First line of the input file after the one holding line, or 0.
+  int nextFileStart(int line);
   //   void addInternalError(const string&);
   //   void addInternalError(const stringstream&);
 
@@ -114,6 +128,9 @@ private:
   errors_map_t _errors;
 
   string _currentFile;
+
+  typedef list<pair<int, string>> file_ranges_t;
+  file_ranges_t _file_ranges;
 };
 
 #endif

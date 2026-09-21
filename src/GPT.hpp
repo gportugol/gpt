@@ -22,13 +22,19 @@
 #define GPT_HPP
 
 #include <list>
+#include <memory>
 #include <string>
 
-#include "PortugolAST.hpp"
 #include "SymbolTable.hpp"
 
+namespace antlr4 {
+class ANTLRInputStream;
+class CommonTokenStream;
+} // namespace antlr4
+class PortugolLexer;
+class PortugolParser;
+
 using namespace std;
-using namespace antlr;
 
 class GPT {
 public:
@@ -38,7 +44,6 @@ public:
 
   void reportDicas(bool value);
   void printParseTree(bool value);
-  //   void usePipe(bool value);
   void setOutputFile(string str);
 
   void showHelp();
@@ -58,12 +63,18 @@ private:
   bool parse(list<pair<string, istream *>> &);
 
   bool prologue(const list<string> &ifname);
+  void cleanup();
 
-  //   bool _usePipe;
   bool _printParseTree;
   string _outputfile;
 
-  RefPortugolAST _astree;
+  // The parse tree points into these, so they live as long as it does.
+  std::unique_ptr<antlr4::ANTLRInputStream> _inputStream;
+  std::unique_ptr<PortugolLexer> _lexer;
+  std::unique_ptr<antlr4::CommonTokenStream> _tokens;
+  std::unique_ptr<PortugolParser> _parser;
+  void *_parseTree; // PortugolParser::AlgoritmoContext*
+
   SymbolTable _stable;
 };
 

@@ -1,0 +1,9 @@
+algoritmo erro;
+variáveis
+  c : caractere;
+fim-variáveis
+início
+  c := '€';
+  c := '😀';
+  c := 'é';
+fim

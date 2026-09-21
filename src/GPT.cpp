@@ -18,27 +18,35 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+// Include ANTLR4 headers FIRST, before any Windows headers
+// Windows defines ERROR macro which conflicts with ParseTreeType::ERROR
+#include "PortugolLexer.h"
+#include "PortugolParser.h"
+#include "antlr4-runtime.h"
+
 #include "GPT.hpp"
 #include "config.h"
 
 #ifdef WIN32
 #define WIN32_LEAN_AND_MEAN
-#include <io.h> //unlink()
+#define NOMINMAX
+#include <io.h> // unlink()
 #include <windows.h>
+#undef byte  // Avoid conflict with std::byte
+#undef ERROR // Avoid conflict with ParseTreeType::ERROR (already parsed by
+             // ANTLR4)
 #else
 #include <spawn.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
 #endif
 
-#include "InterpreterWalker.hpp"
-#include "Portugol2CWalker.hpp"
-#include "PortugolLexer.hpp"
-#include "PortugolParser.hpp"
-#include "SemanticWalker.hpp"
-#include "X86Walker.hpp"
-#include <antlr/AST.hpp>
-#include <antlr/TokenStreamSelector.hpp>
+#include "GPTDisplay.hpp"
+#include "Interpreter.hpp"
+#include "Portugol2CTranslator.hpp"
+#include "PortugolErrorStrategy.hpp"
+#include "SemanticAnalyzer.hpp"
+#include "X86Generator.hpp"
 
 #include <algorithm>
 #include <cctype>
@@ -62,11 +70,21 @@ extern char **environ;
 #define GPT_HOST_X86 1
 #endif
 
+using namespace antlr4;
+
 GPT *GPT::_self = 0;
 
-GPT::GPT() : /*_usePipe(false),*/ _printParseTree(false) {}
+GPT::GPT() : _printParseTree(false), _parseTree(nullptr) {}
 
-GPT::~GPT() {}
+GPT::~GPT() { cleanup(); }
+
+void GPT::cleanup() {
+  _parseTree = nullptr;
+  _parser.reset();
+  _tokens.reset();
+  _lexer.reset();
+  _inputStream.reset();
+}
 
 GPT *GPT::self() {
   if (!GPT::_self) {
@@ -78,11 +96,6 @@ GPT *GPT::self() {
 void GPT::reportDicas(bool value) { GPTDisplay::self()->showTips(value); }
 
 void GPT::printParseTree(bool value) { _printParseTree = value; }
-
-// void GPT::usePipe(bool value)
-// {
-//   _usePipe = value;
-// }
 
 void GPT::setOutputFile(string str) { _outputfile = str; }
 
@@ -350,17 +363,6 @@ bool GPT::prologue(const list<string> &ifnames) {
   stringstream s;
   bool success = false;
 
-  //   if(_usePipe) { //shell pipe (stdin)
-  //     if(cin.rdbuf()->in_avail() == 0) {
-  //       s << PACKAGE << ": não existem dados na entrada padrão" << endl;
-  //       GPTDisplay::self()->showError(s);
-  //       goto bail;
-  //     }
-  //
-  //     if(!parse(cin)) {
-  //       goto bail;
-  //     }
-  //   } else {
   list<pair<string, istream *>> istream_list;
   for (list<string>::const_iterator it = ifnames.begin(); it != ifnames.end();
        ++it) {
@@ -432,7 +434,6 @@ static string defaultOutputName(const string &input) {
 }
 
 bool GPT::compile(const list<string> &ifnames, bool genBinary) {
-  bool success = false;
   stringstream s;
 
 #ifndef GPT_HOST_X86
@@ -449,6 +450,8 @@ bool GPT::compile(const list<string> &ifnames, bool genBinary) {
   }
 
   string ofname = _outputfile;
+  string asmfile;
+
   if (ofname.empty() && genBinary) {
     ofname = defaultOutputName(ifnames.front());
 #ifdef WIN32
@@ -457,34 +460,27 @@ bool GPT::compile(const list<string> &ifnames, bool genBinary) {
   }
 
   try {
-    X86Walker x86(_stable);
-    string asmsrc = x86.algoritmo(_astree);
+    X86Generator generator(_stable);
+    string asmCode = generator.generate(
+        static_cast<PortugolParser::AlgoritmoContext *>(_parseTree));
 
-    string ftmpname;
-    ofstream fo;
-
-    if (!genBinary) { // salva assembly code
-      fo.open(ofname.c_str(), ios_base::out);
-      if (!fo) {
-        s << PACKAGE << ": não foi possível abrir o arquivo: \"" << ofname
-          << "\"" << endl;
-        GPTDisplay::self()->showError(s);
-        goto bail;
-      }
-      fo << asmsrc;
-      fo.close();
-    } else { // compile
-      if (!writeTmpFile(asmsrc, ftmpname)) {
+    if (genBinary) {
+      if (!writeTmpFile(asmCode, asmfile)) {
+        if (!asmfile.empty()) {
+          unlink(asmfile.c_str());
+        }
         s << PACKAGE << ": erro ao processar arquivo temporário" << endl;
         GPTDisplay::self()->showError(s);
-        goto bail;
+        return false;
       }
 
-      if (!runNasm(ofname, ftmpname)) {
+      bool assembled = runNasm(ofname, asmfile);
+      unlink(asmfile.c_str());
+      if (!assembled) {
         s << PACKAGE << ": não foi possível montar o programa com o nasm."
           << endl;
         GPTDisplay::self()->showError(s);
-        goto bail;
+        return false;
       }
 
 #ifndef WIN32
@@ -492,27 +488,35 @@ bool GPT::compile(const list<string> &ifnames, bool genBinary) {
         s << PACKAGE << ": não foi possível tornar o arquivo executável: \""
           << ofname << "\"" << endl;
         GPTDisplay::self()->showError(s);
-        goto bail;
+        return false;
       }
 #endif
+    } else {
+      ofstream fasm(ofname.c_str());
+      if (!fasm) {
+        s << PACKAGE << ": não foi possível abrir o arquivo: \"" << ofname
+          << "\"" << endl;
+        GPTDisplay::self()->showError(s);
+        return false;
+      }
+      fasm << asmCode;
+      fasm.close();
     }
 
-    success = true;
+    return true;
 
-  bail:
-    if (ftmpname.length() > 0) {
-      unlink(ftmpname.c_str());
-    }
-    return success;
   } catch (SymbolTableException &e) {
     s << PACKAGE << ": erro interno: " << e.getMessage() << endl;
+    GPTDisplay::self()->showError(s);
+    return false;
+  } catch (std::exception &e) {
+    s << PACKAGE << ": erro interno: " << e.what() << endl;
     GPTDisplay::self()->showError(s);
     return false;
   }
 }
 
 bool GPT::translate2C(const list<string> &ifnames) {
-  bool success = false;
   stringstream s;
 
   if (!prologue(ifnames)) {
@@ -522,26 +526,28 @@ bool GPT::translate2C(const list<string> &ifnames) {
   string ofname = _outputfile;
 
   try {
-    Portugol2CWalker pt2c(_stable);
-    string c_src = pt2c.algoritmo(_astree);
+    Portugol2CTranslator translator(_stable);
+    string cCode = translator.translate(
+        static_cast<PortugolParser::AlgoritmoContext *>(_parseTree));
 
-    ofstream fo;
-    fo.open(ofname.c_str(), ios_base::out);
-    if (!fo) {
+    ofstream out(ofname);
+    if (!out) {
       s << PACKAGE << ": não foi possível abrir o arquivo: \"" << ofname << "\""
         << endl;
       GPTDisplay::self()->showError(s);
-      goto bail;
+      return false;
     }
-    fo << c_src;
-    fo.close();
 
-    success = true;
+    out << cCode;
+    out.close();
+    return true;
 
-  bail:
-    return success;
   } catch (SymbolTableException &e) {
     s << PACKAGE << ": erro interno: " << e.getMessage() << endl;
+    GPTDisplay::self()->showError(s);
+    return false;
+  } catch (std::exception &e) {
+    s << PACKAGE << ": erro interno: " << e.what() << endl;
     GPTDisplay::self()->showError(s);
     return false;
   }
@@ -552,91 +558,97 @@ int GPT::interpret(const list<string> &ifnames, const string &host, int port) {
     return EXIT_FAILURE;
   }
 
-  InterpreterWalker interpreter(_stable, host, port);
-  int r = interpreter.algoritmo(_astree);
+  Interpreter interp(_stable, host, port);
+  int result =
+      interp.run(static_cast<PortugolParser::AlgoritmoContext *>(_parseTree));
 
-  return r;
+  return result;
 }
 
 bool GPT::parse(list<pair<string, istream *>> &istream_list) {
   stringstream s;
 
   try {
-    TokenStreamSelector *selector = new TokenStreamSelector;
+    cleanup();
 
-    // codigo desgracado, mas faz o que deve
-    // 1: controle de multiplos tokenStreams
-    // 2: utilizar o filename adequado para error reporting
-
-    PortugolLexer *lexer;
-    PortugolLexer *fst = 0;
-    string firstFile;
-    for (list<pair<string, istream *>>::reverse_iterator it =
-             istream_list.rbegin();
-         it != istream_list.rend(); ++it) {
-      lexer = new PortugolLexer(*((*it).second), selector);
-
-      selector->addInputStream(lexer, (*it).first);
-      selector->select(lexer);
-      selector->push((*it).first);
-      if (!firstFile.empty()) {
-        lexer->setNextFilename(firstFile);
-      }
-
-      GPTDisplay::self()->addFileName((*it).first);
-
-      firstFile = (*it).first;
-      fst = lexer;
-    }
-
-    selector->select(fst);
-
-    PortugolParser parser(*selector);
-
-    GPTDisplay::self()->setCurrentFile(firstFile);
-
-    ASTFactory ast_factory(PortugolAST::TYPE_NAME, &PortugolAST::factory);
-    parser.initializeASTFactory(ast_factory);
-    parser.setASTFactory(&ast_factory);
-
-    parser.algoritmo();
-
-    if (GPTDisplay::self()->hasError()) {
-      GPTDisplay::self()->showErrors();
-      return false;
-    }
-
-    _astree = parser.getPortugolAST();
-
-    if (!_astree) {
-      s << PACKAGE << ": erro interno: no parse tree" << endl;
+    if (istream_list.empty()) {
+      s << PACKAGE << ": nenhum arquivo de entrada" << endl;
       GPTDisplay::self()->showError(s);
       return false;
     }
 
-    if (_printParseTree) {
-      std::cerr << _astree->toStringList() << std::endl << std::endl;
+    // The manual promises that extra files (command line and GPT_INCLUDE)
+    // are concatenated and processed as if the algorithm were in one file.
+    GPTDisplay::self()->clearFileRanges();
+    string content;
+    int line = 1;
+    for (list<pair<string, istream *>>::iterator it = istream_list.begin();
+         it != istream_list.end(); ++it) {
+      std::stringstream buffer;
+      buffer << it->second->rdbuf();
+      string part = buffer.str();
+
+      if (!part.empty() && part[part.size() - 1] != '\n') {
+        part += '\n';
+      }
+
+      GPTDisplay::self()->addFileName(it->first);
+      GPTDisplay::self()->addFileRange(line, it->first);
+      for (string::size_type i = 0; i < part.size(); ++i) {
+        if (part[i] == '\n') {
+          line++;
+        }
+      }
+      content += part;
     }
 
-    SemanticWalker semantic(_stable);
-    semantic.algoritmo(_astree);
+    string filename = istream_list.front().first;
+    GPTDisplay::self()->setCurrentFile(filename);
+
+    _inputStream = std::make_unique<ANTLRInputStream>(content);
+    _inputStream->name = filename;
+
+    _lexer = std::make_unique<PortugolLexer>(_inputStream.get());
+    _lexer->removeErrorListeners();
+    PortugolLexerErrorListener lexerErrors;
+    _lexer->addErrorListener(&lexerErrors);
+    struct Detach {
+      PortugolLexer &lexer;
+      ~Detach() { lexer.removeErrorListeners(); }
+    } detach{*_lexer};
+
+    _tokens = std::make_unique<CommonTokenStream>(_lexer.get());
+    validateTokens(*_tokens);
+
+    _parser = std::make_unique<PortugolParser>(_tokens.get());
+    _parser->removeErrorListeners();
+    _parser->setErrorHandler(std::make_shared<PortugolErrorStrategy>());
+
+    auto parseTree = _parser->algoritmo();
+    _parseTree = parseTree;
 
     if (GPTDisplay::self()->hasError()) {
       GPTDisplay::self()->showErrors();
       return false;
     }
+
+    if (_printParseTree) {
+      std::cerr << parseTree->toStringTree(_parser.get()) << std::endl
+                << std::endl;
+    }
+
+    SemanticAnalyzer analyzer(_stable);
+    analyzer.analyze(parseTree);
+
+    if (GPTDisplay::self()->hasError()) {
+      GPTDisplay::self()->showErrors();
+      return false;
+    }
+
     return true;
-  } catch (ANTLRException &e) {
-    s << PACKAGE << ": erro interno: " << e.toString() << endl;
-    GPTDisplay::self()->showError(s);
-    return false;
-  } catch (exception &e) {
+  } catch (std::exception &e) {
     s << PACKAGE << ": erro interno: " << e.what() << endl;
     GPTDisplay::self()->showError(s);
     return false;
   }
-
-  s << "GPT::parse: bug, nao deveria executar essa linha!" << endl;
-  GPTDisplay::self()->showError(s);
-  return false;
 }

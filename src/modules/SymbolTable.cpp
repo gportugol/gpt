@@ -88,7 +88,8 @@ Symbol &SymbolTable::getSymbol(const string &scope, const string &lexeme,
     }
   }
 
-  throw SymbolTableException("no symbol found");
+  throw SymbolTableException("no symbol found: " + lexeme +
+                             " in scope: " + scope);
 }
 
 list<Symbol> SymbolTable::getSymbols(const string &scope) {

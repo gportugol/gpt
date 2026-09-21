@@ -1,0 +1,12 @@
+algoritmo syn_literal_sem_ponto_virgula;
+variáveis
+  s: literal;
+  c: caractere;
+  y: inteiro;
+fim-variáveis
+início
+  s := "abc"
+  y := 1;
+  c := 'a'
+  y := 2;
+fim

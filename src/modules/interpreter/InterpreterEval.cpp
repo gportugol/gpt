@@ -27,6 +27,9 @@
 #include "GPTDisplay.hpp"
 
 #ifdef WIN32
+// The headers WIN32_LEAN_AND_MEAN leaves out declare a global byte, ambiguous
+// with std::byte under the using namespace std of the headers above.
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #else
 #include <sys/resource.h>

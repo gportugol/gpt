@@ -58,12 +58,24 @@ public:
 
   list<Symbol> getSymbols(const string &scope);
 
+  // Evaluated type (TIPO_*) of the expression nodes the code generators
+  // read, recorded by SemanticAnalyzer: chains with an operator and the
+  // unary level. Replaces PortugolAST::setEvalType/getEvalType of the ANTLR2
+  // AST. Nodes are visited in allocation order, which keeps the hot path of
+  // this map in cache; an unordered_map measured slower here.
+  void setEvalType(const void *node, int type) { evalTypes[node] = type; }
+  int getEvalType(const void *node) const {
+    map<const void *, int>::const_iterator it = evalTypes.find(node);
+    return (it == evalTypes.end()) ? TIPO_NULO : it->second;
+  }
+
 protected:
   void registrarLeia();
   void registrarImprima();
 
   int currentCod;
   map<string, list<Symbol>> symbols; // map<scope, symbols>
+  map<const void *, int> evalTypes;
 };
 
 #endif
