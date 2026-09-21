@@ -713,7 +713,15 @@ void InterpreterEval::endFunctionCall() {
 }
 
 bool InterpreterEval::isBuiltInFunction(const string &fname) {
-  return stable.getSymbol(SymbolTable::GlobalScope, fname).isBuiltin;
+  // Check for known built-in functions directly
+  if (fname == "leia" || fname == "imprima") {
+    return true;
+  }
+  // Also check symbol table for other registered built-ins
+  if (stable.symbolExists(SymbolTable::GlobalScope, fname)) {
+    return stable.getSymbol(SymbolTable::GlobalScope, fname).isBuiltin;
+  }
+  return false;
 }
 
 ExprValue InterpreterEval::execBuiltInFunction(const string &fname,

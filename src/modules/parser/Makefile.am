@@ -1,48 +1,53 @@
 AM_CPPFLAGS = -I$(top_srcdir)/. -I$(top_srcdir)/src/parser \
 	-I$(top_srcdir)/src/modules -I$(top_srcdir)/src/modules/parser \
-	$(ANTLR_INC) $(all_includes)
+	$(ANTLR4_INC) $(all_includes)
 
 noinst_LTLIBRARIES = libparser.la
 
-BUILT_SOURCES = PortugolLexer.cpp  PortugolParser.cpp SemanticWalker.cpp
+antlr4_generated = PortugolLexer.cpp PortugolLexer.h \
+                   PortugolParser.cpp PortugolParser.h \
+                   PortugolBaseVisitor.cpp PortugolBaseVisitor.h \
+                   PortugolVisitor.cpp PortugolVisitor.h
 
-nodist_libparser_la_SOURCES = $(BUILT_SOURCES)
+BUILT_SOURCES = antlr4.stamp $(antlr4_generated)
 
-headers = BasePortugolParser.hpp SemanticEval.hpp MismatchedUnicodeCharException.hpp \
-          UnicodeCharBuffer.hpp UnicodeCharScanner.hpp
+nodist_libparser_la_SOURCES = $(antlr4_generated)
 
-libparser_la_SOURCES = BasePortugolParser.cpp SemanticEval.cpp MismatchedUnicodeCharException.cpp
+headers = BasePortugolParser.hpp SemanticEval.hpp SemanticAnalyzer.hpp \
+          PortugolErrorStrategy.hpp
+
+libparser_la_SOURCES = BasePortugolParser.cpp SemanticEval.cpp SemanticAnalyzer.cpp \
+                       PortugolErrorStrategy.cpp
 
 if INSTALL_DEVEL
-nodist_pkginclude_HEADERS = PortugolParserTokenTypes.hpp PortugolLexer.hpp \
-                            PortugolParser.hpp PortugolTokenTypes.hpp \
-								            SemanticWalker.hpp SemanticWalkerTokenTypes.hpp
+nodist_pkginclude_HEADERS = PortugolLexer.h PortugolParser.h Portugol.tokens \
+                            PortugolBaseVisitor.h PortugolVisitor.h
 
 pkginclude_HEADERS = $(headers)
 else
 noinst_HEADERS = $(headers)
 endif
 
-lexer_g       = lexer.g
-parser_g      = parser.g
-semantic_g    = semantic.g
+portugol_g = Portugol.g4
 
-EXTRA_DIST = $(lexer_g) $(parser_g) $(semantic_g) accent.sh
+EXTRA_DIST = $(portugol_g)
 
-CLEANFILES = PortugolLexer.cpp PortugolLexer.hpp PortugolParser.cpp PortugolParser.hpp \
-             PortugolParserTokenTypes.hpp PortugolParserTokenTypes.txt \
-             PortugolTokenTypes.hpp PortugolTokenTypes.txt SemanticWalker.hpp \
-             SemanticWalker.cpp SemanticWalkerTokenTypes.hpp SemanticWalkerTokenTypes.txt
+CLEANFILES = antlr4.stamp $(antlr4_generated) \
+             PortugolLexer.interp PortugolLexer.tokens \
+             PortugolParser.interp Portugol.tokens
 
-PortugolLexer.cpp: $(srcdir)/$(lexer_g)
-	$(ANTLR_BIN) $(srcdir)/$(lexer_g)
-	cp PortugolTokenTypes.txt ../c_translator
-	cp PortugolTokenTypes.txt ../interpreter
-	cp PortugolTokenTypes.txt ../x86
+# One antlr4 run produces all generated files. The stamp file and the
+# recursive make below are the "multiple outputs" idiom from the automake
+# manual: a plain multi-target rule would run the tool once per target
+# under make -j, with the parallel runs clobbering each other's output.
+antlr4.stamp: $(srcdir)/$(portugol_g)
+	@rm -f antlr4.tmp
+	@touch antlr4.tmp
+	$(ANTLR4_CMD) -Dlanguage=Cpp -visitor -no-listener -o . $(srcdir)/$(portugol_g)
+	@mv -f antlr4.tmp $@
 
-PortugolParser.cpp: $(srcdir)/$(parser_g) PortugolLexer.cpp
-	$(ANTLR_BIN) $(srcdir)/$(parser_g)
-	./$(srcdir)/accent.sh
-
-SemanticWalker.cpp: $(srcdir)/$(semantic_g) PortugolLexer.cpp
-	$(ANTLR_BIN) $(srcdir)/$(semantic_g)
+$(antlr4_generated): antlr4.stamp
+	@if test -f $@; then :; else \
+	  rm -f antlr4.stamp; \
+	  $(MAKE) $(AM_MAKEFLAGS) antlr4.stamp; \
+	fi

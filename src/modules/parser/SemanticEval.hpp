@@ -1,4 +1,4 @@
-/***************************************************************************
+/*
  *   Copyright (C) 2003-2006 by Thiago Silva                               *
  *   thiago.silva@kdemal.net                                               *
  *                                                                         *
@@ -16,12 +16,12 @@
  *   along with this program; if not, write to the                         *
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- ***************************************************************************/
+ */
 
 #ifndef SEMANTICEVAL_HPP
 #define SEMANTICEVAL_HPP
 
-#include "PortugolAST.hpp"
+#include "Symbol.hpp"
 #include "SymbolTable.hpp"
 
 #include <list>
@@ -29,7 +29,25 @@
 #include <stdlib.h>
 #include <string>
 
+using namespace std;
+
 //---------- helpers ------------
+
+// Replaces the RefPortugolAST the ANTLR2 evaluator received.
+class TokenRef {
+public:
+  TokenRef() : line(0), type(0) {}
+  TokenRef(const string &text_, int line_, int type_ = 0)
+      : text(text_), line(line_), type(type_) {}
+
+  const string &getText() const { return text; }
+  int getLine() const { return line; }
+  int getType() const { return type; }
+
+  string text;
+  int line;
+  int type; // tipo do token (PortugolParser::T_*), usado para operadores
+};
 
 class ExpressionValue {
 public:
@@ -69,84 +87,73 @@ protected:
 
 class Funcao {
 public:
-  void setId(RefPortugolAST t) { id = t; }
-  void addParams(pair<int, list<RefPortugolAST>> &p) {
-    for (list<RefPortugolAST>::iterator it = p.second.begin();
-         it != p.second.end(); ++it) {
-      SymbolType t(p.first);
-      params.push_back(pair<RefPortugolAST, SymbolType>(*it, t));
-    }
+  void setId(const TokenRef &t) { id = t; }
+
+  void addParam(const TokenRef &name, int type) {
+    SymbolType t(type);
+    params.push_back(pair<TokenRef, SymbolType>(name, t));
   }
 
-  void addParams(pair<pair<int, list<int>>, list<RefPortugolAST>> &m) {
-    for (list<RefPortugolAST>::iterator it = m.second.begin();
-         it != m.second.end(); ++it) {
-      SymbolType t(m.first.first);
-      t.setPrimitive(false);
-      t.setDimensions(m.first.second);
-      params.push_back(pair<RefPortugolAST, SymbolType>(*it, t));
-    }
+  void addParam(const TokenRef &name, int type, const list<int> &dims) {
+    SymbolType t(type);
+    t.setPrimitive(false);
+    t.setDimensions(dims);
+    params.push_back(pair<TokenRef, SymbolType>(name, t));
   }
-
-  //   void setReturnType(pair<int, list<int> > type) {
-  //     return_type.setPrimitive(false);
-  //     return_type.setPrimitiveType(type.first);
-  //     return_type.setDimensions(type.second);
-  //   }
 
   void setReturnType(int type) { return_type.setPrimitiveType(type); }
 
-  RefPortugolAST id;
+  TokenRef id;
   SymbolType return_type;
 
-  list<pair<RefPortugolAST, SymbolType>> params; // pair<lexeme, type>
-  //   list< pair<int, list<RefPortugolAST> > > prim_params;
-  //   list< pair< pair<int, list<int> >, list<RefPortugolAST> > > mt_params;
+  list<pair<TokenRef, SymbolType>> params; // pair<lexeme, type>
 };
 
 //---------------------------------------------------------------------//
 
 class SemanticEval {
 public:
+  enum UnaryOp { UN_POS, UN_NEG, UN_NOT, UN_BNOT };
+
   SemanticEval(SymbolTable &st);
 
   SymbolTable &getSymbolTable();
 
   void setCurrentScope(const string &);
+  const string &currentScopeName() const { return currentScope; }
 
-  void declareVar(int type, RefPortugolAST prim);
-  void declareVar(int type, list<int> dims, RefPortugolAST mt);
+  void declareVar(int type, const TokenRef &prim);
+  void declareVar(int type, list<int> dims, const TokenRef &mt);
 
-  void declareVars(pair<int, list<RefPortugolAST>> &prims);
-  void declareVars(pair<pair<int, list<int>>, list<RefPortugolAST>> &ms);
+  void declareVars(int type, const list<TokenRef> &prims);
+  void declareVars(int type, const list<int> &dims, const list<TokenRef> &ms);
 
   void evaluateAttribution(ExpressionValue &lv, ExpressionValue &rv, int line);
 
-  ExpressionValue evaluateLValue(RefPortugolAST id, list<ExpressionValue> &dim);
+  ExpressionValue evaluateLValue(const TokenRef &id,
+                                 list<ExpressionValue> &dim);
 
   void evaluateBooleanExpr(ExpressionValue &ev, int line);
   void evaluateParaExpr(ExpressionValue &ev, int line, const string &term);
   ExpressionValue evaluateExpr(ExpressionValue &left, ExpressionValue &right,
-                               RefPortugolAST op);
-  ExpressionValue evaluateExpr(ExpressionValue &ev, RefPortugolAST unary_op);
+                               const TokenRef &op);
+  ExpressionValue evaluateExpr(ExpressionValue &ev, UnaryOp op,
+                               const TokenRef &unary_op);
 
   void evaluateReturnCmd(ExpressionValue &ev, int line);
 
   void declareFunction(Funcao &f);
-  ExpressionValue evaluateFCall(RefPortugolAST f, list<ExpressionValue> &args);
-  //   void evaluateAllFCalls();
+  ExpressionValue evaluateFCall(const TokenRef &f, list<ExpressionValue> &args);
 
   void evaluatePasso(int line, const string &str);
 
 protected:
-  bool evalVariableRedeclaration(const string &scope, RefPortugolAST id);
-
+  bool evalVariableRedeclaration(const string &scope, const TokenRef &id);
   ExpressionValue evaluateNumTypes(ExpressionValue &left,
                                    ExpressionValue &right);
 
   SymbolTable &stable;
   string currentScope;
-  list<pair<RefPortugolAST, list<ExpressionValue>>> fcallsList;
 };
 
 #endif

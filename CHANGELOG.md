@@ -16,6 +16,17 @@ Este arquivo foi consolidado a partir do ChangeLog histórico (CVS/SVN).
 - O binário para Windows passa a ser compilado no ambiente UCRT64 do MSYS2,
   que descontinuou o MINGW64, e depende da UCRT, incluída no Windows 10 e no
   Windows Server 2016 em diante.
+- Migração do ANTLR 2.7.7 para o ANTLR 4: a gramática passa a ser
+  `src/modules/parser/Portugol.g4` e o lexer/parser são gerados pela
+  ferramenta `antlr4` (Java) com o runtime C++ `libantlr4-runtime`. A
+  análise semântica, o interpretador, o gerador x86 e o tradutor para C são
+  agora classes C++ que percorrem a árvore sintática, portadas dos walkers
+  ANTLR2 originais, e produzem a mesma saída da versão 1.2.0.
+- Mensagens de erro sintático e léxico mantêm o formato
+  `arquivo:linha - Esperando X, encontrado Y` e as dicas da opção `-d`.
+- Literais de caractere e strings aceitam qualquer caractere UTF-8.
+- Chamar uma variável como função é reportado como erro em vez de abortar o
+  compilador.
 
 ## [1.2.0] - 2026-01-06
 
