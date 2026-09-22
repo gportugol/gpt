@@ -28,6 +28,13 @@ jobs:
           name: manual-pdf
           path: release/manual
 
+      # Issue #10 -- o tarball do fonte. Vem pronto do job source-dist, que
+      # ja conferiu a completude com stuff/check-dist.sh.
+      - uses: actions/download-artifact@v4
+        with:
+          name: gpt-source
+          path: release/source
+
       - name: Repack Windows zip
         run: |
           cd release
@@ -51,6 +58,7 @@ jobs:
             release/gpt-win-x86_64.zip
             release/gpt-linux-x86_64.tar.gz
             release/manual/manual.pdf
+            release/source/*.tar.gz
 
         env:
           GITHUB_TOKEN: ${{ secrets.GH_RELEASE_TOKEN }}

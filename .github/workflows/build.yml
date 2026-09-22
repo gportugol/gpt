@@ -34,6 +34,40 @@ jobs:
           name: manual-pdf
           path: doc/manual.pdf
 
+  # Issue #10 -- o tarball do fonte, que a release publica.
+  #
+  # Roda em TODO build, e nao so na release, de proposito: o modo de falha
+  # aqui e silencioso (o `make dist` sai com exito e o tarball apenas vem
+  # incompleto), entao descobrir na hora da release e descobrir tarde.
+  source-dist:
+    if: ${{ inputs.target == 'source' || inputs.target == 'all' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Build Dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y build-essential autoconf automake libtool \
+            pkg-config libantlr-dev libpcre2-dev nasm
+
+      - name: Build Source Tarball
+        run: |
+          autoreconf -i
+          ./configure --prefix=/usr/local
+          make -j$(nproc)
+          make dist
+
+      - name: Check Tarball Completeness
+        run: stuff/check-dist.sh gpt-*.tar.gz
+
+      - name: Upload Source Tarball
+        uses: actions/upload-artifact@v4
+        with:
+          name: gpt-source
+          path: gpt-*.tar.gz
+
   build-linux:
     if: ${{ inputs.target == 'linux' || inputs.target == 'all' }}
     runs-on: ubuntu-latest
