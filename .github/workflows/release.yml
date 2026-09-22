@@ -3,6 +3,14 @@ on:
   release:
     types: [created]
 
+# Issue #26 -- privilegio minimo para o GITHUB_TOKEN.
+#
+# `contents: read` e o padrao do arquivo; o unico job que precisa escrever
+# e o upload-release-assets, que anexa os ativos a release, e ele sobe o
+# escopo para `contents: write` localmente.
+permissions:
+  contents: read
+
 jobs:
   build-for-release:
     uses: ./.github/workflows/build.yml
@@ -12,18 +20,21 @@ jobs:
   upload-release-assets:
     needs: build-for-release
     runs-on: ubuntu-latest
+    # Unico job do repositorio que escreve: anexa os ativos a release.
+    permissions:
+      contents: write
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: gpt-windows
           path: release/windows
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: gpt-linux
           path: release/linux
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: manual-pdf
           path: release/manual
@@ -45,7 +56,7 @@ jobs:
           rm -rf "gpt-${TAG}"
 
       - name: Upload to GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
         with:
           files: |
             release/gpt-win-x86_64.zip

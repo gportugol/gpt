@@ -8,6 +8,16 @@ on:
     branches:
       - "*"
 
+# Issue #26 -- privilegio minimo para o GITHUB_TOKEN.
+#
+# Sem bloco `permissions:`, o escopo do token vem da configuracao do
+# repositorio/organizacao, que nao aparece no codigo e pode mudar sem que
+# ninguem note. Declarado aqui, o escopo fica versionado. Nenhum job deste
+# arquivo escreve no repositorio: so faz checkout e sobe artefatos (o
+# upload/download de artefatos usa o token de runtime, nao o GITHUB_TOKEN).
+permissions:
+  contents: read
+
 jobs:
   build:
     uses: ./.github/workflows/build.yml
