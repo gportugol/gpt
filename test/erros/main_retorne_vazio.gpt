@@ -1,0 +1,6 @@
+algoritmo retorne_vazio;
+início
+  imprima("a");
+  retorne;
+  imprima("b");
+fim

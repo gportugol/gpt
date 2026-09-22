@@ -1,0 +1,17 @@
+algoritmo main_after_funcs;
+variáveis
+  x : inteiro;
+fim-variáveis
+início
+  x := dobro(21);
+  imprima(x);
+  imprima(triplo(x));
+fim
+função dobro(n: inteiro): inteiro
+início
+  retorne n * 2;
+fim
+função triplo(n: inteiro): inteiro
+início
+  retorne dobro(n) + n;
+fim

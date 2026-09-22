@@ -1,0 +1,7 @@
+algoritmo erro;
+variáveis
+  i : inteiro;
+fim-variáveis
+início
+  para i de 1 até 3 passo 0 faça imprima(i); fim-para
+fim

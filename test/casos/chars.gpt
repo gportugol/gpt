@@ -1,0 +1,21 @@
+algoritmo chars;
+variáveis
+  c : caractere;
+  i : inteiro;
+  s : literal;
+fim-variáveis
+início
+  c := 'a';
+  para i de 0 até 5 faça
+    imprima(c);
+    c := c + 1;
+  fim-para
+  c := '0'; i := c; imprima(i);
+  c := ' '; imprima("[", c, "]");
+  c := '\t'; imprima("[", c, "]");
+  c := 65; imprima(c);
+  c := 'A' + 32; imprima(c);
+  imprima('a' = 97, " ", 'a' < 100);
+  s := "x"; c := 'x'; imprima(s = "x", " ", c = 'x');
+  imprima(c + 0);
+fim

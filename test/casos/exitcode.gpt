@@ -1,0 +1,6 @@
+algoritmo exitcode;
+início
+  imprima("antes");
+  retorne 7;
+  imprima("depois");
+fim

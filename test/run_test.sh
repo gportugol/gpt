@@ -1,113 +1,259 @@
 #!/bin/bash
+#
+# GPT regression suite.
+#
+#   test/tester.gpt   self-checking program (must exit with code 42)
+#   test/casos/       valid programs, run in the three modes:
+#                       NAME.gpt            source
+#                       NAME.entrada        stdin (optional)
+#                       NAME.args           extra command line files
+#                                           (optional, relative to casos/)
+#                       NAME.saida          expected stdout (interpreter)
+#                       NAME.saida.nativo   expected stdout of the native
+#                                           binary, when it differs
+#                       NAME.saida.c        same for the C translation
+#                       NAME.codigo[.nativo|.c]  exit code (default: 0)
+#                       NAME.pular          modes to skip ("interp", "nativo",
+#                                           "c"), or "windows" to skip the
+#                                           whole case on Windows
+#   test/erros/       invalid programs:
+#                       NAME.gpt            source
+#                       NAME.msg            expected stderr of "gpt -s"
+#
+# Files whose name starts with "_" are helpers and are not run.
 
-# Get the directory of this script
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 GPT="$SCRIPT_DIR/../src/gpt"
+TMP="${TMPDIR:-/tmp}/gpt_test_$$"
 
-# Track failures
 FAILURES=0
+PASSED=0
 
-# Check if gpt binary exists
 if [ ! -f "$GPT" ]; then
 	echo "ERRO: gpt binário não encontrado em $GPT"
 	echo "Execute 'make' primeiro."
 	exit 1
 fi
 
-# Detect architecture
+mkdir -p "$TMP"
+trap 'rm -rf "$TMP"' EXIT
+
+# Detect architecture / platform
 ARCH=$(uname -m)
 CAN_EXEC_X86=0
-
 if [ "$ARCH" = "i686" ] || [ "$ARCH" = "x86_64" ]; then
 	CAN_EXEC_X86=1
 fi
 
-cd "$SCRIPT_DIR" || exit 1
+ON_WINDOWS=0
+case "$(uname -o 2>/dev/null)" in
+	Msys | Cygwin) ON_WINDOWS=1 ;;
+esac
 
-echo "========================================"
-echo "Testando a interpretação (-i)"
-echo "========================================"
-$GPT -i tester.gpt
-RESULT=$?
-echo "Código de saída: $RESULT"
-if [ $RESULT -eq 42 ]; then
-	echo "✓ Interpretação OK"
-else
-	echo "✗ Interpretação FALHOU (esperado: 42)"
-	FAILURES=$((FAILURES + 1))
+HAVE_GCC=0
+if command -v gcc &>/dev/null; then
+	HAVE_GCC=1
 fi
-echo ""
 
-echo "========================================"
-echo "Testando a compilação nativa (-o)"
-echo "========================================"
-$GPT -o tester_bin tester.gpt
-if $GPT -o tester_bin tester.gpt; then
-	echo "✓ Compilação OK"
-	if [ $CAN_EXEC_X86 -eq 1 ]; then
-		./tester_bin
-		RESULT=$?
-		echo "Código de saída: $RESULT"
-		if [ $RESULT -eq 42 ]; then
-			echo "✓ Execução OK"
-		else
-			echo "✗ Execução FALHOU (esperado: 42)"
-			FAILURES=$((FAILURES + 1))
-		fi
-	else
-		echo "⚠ Pulando execução (arquitetura $ARCH, binário x86)"
+if command -v timeout &>/dev/null; then
+	TIMEOUT="timeout 60"
+else
+	TIMEOUT=""
+fi
+
+ok() {
+	echo "✓ $1"
+	PASSED=$((PASSED + 1))
+}
+
+fail() {
+	echo "✗ $1"
+	FAILURES=$((FAILURES + 1))
+}
+
+# check <description> <stdout file> <exit code> <expected .saida> <expected .codigo>
+check() {
+	local desc="$1" got="$2" rc="$3" exp="$4" exp_rc="$5"
+	local want_rc=0
+	if [ -f "$exp_rc" ]; then
+		want_rc=$(tr -d '[:space:]' <"$exp_rc")
 	fi
-	rm -f tester_bin
-else
-	echo "✗ Compilação FALHOU"
-	FAILURES=$((FAILURES + 1))
-fi
-echo ""
+	if [ "$rc" != "$want_rc" ]; then
+		fail "$desc: código de saída $rc (esperado: $want_rc)"
+		return
+	fi
+	got=$(norm "$got")
+	exp=$(norm "$exp")
+	if ! cmp -s "$got" "$exp"; then
+		fail "$desc: saída diferente da esperada"
+		diff "$exp" "$got" | head -20
+		return
+	fi
+	ok "$desc"
+}
+
+# On Windows both git (autocrlf) and MinGW programs produce CRLF while the
+# native binaries write LF, and gpt converts accented characters of its
+# messages to the OEM code page (CP437 on the CI runner), where ã, õ and the
+# accented capitals other than É do not exist and become the plain letter:
+# fold those, then compare without carriage returns and non-ASCII bytes.
+norm() {
+	if [ $ON_WINDOWS -eq 1 ]; then
+		sed 's/ã/a/g; s/õ/o/g; s/[ÁÀÂÃ]/A/g; s/Ê/E/g; s/Í/I/g; s/[ÓÔÕ]/O/g; s/Ú/U/g' <"$1" |
+			tr -d '\r\200-\377' >"$TMP/$(basename "$1").lf"
+		echo "$TMP/$(basename "$1").lf"
+	else
+		echo "$1"
+	fi
+}
+
+# expected file specific to the mode, when there is one
+expected_for() {
+	local base="$1" ext="$2" mode="$3"
+	if [ -f "$base.$ext.$mode" ]; then
+		echo "$base.$ext.$mode"
+	else
+		echo "$base.$ext"
+	fi
+}
+
+skip_mode() {
+	local base="$1" mode="$2"
+	[ -f "$base.pular" ] || return 1
+	if [ $ON_WINDOWS -eq 1 ] && grep -qw "windows" "$base.pular"; then
+		return 0
+	fi
+	grep -qw "$mode" "$base.pular"
+}
+
+# run_caso <.gpt file> <prefix of the expected files>
+run_caso() {
+	local src="$1" base="$2"
+	local name
+	name=$(basename "$src" .gpt)
+	local dir
+	dir=$(dirname "$src")
+	local stdin=/dev/null
+	[ -f "$base.entrada" ] && stdin="$base.entrada"
+	local extra=""
+	if [ -f "$base.args" ]; then
+		for a in $(cat "$base.args"); do
+			extra="$extra $dir/$a"
+		done
+	fi
+
+	# interpretador
+	if ! skip_mode "$base" "interp"; then
+		$TIMEOUT "$GPT" -i "$src" $extra <"$stdin" >"$TMP/$name.i.out" 2>"$TMP/$name.i.err"
+		check "$name (-i)" "$TMP/$name.i.out" $? \
+			"$(expected_for "$base" saida interp)" "$(expected_for "$base" codigo interp)"
+	fi
+
+	# binário nativo
+	if ! skip_mode "$base" "nativo"; then
+		if $TIMEOUT "$GPT" -o "$TMP/$name.bin" "$src" $extra >"$TMP/$name.o.build" 2>&1; then
+			if [ $CAN_EXEC_X86 -eq 1 ]; then
+				$TIMEOUT "$TMP/$name.bin" <"$stdin" >"$TMP/$name.o.out" 2>"$TMP/$name.o.err"
+				check "$name (-o)" "$TMP/$name.o.out" $? \
+					"$(expected_for "$base" saida nativo)" "$(expected_for "$base" codigo nativo)"
+			else
+				echo "⚠ $name (-o): execução pulada (arquitetura $ARCH)"
+			fi
+		else
+			fail "$name (-o): compilação falhou"
+			head -5 "$TMP/$name.o.build"
+		fi
+	fi
+
+	# tradução para C
+	if ! skip_mode "$base" "c"; then
+		if [ $ON_WINDOWS -eq 1 ] || [ $HAVE_GCC -eq 0 ]; then
+			if $TIMEOUT "$GPT" -t "$TMP/$name.c" "$src" $extra >"$TMP/$name.t.build" 2>&1; then
+				ok "$name (-t): tradução gerada (execução pulada nesta plataforma)"
+			else
+				fail "$name (-t): tradução falhou"
+			fi
+		elif ! $TIMEOUT "$GPT" -t "$TMP/$name.c" "$src" $extra >"$TMP/$name.t.build" 2>&1; then
+			fail "$name (-t): tradução falhou"
+			head -5 "$TMP/$name.t.build"
+		elif ! gcc -w -o "$TMP/$name.cbin" "$TMP/$name.c" >"$TMP/$name.gcc" 2>&1; then
+			fail "$name (-t): C gerado não compila"
+			head -5 "$TMP/$name.gcc"
+		else
+			$TIMEOUT "$TMP/$name.cbin" <"$stdin" >"$TMP/$name.t.out" 2>"$TMP/$name.t.err"
+			check "$name (-t)" "$TMP/$name.t.out" $? \
+				"$(expected_for "$base" saida c)" "$(expected_for "$base" codigo c)"
+		fi
+	fi
+}
 
 echo "========================================"
-echo "Testando geração de assembly (-s)"
+echo "tester.gpt"
 echo "========================================"
-$GPT -s tester.asm tester.gpt
-if $GPT -s tester.asm tester.gpt && [ -f tester.asm ]; then
-	echo "✓ Geração de assembly OK"
-	# Check if we can assemble it
+cd "$SCRIPT_DIR" || exit 1
+run_caso "$SCRIPT_DIR/tester.gpt" "$SCRIPT_DIR/tester"
+
+if $TIMEOUT "$GPT" -s "$TMP/tester.asm" tester.gpt >/dev/null 2>&1 && [ -f "$TMP/tester.asm" ]; then
+	ok "tester.gpt (-s): geração de assembly"
 	if command -v nasm &>/dev/null; then
-		nasm -O1 -fbin -o tester_asm_bin tester.asm 2>/dev/null
-		if nasm -O1 -fbin -o tester_asm_bin tester.asm 2>/dev/null; then
-			echo "✓ Assembly com NASM OK"
-			rm -f tester_asm_bin
+		NASM_FORMAT=bin
+		[ $ON_WINDOWS -eq 1 ] && NASM_FORMAT=win32
+		if nasm -O1 -f $NASM_FORMAT -o "$TMP/tester_asm_bin" "$TMP/tester.asm" 2>/dev/null; then
+			ok "tester.gpt (-s): montagem com NASM"
 		else
 			echo "⚠ NASM falhou ao montar (pode ser normal em ARM)"
 		fi
 	else
 		echo "⚠ NASM não encontrado"
 	fi
-	rm -f tester.asm
 else
-	echo "✗ Geração de assembly FALHOU"
-	FAILURES=$((FAILURES + 1))
+	fail "tester.gpt (-s): geração de assembly"
 fi
 echo ""
 
 echo "========================================"
-echo "Testando tradução para C (-t)"
+echo "Casos de regressão (test/casos)"
 echo "========================================"
-$GPT -t tester.c tester.gpt 2>&1
-if $GPT -t tester.c tester.gpt && [ -f tester.c ]; then
-	echo "✓ Tradução para C OK"
-	rm -f tester.c
-else
-	echo "⚠ Tradução para C não implementada (ANTLR4 migration pending)"
-fi
+for src in "$SCRIPT_DIR"/casos/*.gpt; do
+	name=$(basename "$src" .gpt)
+	case "$name" in _*) continue ;; esac
+	run_caso "$src" "$SCRIPT_DIR/casos/$name"
+done
+echo ""
+
+echo "========================================"
+echo "Erros de compilação (test/erros)"
+echo "========================================"
+# run from erros/ so that messages carry only the file name
+cd "$SCRIPT_DIR/erros" || exit 1
+for src in *.gpt; do
+	name=$(basename "$src" .gpt)
+	case "$name" in _*) continue ;; esac
+	$TIMEOUT "$GPT" -s "$TMP/$name.asm" "$src" </dev/null >"$TMP/$name.e.out" 2>"$TMP/$name.e.err"
+	rc=$?
+	if [ $rc -eq 0 ]; then
+		fail "$name: programa inválido foi aceito"
+	elif [ $rc -ge 128 ]; then
+		fail "$name: gpt abortou (código $rc)"
+		tail -3 "$TMP/$name.e.err"
+	elif ! cmp -s "$(norm "$TMP/$name.e.err")" "$(norm "$name.msg")"; then
+		fail "$name: mensagem diferente da esperada"
+		diff "$(norm "$name.msg")" "$(norm "$TMP/$name.e.err")" | head -10
+	else
+		ok "$name"
+	fi
+done
+cd "$SCRIPT_DIR" || exit 1
 echo ""
 
 echo "========================================"
 echo "Resumo dos testes"
 echo "========================================"
+echo "$PASSED verificação(ões) passou(aram)"
 if [ $FAILURES -eq 0 ]; then
 	echo "✓ Todos os testes passaram!"
 	exit 0
 else
-	echo "✗ $FAILURES teste(s) falhou(aram)"
+	echo "✗ $FAILURES verificação(ões) falhou(aram)"
 	exit 1
 fi

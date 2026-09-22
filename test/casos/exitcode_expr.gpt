@@ -1,0 +1,8 @@
+algoritmo exitcode_expr;
+variáveis
+  a : inteiro;
+fim-variáveis
+início
+  a := 3;
+  retorne a * 2 + 1;
+fim

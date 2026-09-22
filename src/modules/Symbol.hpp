@@ -114,6 +114,28 @@ public:
 
   static string typeToString(int type);
 
+  // Getters and setters
+  void setLexeme(const string &l) { lexeme = l; }
+  string getLexeme() const { return lexeme; }
+
+  void setScope(const string &s) { scope = s; }
+  string getScope() const { return scope; }
+
+  void setLine(int l) { line = l; }
+  int getLine() const { return line; }
+
+  void setType(const SymbolType &t) { type = t; }
+  SymbolType &getType() { return type; }
+
+  void setIsFunction(bool f) { isFunction = f; }
+  bool isFunction_() const { return isFunction; }
+
+  void setParams(const list<SymbolType> &p) {
+    for (const auto &t : p) {
+      param.add("", const_cast<SymbolType &>(t));
+    }
+  }
+
   // attrs
 
   int cd;

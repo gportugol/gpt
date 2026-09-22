@@ -25,10 +25,12 @@ make -j$(nproc)
 bash test/run_test.sh
 ```
 
-O projeto requer ANTLR 2.x, PCRE2, Autotools, um compilador C++ e NASM. O
-script de testes verifica interpretação, compilação nativa, geração de assembly
-e, quando possível, montagem com NASM. Em máquinas que não são x86, a execução
-do binário nativo é pulada.
+O projeto requer ANTLR 4.x (ferramenta `antlr4` e runtime C++), PCRE2,
+Autotools, um compilador C++ e NASM. O script de testes executa os programas de
+`test/casos/` no interpretador, como binário nativo e como tradução para C,
+comparando as saídas com as esperadas, e verifica as mensagens de erro dos
+programas de `test/erros/`. Em máquinas que não são x86, a execução do binário
+nativo é pulada.
 
 ## Fazendo uma alteração
 
@@ -54,23 +56,26 @@ artefatos gerados no pull request.
   pre-commit run --all-files
   ```
 
-### Gramáticas ANTLR
+### Gramática ANTLR
 
-Os arquivos em `src/modules/parser/`, `interpreter/`, `c_translator/` e `x86`
-incluem fontes geradas durante o build. Para alterar a sintaxe ou os walkers,
-edite as gramáticas `.g` correspondentes, não os arquivos gerados como
-`PortugolLexer.cpp`, `PortugolParser.cpp`, `SemanticWalker.cpp`,
-`InterpreterWalker.cpp`, `Portugol2CWalker.cpp` ou `X86Walker.cpp`.
+O lexer, o parser e os visitors em `src/modules/parser/` são gerados durante o
+build a partir de `Portugol.g4`. Para alterar a sintaxe, edite a gramática, não
+os arquivos gerados (`PortugolLexer.cpp`, `PortugolParser.cpp`,
+`PortugolVisitor.cpp`, `PortugolBaseVisitor.cpp`). A análise semântica, o
+interpretador, o gerador x86 e o tradutor para C são classes C++ que percorrem
+a árvore sintática gerada.
 
-Após mudar uma gramática, execute um build que force a regeneração e teste todos
-os modos de execução afetados. O lexer gera tipos de token consumidos pelos
-módulos de tradução, interpretação e x86.
+Após mudar a gramática, execute um build que force a regeneração e teste todos
+os modos de execução afetados.
 
 ### Testes e exemplos
 
-Adicione casos de regressão em `test/tester.gpt` quando for adequado, ou crie um
-teste específico em `test/`. Para alterações que afetem o comportamento da
-linguagem, cubra tanto o comportamento esperado quanto o caso que antes falhava.
+Adicione casos de regressão em `test/casos/` (programa `.gpt`, entrada
+`.entrada` opcional, saída esperada `.saida` e código de saída `.codigo`) ou em
+`test/erros/` (programa `.gpt` e mensagem esperada `.msg`), ou em
+`test/tester.gpt` quando for adequado. Para alterações que afetem o
+comportamento da linguagem, cubra tanto o comportamento esperado quanto o caso
+que antes falhava.
 
 Você pode testar manualmente um exemplo compilado:
 

@@ -1,0 +1,7 @@
+algoritmo erro;
+início
+  f("x");
+fim
+função f(a: inteiro)
+início
+fim
