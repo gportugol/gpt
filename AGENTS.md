@@ -1,0 +1,90 @@
+# Guia para agentes
+
+## Visão geral
+
+G-Portugol é uma implementação em C++ da linguagem didática Portugol. O binário
+`gpt` pode interpretar programas, compilá-los para executáveis x86, gerar
+assembly e traduzir para C. O projeto usa Autotools, ANTLR 2.x e PCRE2, e deve
+continuar compatível com GNU/Linux e Windows/MSYS2.
+
+## Estrutura do repositório
+
+- `src/`: ponto de entrada e coordenação do compilador.
+- `src/modules/parser/`: lexer, parser e análise semântica. As gramáticas
+  ANTLR são `lexer.g`, `parser.g` e `semantic.g`.
+- `src/modules/interpreter/`: interpretador e depurador.
+- `src/modules/x86/`: gerador de assembly x86 e trechos de runtime.
+- `src/modules/c_translator/`: tradutor de Portugol para C.
+- `lib/base.gpt`: biblioteca padrão da linguagem.
+- `test/`: programa de regressão `tester.gpt` e `run_test.sh`.
+- `exemplos/`: programas de exemplo.
+- `doc/`: páginas de manual e fonte LaTeX do manual.
+- `packages/win_setup/`: empacotamento e recursos do instalador Windows.
+
+## Ambiente, build e testes
+
+No GNU/Linux, instale as dependências descritas em `HACKING.md`: compilador
+C++, make, autoconf, automake, libtool, pkg-config, ANTLR 2.x (`runantlr` e
+`antlr-config`), PCRE2 e NASM.
+
+```bash
+autoreconf -i
+./configure --prefix=/usr/local
+make -j$(nproc)
+bash test/run_test.sh
+```
+
+O teste requer `src/gpt` já compilado. Ele verifica interpretação, compilação
+nativa, geração de assembly e, quando disponível, montagem com NASM. Em hosts
+que não são x86, a execução do binário nativo é pulada intencionalmente.
+
+Para uma verificação rápida e manual:
+
+```bash
+src/gpt -i exemplos/olamundo.gpt
+src/gpt -o olamundo exemplos/olamundo.gpt && ./olamundo
+```
+
+Não execute `make install` sem uma razão explícita. Para validar a instalação
+sem alterar o sistema, use `make install DESTDIR="$PWD/release"`.
+
+## Regras para mudanças
+
+- Mantenha o escopo mínimo e preserve compatibilidade com o estilo C++ já
+  presente no arquivo modificado; o código legado usa `std::string` exposto por
+  headers e ponteiros crus em diversos pontos.
+- Rode `pre-commit run --all-files` quando disponível. O hook aplica
+  `clang-format` a C/C++ e também verifica espaços finais, conflitos e arquivos
+  grandes.
+- Ao alterar comportamento da linguagem, adicione ou ajuste um caso em
+  `test/tester.gpt` (ou crie um teste específico) e execute o script de testes.
+- Ao alterar opções da CLI, atualize a ajuda em `src/GPT.cpp` e a documentação
+  aplicável.
+- Preserve os avisos de licença/copyright existentes nos arquivos C++ que forem
+  modificados. Não troque a licença GPL-2.0 do projeto.
+
+## ANTLR e arquivos gerados
+
+As fontes dos walkers, lexer e parser são geradas durante o build e estão em
+`BUILT_SOURCES`/`CLEANFILES` nos respectivos `Makefile.am`. Edite as gramáticas
+`.g`, não arquivos como `PortugolLexer.cpp`, `PortugolParser.cpp`,
+`SemanticWalker.cpp`, `InterpreterWalker.cpp`, `Portugol2CWalker.cpp` ou
+`X86Walker.cpp` quando eles tiverem sido gerados localmente.
+
+Ao mudar uma gramática, faça um build limpo o suficiente para forçar a geração
+e confira os consumidores correspondentes. O lexer também distribui
+`PortugolTokenTypes.txt` aos módulos de tradução, interpretação e x86.
+
+## Portabilidade
+
+- Evite dependências e comandos exclusivos de Linux no código do produto.
+- Teste ou considere os caminhos condicionais de Windows ao mexer em arquivos,
+  processos temporários, assembly e flags de compilação.
+- O CI é a referência para os builds Linux e Windows; mantenha `HACKING.md` e
+  os workflows coerentes quando o processo de build mudar.
+
+## Antes de concluir
+
+Relate os arquivos alterados, os comandos de validação executados e qualquer
+limitação de ambiente (por exemplo, ANTLR/NASM indisponível). Não inclua
+artefatos de build, binários de teste ou arquivos temporários no patch.
