@@ -3,6 +3,14 @@
 Todas as mudanças relevantes do **GPT (GPortugol)** organizadas por release.
 Este arquivo foi consolidado a partir do ChangeLog histórico (CVS/SVN).
 
+## [Unreleased]
+
+### Adicionado
+
+- Suíte de regressão em `test/casos/` e `test/erros/`: `test/run_test.sh`
+  compara a saída dos três modos de execução com as saídas esperadas e as
+  mensagens de erro de compilação.
+
 ## [1.2.0] - 2026-01-06
 
 ### Adicionado

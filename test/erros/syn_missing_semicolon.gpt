@@ -1,0 +1,8 @@
+algoritmo erro;
+variáveis
+  a : inteiro;
+fim-variáveis
+início
+  a := 1
+  imprima(a);
+fim

@@ -1,0 +1,5 @@
+algoritmo erro;
+início
+  a : inteiro;
+  a := 1;
+fim

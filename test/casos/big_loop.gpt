@@ -1,0 +1,16 @@
+algoritmo big_loop;
+variáveis
+  i, s : inteiro;
+  r : real;
+fim-variáveis
+início
+  s := 0;
+  para i de 1 até 100000 faça s := s + i; fim-para
+  imprima(s);
+  r := 0;
+  para i de 1 até 1000 faça r := r + 0.001; fim-para
+  imprima(r);
+  i := 0;
+  enquanto i < 200000 faça i := i + 1; fim-enquanto
+  imprima(i);
+fim

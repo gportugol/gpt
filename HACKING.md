@@ -46,6 +46,14 @@ make -j$(nproc)
 
 ### 3. Testar no Debian/Ubuntu
 
+A suíte de regressão compara a saída do interpretador, do binário nativo e da
+tradução para C com as saídas esperadas em `test/casos/`, e as mensagens de
+erro com `test/erros/`:
+
+```shell
+bash test/run_test.sh
+```
+
 #### Interpretador no Debian/Ubuntu
 
 ```shell

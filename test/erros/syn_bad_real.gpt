@@ -1,0 +1,7 @@
+algoritmo erro;
+variáveis
+  r : real;
+fim-variáveis
+início
+  r := 1.;
+fim

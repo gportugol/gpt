@@ -1,0 +1,10 @@
+algoritmo erro;
+variáveis
+  m : matriz[2][2] de inteiros;
+fim-variáveis
+início
+  f(m);
+fim
+função f(a: matriz[2] de inteiros)
+início
+fim

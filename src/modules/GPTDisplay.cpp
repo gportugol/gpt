@@ -26,6 +26,7 @@
 #endif
 
 #include <iostream>
+#include <vector>
 
 using namespace std;
 
@@ -58,11 +59,10 @@ string GPTDisplay::toLatin1(const string &str) {
 
 string GPTDisplay::toOEM(const string &str) {
 #ifdef WIN32
-  string ret;
-  char buffer[str.length()];
-  CharToOem(toLatin1(str.c_str()).c_str(), buffer);
-  ret = buffer;
-  return ret;
+  string latin1 = toLatin1(str);
+  vector<char> buffer(latin1.length() + 1);
+  CharToOem(latin1.c_str(), buffer.data());
+  return string(buffer.data());
 #else
   return str;
 #endif
