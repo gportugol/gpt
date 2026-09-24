@@ -1,0 +1,3 @@
+inf
+-inf
+depois

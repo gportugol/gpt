@@ -1,0 +1,10 @@
+ALGORITMO upper;
+VARIÁVEIS
+  a : INTEIRO;
+FIM-VARIÁVEIS
+INÍCIO
+  a := 1;
+  SE a = 1 ENTÃO imprima("um"); SENÃO imprima("outro"); FIM-SE
+  Enquanto a < 3 Faça a := a + 1; Fim-Enquanto
+  imprima(a, " ", VERDADEIRO, " ", Falso, " ", NÃO falso, " ", verdadeiro E verdadeiro, " ", falso OU verdadeiro);
+FIM

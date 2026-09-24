@@ -1,0 +1,4 @@
+algoritmo erro;
+início
+  se verdadeiro imprima(1); fim-se
+fim

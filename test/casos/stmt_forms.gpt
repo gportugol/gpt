@@ -1,0 +1,23 @@
+algoritmo stmt_forms;
+variáveis
+  a : inteiro;
+fim-variáveis
+início
+  a := 1;
+  imprima(a);
+  se a = 1 então
+  fim-se
+  enquanto falso faça
+  fim-enquanto
+  para a de 1 até 0 faça
+  fim-para
+  repita
+  até verdadeiro;
+  imprima("ok");
+  f();
+  f();
+fim
+função f()
+início
+  imprima("f");
+fim

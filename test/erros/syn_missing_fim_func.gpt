@@ -1,0 +1,7 @@
+algoritmo erro;
+início
+  f();
+fim
+função f()
+início
+  imprima(1);

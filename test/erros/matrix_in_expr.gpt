@@ -1,0 +1,8 @@
+algoritmo erro;
+variáveis
+  m : matriz[2] de inteiros;
+  a : inteiro;
+fim-variáveis
+início
+  a := m + 1;
+fim

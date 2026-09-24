@@ -26,9 +26,10 @@ bash test/run_test.sh
 ```
 
 O projeto requer ANTLR 2.x, PCRE2, Autotools, um compilador C++ e NASM. O
-script de testes verifica interpretação, compilação nativa, geração de assembly
-e, quando possível, montagem com NASM. Em máquinas que não são x86, a execução
-do binário nativo é pulada.
+script de testes executa os programas de `test/casos/` no interpretador, como
+binário nativo e como tradução para C, comparando as saídas com as esperadas,
+e verifica as mensagens de erro dos programas de `test/erros/`. Em máquinas que
+não são x86, a execução do binário nativo é pulada.
 
 ## Fazendo uma alteração
 
@@ -68,9 +69,12 @@ módulos de tradução, interpretação e x86.
 
 ### Testes e exemplos
 
-Adicione casos de regressão em `test/tester.gpt` quando for adequado, ou crie um
-teste específico em `test/`. Para alterações que afetem o comportamento da
-linguagem, cubra tanto o comportamento esperado quanto o caso que antes falhava.
+Adicione casos de regressão em `test/casos/` (programa `.gpt`, entrada
+`.entrada` opcional, saída esperada `.saida` e código de saída `.codigo`) ou em
+`test/erros/` (programa `.gpt` e mensagem esperada `.msg`), ou em
+`test/tester.gpt` quando for adequado. Para alterações que afetem o
+comportamento da linguagem, cubra tanto o comportamento esperado quanto o caso
+que antes falhava.
 
 Você pode testar manualmente um exemplo compilado:
 

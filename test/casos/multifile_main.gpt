@@ -1,0 +1,5 @@
+algoritmo multifile;
+início
+  imprima(dobro(4));
+  imprima(arredonda(2.6), " ", absoluto(-3.5), " ", potencia(2, 10), " ", raiz_quadrada(16));
+fim

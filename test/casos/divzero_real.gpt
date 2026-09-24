@@ -1,0 +1,10 @@
+algoritmo divzero_real;
+variáveis
+  a, b : real;
+fim-variáveis
+início
+  a := 1; b := 0;
+  imprima(a / b);
+  imprima(-a / b);
+  imprima("depois");
+fim
