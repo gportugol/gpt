@@ -1305,7 +1305,7 @@ Modo de uso: gpt [opções] arquivos
 Opções:
    -v            mostra versão do programa
    -h            mostra esse texto
-   -o <arquivo>  compila e salva executável como <arquivo>
+   -o <arquivo>  compila e salva executável como <arquivo> (só em x86)
    -t <arquivo>  salva o código em linguagem C como <arquivo>
    -s <arquivo>  salva o código em linguagem assembly como <arquivo>
    -i            interpreta
@@ -1322,7 +1322,9 @@ As opções são comentadas a seguir.
   \item h: exibe todas as opções suportadas pelo programa ``gpt'';
   \item o <arquivo>: Ao compilar um algoritmo, salva o executável com o nome de
     \textit{<arquivo>}. Se essa opção for omitida na compilação, o nome do
-    algoritmo será usado para criar o arquivo executável.
+    algoritmo será usado para criar o arquivo executável. O código gerado é
+    x86 de 32 bits, então essa opção só funciona em máquinas x86; nas demais,
+    use a opção t e compile o código C com o compilador do sistema.
   \item t <arquivo>: Traduz o algoritmo para C, salva o código fonte com o nome
     de \textit{<arquivo>};
   \item s <arquivo>: Compila o algoritmo mas não cria código executável. Salva o

@@ -69,6 +69,10 @@ Mostra dicas no relatório de erros.
 .BI \-o " arq_saída"
 Compila o algoritmo e salva o arquivo executável com o nome
 .I arq_saída.
+O código gerado é x86 de 32 bits, então esta opção só funciona em máquinas x86;
+nas demais, use
+.B \-t
+e compile o código C com o compilador do sistema.
 .br
 .ns
 .TP
