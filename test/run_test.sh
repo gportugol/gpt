@@ -41,9 +41,11 @@ trap 'rm -rf "$TMP"' EXIT
 # Detect architecture / platform
 ARCH=$(uname -m)
 CAN_EXEC_X86=0
-if [ "$ARCH" = "i686" ] || [ "$ARCH" = "x86_64" ]; then
+case "$ARCH" in
+i?86 | x86_64 | amd64)
 	CAN_EXEC_X86=1
-fi
+	;;
+esac
 
 ON_WINDOWS=0
 case "$(uname -o 2>/dev/null)" in
@@ -151,14 +153,12 @@ run_caso() {
 
 	# binário nativo
 	if ! skip_mode "$base" "nativo"; then
-		if $TIMEOUT "$GPT" -o "$TMP/$name.bin" "$src" $extra >"$TMP/$name.o.build" 2>&1; then
-			if [ $CAN_EXEC_X86 -eq 1 ]; then
-				$TIMEOUT "$TMP/$name.bin" <"$stdin" >"$TMP/$name.o.out" 2>"$TMP/$name.o.err"
-				check "$name (-o)" "$TMP/$name.o.out" $? \
-					"$(expected_for "$base" saida nativo)" "$(expected_for "$base" codigo nativo)"
-			else
-				echo "⚠ $name (-o): execução pulada (arquitetura $ARCH)"
-			fi
+		if [ $CAN_EXEC_X86 -eq 0 ]; then
+			echo "⚠ $name (-o): pulado (gpt recusa -o na arquitetura $ARCH)"
+		elif $TIMEOUT "$GPT" -o "$TMP/$name.bin" "$src" $extra >"$TMP/$name.o.build" 2>&1; then
+			$TIMEOUT "$TMP/$name.bin" <"$stdin" >"$TMP/$name.o.out" 2>"$TMP/$name.o.err"
+			check "$name (-o)" "$TMP/$name.o.out" $? \
+				"$(expected_for "$base" saida nativo)" "$(expected_for "$base" codigo nativo)"
 		else
 			fail "$name (-o): compilação falhou"
 			head -5 "$TMP/$name.o.build"
@@ -248,6 +248,55 @@ for src in *.gpt; do
 	fi
 done
 cd "$SCRIPT_DIR" || exit 1
+echo ""
+
+echo "========================================"
+echo "Recusas (código de saída 1)"
+echo "========================================"
+# The refusal checks grep ASCII-only fragments of gpt's diagnostics: on
+# Windows, gpt converts stderr to the OEM code page before writing it.
+if [ $CAN_EXEC_X86 -eq 1 ]; then
+	# Hiding nasm by emptying PATH also hides the MinGW DLLs that gpt.exe
+	# loads from /mingw64/bin, where HACKING.md installs nasm, so a failing
+	# nasm goes first in PATH instead: cmd.exe runs the .bat, sh the script.
+	mkdir -p "$TMP/nasm_falso"
+	printf '#!/bin/sh\nexit 1\n' >"$TMP/nasm_falso/nasm"
+	printf '@exit /b 1\r\n' >"$TMP/nasm_falso/nasm.bat"
+	chmod +x "$TMP/nasm_falso/nasm"
+	ERRO=$(PATH="$TMP/nasm_falso:$PATH" $TIMEOUT "$GPT" -o "$TMP/recusa.bin" tester.gpt 2>&1 >/dev/null)
+	RESULT=$?
+	if [ $RESULT -eq 1 ] && grep -q "montar o programa com o nasm" <<<"$ERRO"; then
+		ok "-o com o nasm falhando"
+	else
+		fail "-o com o nasm falhando: código $RESULT (esperado: 1 e o diagnóstico do gpt)"
+		echo "$ERRO"
+	fi
+else
+	ERRO=$($TIMEOUT "$GPT" -o "$TMP/recusa.bin" tester.gpt 2>&1 >/dev/null)
+	RESULT=$?
+	if [ $RESULT -eq 1 ] && grep -q "Use -t para traduzir" <<<"$ERRO"; then
+		ok "-o na arquitetura $ARCH"
+	else
+		fail "-o na arquitetura $ARCH: código $RESULT (esperado: 1 e o diagnóstico do gpt)"
+		echo "$ERRO"
+	fi
+fi
+
+cat >"$TMP/erro_sintaxe.gpt" <<'EOF'
+algoritmo erro_sintaxe;
+
+início
+  isso nao e um comando
+fim
+EOF
+ERRO=$(cd "$TMP" && $TIMEOUT "$GPT" -i erro_sintaxe.gpt 2>&1 </dev/null >/dev/null)
+RESULT=$?
+if [ $RESULT -eq 1 ] && grep -q "^erro_sintaxe.gpt:4 " <<<"$ERRO"; then
+	ok "-i com erro de sintaxe"
+else
+	fail "-i com erro de sintaxe: código $RESULT (esperado: 1 e o erro da linha 4)"
+	echo "$ERRO"
+fi
 echo ""
 
 echo "========================================"

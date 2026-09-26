@@ -64,6 +64,10 @@ Shows tips in the error report.
 .BI \-o " output_file"
 Compile the source code and save the resulting binary with the name
 .I output_file.
+The generated code is 32-bit x86, so this option only works on x86 machines;
+elsewhere, use
+.B \-t
+and compile the C code with the system compiler.
 .br
 .ns
 .TP

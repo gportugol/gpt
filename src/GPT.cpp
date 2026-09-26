@@ -34,10 +34,18 @@
 #include <antlr/AST.hpp>
 #include <antlr/TokenStreamSelector.hpp>
 
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <unistd.h>
+
+// The native backend emits 32-bit x86 assembly and NASM turns it into a flat
+// binary, so -o only yields something runnable when gpt itself runs on x86.
+#if defined(__i386__) || defined(__x86_64__) || defined(_M_IX86) ||            \
+    defined(_M_X64)
+#define GPT_HOST_X86 1
+#endif
 
 GPT *GPT::_self = 0;
 
@@ -87,7 +95,7 @@ void GPT::showHelp() {
        "Opções:\n"
        "   -v            mostra versão do programa\n"
        "   -h            mostra esse texto\n"
-       "   -o <arquivo>  compila e salva programa como <arquivo>\n"
+       "   -o <arquivo>  compila e salva programa como <arquivo> (só em x86)\n"
        "   -t <arquivo>  salva o código em linguagem C como <arquivo>\n"
        "   -s <arquivo>  salva o código em linguagem Assembly como <arquivo>\n"
        "   -i            interpreta o algoritmo\n"
@@ -153,6 +161,15 @@ bool GPT::compile(const list<string> &ifnames, bool genBinary) {
   bool success = false;
   stringstream s;
 
+#ifndef GPT_HOST_X86
+  if (genBinary) {
+    s << PACKAGE << ": a geração de executável só funciona em máquinas x86. "
+      << "Use -t para traduzir o algoritmo para C." << endl;
+    GPTDisplay::self()->showError(s);
+    return false;
+  }
+#endif
+
   if (!prologue(ifnames)) {
     return false;
   }
@@ -199,8 +216,9 @@ bool GPT::compile(const list<string> &ifnames, bool genBinary) {
       stringstream cmd;
       cmd << "nasm -O1 -fbin -o \"" << ofname << "\" " << ftmpname;
 
-      if (system(cmd.str().c_str()) == -1) {
-        s << PACKAGE << ": não foi possível invocar o nasm." << endl;
+      if (system(cmd.str().c_str()) != 0) {
+        s << PACKAGE << ": não foi possível montar o programa com o nasm."
+          << endl;
         GPTDisplay::self()->showError(s);
         goto bail;
       }
@@ -267,7 +285,7 @@ bool GPT::translate2C(const list<string> &ifnames) {
 
 int GPT::interpret(const list<string> &ifnames, const string &host, int port) {
   if (!prologue(ifnames)) {
-    return 0;
+    return EXIT_FAILURE;
   }
 
   InterpreterWalker interpreter(_stable, host, port);
