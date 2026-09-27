@@ -1,0 +1,20 @@
+14 20 10 -5 3
+0 1 2 10
+5 1 2 2
+-6 -6 1 -5
+verdadeiro verdadeiro
+verdadeiro verdadeiro falso
+falso falso falso verdadeiro
+verdadeiro verdadeiro verdadeiro
+3 3 3
+0 verdadeiro
+-1 5 5 -5 -5
+-6 -1 5 6
+55
+3
+4
+verdadeiro
+verdadeiro
+verdadeiro
+falso
+6

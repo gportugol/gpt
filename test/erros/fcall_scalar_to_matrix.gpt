@@ -1,0 +1,7 @@
+algoritmo erro;
+início
+  f(1);
+fim
+função f(a: matriz[2] de inteiros)
+início
+fim

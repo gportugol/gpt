@@ -1,0 +1,180 @@
+algoritmo funcs;
+variáveis
+  g : inteiro;
+  v : matriz[3] de inteiros;
+fim-variáveis
+início
+  g := 10;
+  imprima(fatorial(5), " ", fib(10), " ", soma(2, 3));
+  imprima(media(3.0, 4.0), " ", media(3, 4));
+  imprima(eh_par(4), " ", eh_par(7));
+  imprima(maior_char('a', 'b'), " ", concat_nome("ab"));
+  sem_retorno();
+  imprima("global antes: ", g);
+  altera_global();
+  imprima("global depois: ", g);
+  sombra();
+  imprima("global apos sombra: ", g);
+  v[0] := 1; v[1] := 2; v[2] := 3;
+  imprima(soma_vetor(v));
+  altera_vetor(v);
+  imprima("vetor apos funcao: ", v[0], " ", v[1], " ", v[2]);
+  imprima(retorno_cedo(5), " ", retorno_cedo(-5));
+  imprima(retorno_loop(3));
+  imprima(ackermann(2, 3));
+  imprima(soma(fatorial(3), fib(5)));
+  imprima(real_para_int(3.9), " ", int_para_real(3));
+  imprima(retorna_logico(), " ", retorna_char(), " ", retorna_str());
+  imprima(param_real(5), " ", param_int(5.9));
+  imprima(muitos(1, 2.5, 'c', "str", verdadeiro));
+  imprima(local_nao_inicializada());
+  imprima(local_nao_inicializada());
+  vazia();
+  retorne 0;
+fim
+
+função fatorial(n: inteiro): inteiro
+início
+  se n <= 1 então retorne 1; fim-se
+  retorne n * fatorial(n - 1);
+fim
+
+função fib(n: inteiro): inteiro
+início
+  se n < 2 então retorne n; fim-se
+  retorne fib(n-1) + fib(n-2);
+fim
+
+função soma(a: inteiro, b: inteiro): inteiro
+início
+  retorne a + b;
+fim
+
+função media(a: real, b: real): real
+início
+  retorne (a + b) / 2;
+fim
+
+função eh_par(n: inteiro): lógico
+início
+  retorne n % 2 = 0;
+fim
+
+função maior_char(a: caractere, b: caractere): caractere
+início
+  se a > b então retorne a; fim-se
+  retorne b;
+fim
+
+função concat_nome(s: literal): literal
+início
+  retorne s;
+fim
+
+função sem_retorno()
+início
+  imprima("sem retorno chamada");
+fim
+
+função altera_global()
+início
+  g := g + 5;
+fim
+
+função sombra()
+  g : inteiro;
+início
+  g := 999;
+  imprima("local g: ", g);
+fim
+
+função soma_vetor(m: matriz[3] de inteiros): inteiro
+  i, s : inteiro;
+início
+  s := 0;
+  para i de 0 até 2 faça s := s + m[i]; fim-para
+  retorne s;
+fim
+
+função altera_vetor(m: matriz[3] de inteiros)
+início
+  m[0] := 100;
+fim
+
+função retorno_cedo(n: inteiro): inteiro
+início
+  se n > 0 então
+    retorne 1;
+  fim-se
+  imprima("negativo");
+  retorne -1;
+fim
+
+função retorno_loop(n: inteiro): inteiro
+  i : inteiro;
+início
+  para i de 0 até 100 faça
+    se i = n então retorne i * 10; fim-se
+  fim-para
+  retorne -1;
+fim
+
+função ackermann(m: inteiro, n: inteiro): inteiro
+início
+  se m = 0 então retorne n + 1; fim-se
+  se n = 0 então retorne ackermann(m - 1, 1); fim-se
+  retorne ackermann(m - 1, ackermann(m, n - 1));
+fim
+
+função real_para_int(r: real): inteiro
+início
+  retorne r;
+fim
+
+função int_para_real(i: inteiro): real
+início
+  retorne i;
+fim
+
+função retorna_logico(): lógico
+início
+  retorne verdadeiro;
+fim
+
+função retorna_char(): caractere
+início
+  retorne 'q';
+fim
+
+função retorna_str(): literal
+início
+  retorne "olá";
+fim
+
+função param_real(r: real): real
+início
+  retorne r / 2;
+fim
+
+função param_int(i: inteiro): inteiro
+início
+  retorne i;
+fim
+
+função muitos(a: inteiro, b: real, c: caractere, d: literal, ee: lógico): literal
+início
+  imprima(a, " ", b, " ", c, " ", d, " ", ee);
+  retorne d;
+fim
+
+função local_nao_inicializada(): inteiro
+  x : inteiro;
+início
+  x := x + 1;
+  retorne x;
+fim
+
+função vazia()
+início
+fim
+

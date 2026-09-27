@@ -1,0 +1,4 @@
+algoritmo erro;
+início
+  se verdadeiro então imprima(1); fim-enquanto
+fim

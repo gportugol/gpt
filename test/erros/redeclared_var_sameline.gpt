@@ -1,0 +1,7 @@
+algoritmo erro;
+variáveis
+  a, a : inteiro;
+fim-variáveis
+início
+  a := 1;
+fim

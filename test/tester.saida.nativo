@@ -1,0 +1,6 @@
+testar_expr_aritm: 0.6 + 0.3 <> 0.9
+testar_expr_aritm: (0.6 + 0.3)/2 <> 0.45
+testar_expr_aritm: 0.6 + 0.8 <> 1.4
+testar_expr_aritm: (0.6 + 0.8)/2 <> 0.7
+ERRO: '\t' <> 9
+Verifique se o resultado de 'echo $?' é 42

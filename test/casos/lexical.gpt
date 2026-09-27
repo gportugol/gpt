@@ -1,0 +1,25 @@
+// comentário de linha
+/* comentário
+   de bloco */
+algoritmo lexical; // comentário após
+variáveis
+  x_1, numero, Maiuscula : inteiro; /* inline */
+  _sub : real;
+fim-variáveis
+início
+  x_1 := 1; numero := 2; Maiuscula := 3; _sub := 4;
+  imprima(x_1, numero, Maiuscula, _sub);
+  imprima(/* dentro */ 5);
+  imprima("// não é comentário", " ", "/* nem isso */");
+  imprima(1+2,3-4,5*6);
+  imprima(   7   );
+  imprima(
+    8,
+    9
+  );
+  imprima(010, " ", 0, " ", 00);
+  imprima(1.0, " ", 10.50, " ", 0.0);
+  imprima('\n');
+  imprima("linha1\nlinha2");
+  imprima("fim-variáveis não é keyword aqui");
+fim

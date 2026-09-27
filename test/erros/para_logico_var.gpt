@@ -1,0 +1,7 @@
+algoritmo erro;
+variáveis
+  l : lógico;
+fim-variáveis
+início
+  para l de 1 até 3 faça imprima(l); fim-para
+fim

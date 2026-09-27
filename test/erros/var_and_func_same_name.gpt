@@ -1,0 +1,10 @@
+algoritmo erro;
+variáveis
+  f : inteiro;
+fim-variáveis
+início
+  f := 1;
+fim
+função f()
+início
+fim

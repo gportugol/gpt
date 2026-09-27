@@ -1,0 +1,17 @@
+algoritmo sem_acentos;
+variaveis
+  a : inteiro;
+  l : logico;
+fim-variaveis
+inicio
+  a := 1;
+  se a = 1 entao imprima("um"); senao imprima("outro"); fim-se
+  enquanto a < 3 faca a := a + 1; fim-enquanto
+  para a de 1 ate 2 faca imprima(a); fim-para
+  l := nao falso; imprima(l);
+  imprima(f(2));
+fim
+funcao f(x: inteiro): inteiro
+inicio
+  retorne x * 2;
+fim

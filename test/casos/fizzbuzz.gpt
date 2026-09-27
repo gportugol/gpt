@@ -1,0 +1,23 @@
+algoritmo fizzbuzz;
+
+variáveis
+  i : inteiro;
+fim-variáveis
+
+início
+  para i de 1 até 15 faça
+    se i % 15 = 0 então
+      imprima("FizzBuzz");
+    senão
+      se i % 3 = 0 então
+        imprima("Fizz");
+      senão
+        se i % 5 = 0 então
+          imprima("Buzz");
+        senão
+          imprima(i);
+        fim-se
+      fim-se
+    fim-se
+  fim-para
+fim

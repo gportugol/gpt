@@ -1,0 +1,9 @@
+algoritmo case_ident;
+variáveis
+  abc : inteiro;
+  ABC : inteiro;
+fim-variáveis
+início
+  abc := 1; ABC := 2;
+  imprima(abc, " ", ABC);
+fim

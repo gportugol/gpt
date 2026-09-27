@@ -1,0 +1,64 @@
+maior
+maior
+b
+enquanto 0
+enquanto 1
+enquanto 2
+enquanto 3
+enquanto 4
+depois: 5
+repita 0
+repita 1
+repita 2
+uma vez
+para 1
+para 2
+para 3
+para 4
+para 5
+i apos para: 5
+desc 5
+desc 4
+desc 3
+desc 2
+desc 1
+i apos desc: 1
+passo3 0
+passo3 3
+passo3 6
+passo3 9
+i apos passo3: 10
+passo-4 10
+passo-4 6
+passo-4 2
+passo+2 0
+passo+2 2
+passo+2 4
+passo+2 6
+passo+2 8
+passo+2 10
+i apos vazio: 1
+uma vez 3
+break 1
+break 2
+break 3
+break 100
+i apos break: 10
+soma 36
+expr 2
+expr 3
+expr 4
+expr 5
+expr 6
+expr 7
+expr 8
+outro 1
+par 2
+mult3 3
+par 4
+outro 5
+par 6
+outro 7
+par 8
+mult3 9
+par 10

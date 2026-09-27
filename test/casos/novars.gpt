@@ -1,0 +1,4 @@
+algoritmo novars;
+início
+  imprima("sem variáveis");
+fim

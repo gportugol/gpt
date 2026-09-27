@@ -1,0 +1,4 @@
+função dobro(n: inteiro): inteiro
+início
+  retorne n * 2;
+fim

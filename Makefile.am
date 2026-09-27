@@ -8,7 +8,8 @@ SUBDIRS = src doc exemplos lib
 
 docdir = $(datadir)/doc/$(PACKAGE)
 
-doc_DATA = README.md README.en.md CHANGELOG.md HACKING.md NEWS.md THANKS
+doc_DATA = AGENTS.md CHANGELOG.md CONTRIBUTING.md HACKING.md INSTALL.md \
+	   NEWS.md README.md README.en.md SECURITY.md THANKS
 
 EXTRA_DIST = INSTALL.default $(doc_DATA)
 

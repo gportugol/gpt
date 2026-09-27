@@ -1,0 +1,30 @@
+algoritmo leia_teste;
+variáveis
+  i : inteiro;
+  r : real;
+  s : literal;
+  c : caractere;
+  l : lógico;
+  v : matriz[3] de inteiros;
+fim-variáveis
+início
+  i := leia(); imprima("i=", i);
+  i := leia(); imprima("i=", i);
+  i := leia(); imprima("i=", i);
+  i := leia(); imprima("i=", i);
+  r := leia(); imprima("r=", r);
+  r := leia(); imprima("r=", r);
+  s := leia(); imprima("s=[", s, "]");
+  s := leia(); imprima("s=[", s, "]");
+  c := leia(); imprima("c=", c);
+  l := leia(); imprima("l=", l);
+  l := leia(); imprima("l=", l);
+  l := leia(); imprima("l=", l);
+  l := leia(); imprima("l=", l);
+  l := leia(); imprima("l=", l);
+  v[leia()] := 42; imprima(v[0], " ", v[1], " ", v[2]);
+  i := leia(); se i = 7 então imprima("sete"); senão imprima("nao sete"); fim-se
+  i := leia(); enquanto i <> 0 faça imprima("loop"); i := leia(); fim-enquanto
+  i := leia(); imprima("eof i=", i);
+  s := leia(); imprima("eof s=[", s, "]");
+fim

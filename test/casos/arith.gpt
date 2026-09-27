@@ -1,0 +1,28 @@
+algoritmo arith;
+variáveis
+  a, b : inteiro;
+  r, s : real;
+fim-variáveis
+início
+  a := 7; b := 2;
+  imprima(a + b, " ", a - b, " ", a * b, " ", a / b, " ", a % b);
+  imprima(-a, " ", +a, " ", -(a + b) * 2);
+  imprima(2 + 3 * 4, " ", (2 + 3) * 4, " ", 10 - 4 - 3, " ", 100 / 10 / 5);
+  imprima(-7 % 3, " ", 7 % -3, " ", -7 / 2);
+  r := 7.5; s := 2;
+  imprima(r + s, " ", r - s, " ", r * s, " ", r / s);
+  imprima(r / 3, " ", 1.0 / 3.0, " ", 2.0 / 3.0, " ", 1.005, " ", 1.449, " ", 250.0);
+  imprima(a / 2.0, " ", 1 / 3, " ", 1.0 / 3);
+  a := 3.99; imprima(a);
+  r := 5; imprima(r);
+  a := 2147483647; imprima(a); a := a + 1; imprima(a);
+  a := -2147483648; imprima(a);
+  imprima(1000000 * 1000);
+  a := 5 | 2; imprima(a); a := 6 & 3; imprima(a); a := 6 ^ 3; imprima(a); a := ~5; imprima(a);
+  imprima(5 | 2 & 3, " ", 5 ^ 1 | 8);
+  r := 0.1 + 0.2; imprima(r);
+  r := -0.5; imprima(r, " ", -r);
+  r := 2.5 * 2; a := r; imprima(a);
+  a := 10; r := a / 4; imprima(r);
+  r := a / 4.0; imprima(r);
+fim

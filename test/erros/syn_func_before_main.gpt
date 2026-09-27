@@ -1,0 +1,7 @@
+algoritmo erro;
+função f()
+início
+fim
+início
+  f();
+fim

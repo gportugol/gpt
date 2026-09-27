@@ -1,0 +1,4 @@
+algoritmo erro;
+início
+  se leia() = 7 então imprima("sete"); fim-se
+fim

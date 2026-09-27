@@ -1,0 +1,31 @@
+algoritmo scoping;
+variáveis
+  x, y : inteiro;
+fim-variáveis
+início
+  x := 1; y := 2;
+  f(10);
+  imprima(x, " ", y);
+  g();
+  imprima(x, " ", y);
+  imprima(h(5), " ", x);
+fim
+função f(x: inteiro)
+início
+  x := x + 1;
+  y := y + x;
+  imprima("f: ", x, " ", y);
+fim
+função g()
+  y : inteiro;
+início
+  y := 100;
+  x := x + 1;
+  imprima("g: ", x, " ", y);
+fim
+função h(a: inteiro): inteiro
+  x : inteiro;
+início
+  x := a * 2;
+  retorne x;
+fim

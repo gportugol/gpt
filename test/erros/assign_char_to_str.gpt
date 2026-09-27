@@ -1,0 +1,7 @@
+algoritmo erro;
+variáveis
+  s : literal;
+fim-variáveis
+início
+  s := 'z';
+fim

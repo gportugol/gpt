@@ -1,0 +1,4 @@
+algoritmo erro;
+início
+  foo(1);
+fim

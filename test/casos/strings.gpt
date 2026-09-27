@@ -1,0 +1,33 @@
+algoritmo strings;
+variáveis
+  s : literal;
+  c : caractere;
+  i : inteiro;
+  r : real;
+fim-variáveis
+início
+  imprima("Olá, mundo! ação, coração, ÀÉÍÓÚ àéíóú ç Ç ñ");
+  imprima("tab\taqui", " ", "nova\nlinha", " ", "aspas \" duplas", " ", "barra \\ invertida");
+  imprima("aspas ' simples", " ", 'x', " ", '\'', " ", '\\');
+  imprima("");
+  imprima("a", "b", "c", 1, 2.5, verdadeiro, 'z');
+  imprima(1, " ", 2, " ", 3);
+  s := "texto com espaços   e   tabs";
+  imprima(s);
+  s := ""; imprima("[", s, "]");
+  s := "ção"; imprima(s);
+  c := 'a'; imprima(c);
+  i := 65; c := i; imprima(c);
+  c := 'A'; i := c; imprima(i);
+  c := 'A' + 1; imprima(c);
+  i := 'a' + 1; imprima(i);
+  imprima('a' < 'b', " ", 'a' + 'b');
+  imprima("número: ", 42, ", real: ", 3.14159, ", lógico: ", falso);
+  r := 1234567.891; imprima(r);
+  r := 0.001; imprima(r);
+  r := -0.004; imprima(r);
+  r := 123456789012.0; imprima(r);
+  imprima(3.14159265358979);
+  imprima(100, " ", -100, " ", 0);
+  imprima("fim");
+fim

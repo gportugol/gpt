@@ -1,0 +1,9 @@
+algoritmo modzero;
+variáveis
+  a, b : inteiro;
+fim-variáveis
+início
+  a := 1; b := 0;
+  imprima(a % b);
+  imprima("depois");
+fim

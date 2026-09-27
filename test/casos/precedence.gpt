@@ -1,0 +1,28 @@
+algoritmo precedence;
+variáveis
+  a, b, c : inteiro;
+  l : lógico;
+fim-variáveis
+início
+  a := 2; b := 3; c := 4;
+  imprima(a + b * c, " ", (a + b) * c, " ", a * b + c, " ", a - b - c, " ", a - (b - c));
+  imprima(a / b * c, " ", a * b / c, " ", 20 / 4 / 2, " ", 20 / (4 / 2));
+  imprima(a + b % c, " ", (a + b) % c, " ", 10 % 4 % 3, " ", 2 * 3 % 4);
+  imprima(-a * b, " ", -(a * b), " ", - a + b, " ", -(a + b));
+  imprima(a < b = verdadeiro, " ", (a < b) = verdadeiro);
+  imprima(a = 2 e b = 3, " ", a = 2 ou b = 9 e falso, " ", (a = 2 ou b = 9) e falso);
+  imprima(não a = 2, " ", não (a = 2), " ", não falso e falso, " ", não (falso e falso));
+  imprima(a + b = 5, " ", a = 5 - b, " ", a + b > c e c > a);
+  imprima(1 | 2 ^ 3 & 4, " ", (1 | 2) ^ (3 & 4), " ", 1 | (2 ^ (3 & 4)));
+  imprima(6 & 3 = 2, " ", (6 & 3) = 2);
+  imprima(~0, " ", ~(~5), " ", -(-5), " ", +(-5), " ", -(+5));
+  imprima(2 * -3, " ", 2 + -3, " ", 2 - -3, " ", -2 * -3);
+  imprima(1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10);
+  imprima(((((1 + 2)))));
+  imprima(a * (b + (c - (a + b))));
+  imprima(verdadeiro ou falso e falso ou falso);
+  imprima(falso e verdadeiro ou verdadeiro);
+  imprima(1 < 2 e 2 < 3 e 3 < 4);
+  imprima(1 <> 2 e não 2 = 3);
+  imprima(10 - 2 * 3 + 4 / 2 % 3);
+fim

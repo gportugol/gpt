@@ -2,7 +2,13 @@ name: pre-commit
 
 on:
   push:
+    branches:
+      - master
   pull_request:
+
+concurrency:
+  group: pre-commit-${{ github.ref == 'refs/heads/master' && github.sha || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   pre-commit:

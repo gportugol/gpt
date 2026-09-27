@@ -1,0 +1,8 @@
+algoritmo erro;
+início
+  imprima(f());
+fim
+função f(): inteiro
+início
+  retorne "x";
+fim

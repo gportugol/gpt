@@ -29,12 +29,19 @@ Source: "bin\nasm.exe"; DestDir: "{app}\bin"
 Source: "bin\gptshell.bat"; DestDir: "{app}\bin"
 Source: "..\..\lib\base.gpt"; DestDir: "{app}\lib"
 Source: "..\..\exemplos\olamundo.gpt"; DestDir: "{app}\codigos"
-Source: "..\..\README.pt_BR"; DestName: "LEIAME.txt"; DestDir: "{app}\doc"; Flags: isreadme
+Source: "..\..\README.md"; DestName: "LEIAME.txt"; DestDir: "{app}\doc"; Flags: isreadme
 Source: "copy\BSD.COPYING.txt"; DestDir: "{app}\doc"
 Source: "copy\GNU.COPYING.txt"; DestDir: "{app}\doc"
 Source: "..\..\AUTHORS"; DestName: "AUTORES.txt"; DestDir: "{app}\doc"
 Source: "..\..\THANKS"; DestName: "AGRADECIMENTOS.txt"; DestDir: "{app}\doc"
-Source: "..\..\NEWS"; DestName: "MUDANÇAS.txt"; DestDir: "{app}\doc"
+Source: "..\..\NEWS.md"; DestName: "MUDANÇAS.txt"; DestDir: "{app}\doc"
+Source: "..\..\README.en.md"; DestDir: "{app}\doc"
+Source: "..\..\INSTALL.md"; DestDir: "{app}\doc"
+Source: "..\..\CHANGELOG.md"; DestDir: "{app}\doc"
+Source: "..\..\HACKING.md"; DestDir: "{app}\doc"
+Source: "..\..\AGENTS.md"; DestDir: "{app}\doc"
+Source: "..\..\CONTRIBUTING.md"; DestDir: "{app}\doc"
+Source: "..\..\SECURITY.md"; DestDir: "{app}\doc"
 Source: "..\..\doc\manual\manual.pdf"; DestName: "G-Portugol - Manual.pdf"; DestDir: "{app}\doc"
 
 

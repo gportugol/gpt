@@ -1,0 +1,7 @@
+algoritmo erro;
+variáveis
+  c : caractere;
+fim-variáveis
+início
+  c := 'ab';
+fim

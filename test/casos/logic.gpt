@@ -1,0 +1,31 @@
+algoritmo logic;
+variáveis
+  a, b : inteiro;
+  l, m : lógico;
+  c, d : caractere;
+  s, t : literal;
+  r : real;
+fim-variáveis
+início
+  a := 3; b := 5;
+  imprima(a < b, " ", a > b, " ", a <= b, " ", a >= b, " ", a = b, " ", a <> b);
+  imprima(a = 3, " ", 3 = a, " ", a <> 3);
+  l := verdadeiro; m := falso;
+  imprima(l, " ", m, " ", l e m, " ", l ou m, " ", não l, " ", não m);
+  imprima(l = m, " ", l <> m, " ", l = verdadeiro, " ", m = falso);
+  imprima(não (a < b), " ", não a < b);
+  imprima(a < b e b < 10, " ", a > b ou b = 5, " ", a < b ou b < 1 e falso);
+  imprima(verdadeiro ou falso e falso);
+  c := 'a'; d := 'b';
+  imprima(c, " ", d, " ", c = d, " ", c <> d, " ", c < d, " ", c = 'a');
+  s := "abc"; t := "abd";
+  imprima(s, " ", t, " ", s = t, " ", s <> t, " ", s = "abc");
+  r := 3.0;
+  imprima(r = a, " ", r = 3, " ", r < 3.5, " ", r >= 3, " ", a = r);
+  imprima(1 < 2 = verdadeiro);
+  l := a < b; imprima(l);
+  l := 1; imprima(l);
+  l := 0; imprima(l);
+  a := verdadeiro; imprima(a);
+  a := falso; imprima(a);
+fim

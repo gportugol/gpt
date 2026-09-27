@@ -1,0 +1,7 @@
+algoritmo erro;
+variáveis
+  l : lógico;
+fim-variáveis
+início
+  l := "verdadeiro";
+fim

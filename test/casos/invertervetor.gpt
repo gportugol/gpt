@@ -1,0 +1,32 @@
+algoritmo inverterVetor;
+
+variáveis
+  a: matriz[10] de inteiros;
+  i, indice_fim, temporario: inteiro;
+fim-variáveis
+
+início
+  // Inicializa o vetor
+  para i de 0 até 9 faça
+    a[i] := i + 1;
+  fim-para
+
+  imprima("Antes: ");
+  para i de 0 até 9 faça
+    imprima(a[i], " ");
+  fim-para
+  imprima("\n");
+
+  // Inversão in-place usando só um 'para' até a metade
+  indice_fim := 9;
+  para i de 0 até 4 faça
+    temporario := a[i];
+    a[i] := a[indice_fim - i];
+    a[indice_fim - i] := temporario;
+  fim-para
+
+  imprima("Depois: ");
+  para i de 0 até 9 faça
+    imprima(a[i], " ");
+  fim-para
+fim
