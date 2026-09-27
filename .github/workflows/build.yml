@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Install TeX Dependencies
         run: |
@@ -29,7 +29,7 @@ jobs:
           pdflatex -interaction=nonstopmode -output-directory=doc doc/manual/manual.tex
 
       - name: Upload PDF Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: manual-pdf
           path: doc/manual.pdf
@@ -39,7 +39,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Install Build Dependencies
         run: |
@@ -63,7 +63,7 @@ jobs:
           mv release/usr/local/* dist/
 
       - name: Upload Linux Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: gpt-linux
           path: dist/*
@@ -74,7 +74,7 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup MSYS2 Environment
         uses: msys2/setup-msys2@v2
@@ -98,7 +98,7 @@ jobs:
 
       - name: Cache JDK 25
         id: cache-jdk
-        uses: actions/cache@v3
+        uses: actions/cache@v6
         with:
           path: D:\a\gpt\gpt\jdk-25.0.1
           key: jdk-25.0.1-cache
@@ -115,7 +115,7 @@ jobs:
 
       - name: Cache ANTLR2 Build
         id: cache-antlr
-        uses: actions/cache@v3
+        uses: actions/cache@v6
         with:
           path: D:/a/_temp/msys64/usr/local
           key: antlr2.7.7-msys2-static
@@ -178,7 +178,7 @@ jobs:
           done
 
       - name: Upload Windows ZIP Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: gpt-windows
           path: dist/*
