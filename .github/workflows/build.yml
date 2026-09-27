@@ -34,6 +34,46 @@ jobs:
           name: manual-pdf
           path: doc/manual.pdf
 
+  # Issue #11 -- o manual em HTML, da MESMA fonte LaTeX que gera o PDF.
+  #
+  # A documentacao estava dividida entre `doc/manual/manual.tex` e o Wiki, o
+  # que duplica informacao e deixa as duas desatualizarem em ritmos
+  # diferentes. Gerando o HTML aqui, a fonte unica passa a ser o `.tex`.
+  #
+  # `pandoc` e nao `latex2html` (que o HACKING.md menciona): o latex2html
+  # pede uma instalacao TeX completa so para converter, e nao e mais
+  # empacotado em varias distribuicoes. Medido neste manual, o pandoc
+  # converte com ZERO avisos e preserva o que importa -- 7 capitulos, 20
+  # secoes, 29 blocos de codigo, 5 tabelas e os acentos.
+  generate-manual-html:
+    if: ${{ inputs.target == 'manual-html' || inputs.target == 'all' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Pandoc
+        run: |
+          sudo apt update
+          sudo apt install -y pandoc
+
+      - name: Generate HTML from manual.tex
+        run: |
+          mkdir -p doc/html
+          pandoc doc/manual/manual.tex \
+            --from=latex \
+            --to=html5 \
+            --standalone \
+            --toc --toc-depth=3 \
+            --metadata lang=pt-BR \
+            --output=doc/html/index.html
+
+      - name: Upload HTML Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: manual-html
+          path: doc/html/
+
   build-linux:
     if: ${{ inputs.target == 'linux' || inputs.target == 'all' }}
     runs-on: ubuntu-latest
