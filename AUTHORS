@@ -1,1 +1,38 @@
+Autores do G-Portugol
+=====================
+
+Desde 2026 os fontes trazem "Copyright (C) 2026 G-Portugol contributors".
+Este arquivo diz quem são essas pessoas.
+
+Aqui está quem contribuiu com código. Quem ajudou de outras formas está em
+THANKS.
+
+
+Autor original
+--------------
+
 Thiago Silva <tsilva@sourcecraft.info>
+    2003-2010 -- a linguagem, o compilador, o interpretador, o tradutor
+    para C e o gerador de assembly. 352 commits.
+
+
+Contribuidores
+--------------
+
+Marcelo Jorge Vieira (metal) <metal@alucinados.com>
+    2025-2026 -- retomada do projeto: integração contínua, empacotamento,
+    release 1.2.0 e a migração para o ANTLR4 em andamento. 29 commits.
+
+Adorilson Bezerra de Araujo <adorilson@gmail.com>
+    2007-2010 -- 15 commits.
+
+Yavor Doganov <yavor@gnu.org>
+    2024 -- porte da biblioteca de expressões regulares para o PCRE2, que
+    é do que o projeto depende hoje.
+
+gregor herrmann <gregoa@debian.org>
+    2012 -- correção dos includes que faltavam para compilar no GCC 4.7.
+
+Matheus Breguêz (matbrgz) <mat.brgz@gmail.com>
+    2026 -- integração contínua, completude da distribuição e suíte de
+    testes.
