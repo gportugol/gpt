@@ -13,17 +13,17 @@ jobs:
     needs: build-for-release
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: gpt-windows
           path: release/windows
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: gpt-linux
           path: release/linux
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: manual-pdf
           path: release/manual
@@ -45,7 +45,7 @@ jobs:
           rm -rf "gpt-${TAG}"
 
       - name: Upload to GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: |
             release/gpt-win-x86_64.zip
