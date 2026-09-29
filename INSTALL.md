@@ -2,8 +2,9 @@
 
 ## Pré-requisitos
 
-- ANTLR:
-  Ferramenta para construção de compiladores (testado com v2.7.5).
+- ANTLR 4:
+  Ferramenta para construção de compiladores (ferramenta `antlr4`, que precisa
+  de Java, e o runtime C++ `libantlr4-runtime`; testado com v4.9 e v4.13).
   <http://www.antlr.org>
 
 - Perl Compatible Regular Expressions (testado com v6.4):
@@ -40,17 +41,14 @@ make install
 
 #### ANTLR
 
-Se você instalou o ANTLR em um diretório não-padrão ou se o binário `antlr` não
-pode ser encontrado pela variável de ambiente PATH, use o argumento
-`--with-antlr-path`.
-
-Exemplo:
+O script `configure` procura o programa `antlr4` no `PATH` e a biblioteca
+`libantlr4-runtime` (com os headers em `antlr4-runtime/`) nos diretórios
+padrão do sistema. Se o `antlr4` estiver em outro lugar, informe-o pela
+variável de ambiente `ANTLR4_CMD`:
 
 ```bash
-./configure --with-antlr=/path/to/antlr
+ANTLR4_CMD=/caminho/para/antlr4 ./configure
 ```
-
-de forma que `/path/to/antlr` seja o caminho do antlr no sistema.
 
 #### Devel
 

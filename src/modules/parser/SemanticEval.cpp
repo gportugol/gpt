@@ -1,4 +1,4 @@
-/***************************************************************************
+/*
  *   Copyright (C) 2003-2006 by Thiago Silva                               *
  *   thiago.silva@kdemal.net                                               *
  *                                                                         *
@@ -16,13 +16,14 @@
  *   along with this program; if not, write to the                         *
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- ***************************************************************************/
+ */
 
 #include "SemanticEval.hpp"
 
 #include "GPTDisplay.hpp"
-#include "SemanticWalkerTokenTypes.hpp"
+#include "PortugolParser.h"
 
+#include <iostream>
 #include <sstream>
 
 ExpressionValue::ExpressionValue()
@@ -168,7 +169,6 @@ string ExpressionValue::toString() const {
     list<int>::const_iterator it;
     for (it = _dimensions.begin(); it != _dimensions.end(); ++it) {
       str += "[";
-      //       str += *it;
       str += "]";
     }
   }
@@ -187,56 +187,52 @@ SymbolTable &SemanticEval::getSymbolTable() { return stable; }
 
 void SemanticEval::setCurrentScope(const string &sc) { currentScope = sc; }
 
-void SemanticEval::declareVar(int type, RefPortugolAST prim) {
+void SemanticEval::declareVar(int type, const TokenRef &prim) {
   if (!evalVariableRedeclaration(currentScope, prim)) {
-    stable.declareVar(currentScope, prim->getText(), prim->getLine(), type);
+    stable.declareVar(currentScope, prim.getText(), prim.getLine(), type);
   }
 }
 
-void SemanticEval::declareVar(int type, list<int> dims, RefPortugolAST mt) {
+void SemanticEval::declareVar(int type, list<int> dims, const TokenRef &mt) {
   stringstream msg;
   for (list<int>::iterator itd = dims.begin(); itd != dims.end(); ++itd) {
     if ((*itd) == 0) {
       msg << "Dimensões de matrizes/conjuntos não podem ter tamanho 0";
-      GPTDisplay::self()->add(msg.str(), mt->getLine());
+      GPTDisplay::self()->add(msg.str(), mt.getLine());
     }
   }
 
   if (!evalVariableRedeclaration(currentScope, mt)) {
-    stable.declareVar(currentScope, mt->getText(), mt->getLine(), type, dims);
+    stable.declareVar(currentScope, mt.getText(), mt.getLine(), type, dims);
   }
 }
 
 // declaration of primitives
-void SemanticEval::declareVars(pair<int, list<RefPortugolAST>> &prims) {
-  list<RefPortugolAST>::iterator it;
-  for (it = prims.second.begin(); it != prims.second.end(); ++it) {
+void SemanticEval::declareVars(int type, const list<TokenRef> &prims) {
+  list<TokenRef>::const_iterator it;
+  for (it = prims.begin(); it != prims.end(); ++it) {
     if (!evalVariableRedeclaration(currentScope, (*it))) {
-      stable.declareVar(currentScope, (*it)->getText(), (*it)->getLine(),
-                        prims.first);
+      stable.declareVar(currentScope, (*it).getText(), (*it).getLine(), type);
     }
   }
 }
 
 // declaration of matrixes
-// pair< pair<type,list<dimensions> >, list<ids> >
-void SemanticEval::declareVars(
-    pair<pair<int, list<int>>, list<RefPortugolAST>> &ms) {
-
+void SemanticEval::declareVars(int type, const list<int> &dims,
+                               const list<TokenRef> &ms) {
   stringstream msg;
-  for (list<int>::iterator itd = ms.first.second.begin();
-       itd != ms.first.second.end(); ++itd) {
+  for (list<int>::const_iterator itd = dims.begin(); itd != dims.end(); ++itd) {
     if ((*itd) == 0) {
       msg << "Dimensões de matrizes/conjuntos não podem ter tamanho 0";
-      GPTDisplay::self()->add(msg.str(), (*(ms.second.begin()))->getLine());
+      GPTDisplay::self()->add(msg.str(), ms.begin()->getLine());
     }
   }
 
-  list<RefPortugolAST>::iterator it;
-  for (it = ms.second.begin(); it != ms.second.end(); ++it) {
+  list<TokenRef>::const_iterator it;
+  for (it = ms.begin(); it != ms.end(); ++it) {
     if (!evalVariableRedeclaration(currentScope, (*it))) {
-      stable.declareVar(currentScope, (*it)->getText(), (*it)->getLine(),
-                        ms.first.first, ms.first.second);
+      stable.declareVar(currentScope, (*it).getText(), (*it).getLine(), type,
+                        dims);
     }
   }
 }
@@ -265,7 +261,7 @@ void SemanticEval::evaluateAttribution(ExpressionValue &lv, ExpressionValue &rv,
   }
 }
 
-ExpressionValue SemanticEval::evaluateLValue(RefPortugolAST id,
+ExpressionValue SemanticEval::evaluateLValue(const TokenRef &id,
                                              list<ExpressionValue> &dim) {
   /*
     1: lvalue (id) deve ter sido declarado no escopo global ou local
@@ -274,22 +270,16 @@ ExpressionValue SemanticEval::evaluateLValue(RefPortugolAST id,
     inteiras. [1.2] ou ["aa"] ->erro
   */
 
-  bool islocal;
   Symbol lvalue;
   ExpressionValue ret;
-  ret.setID(id->getText());
+  ret.setID(id.getText());
 
   try {
-    lvalue = stable.getSymbol(currentScope, id->getText(), true);
-    if (lvalue.scope == SymbolTable::GlobalScope) {
-      islocal = false;
-    } else {
-      islocal = true;
-    }
+    lvalue = stable.getSymbol(currentScope, id.getText(), true);
   } catch (SymbolTableException &e) {
     stringstream msg;
-    msg << "Variável \"" << id->getText() << "\" não foi declarada";
-    GPTDisplay::self()->add(msg.str(), id->getLine());
+    msg << "Variável \"" << id.getText() << "\" não foi declarada";
+    GPTDisplay::self()->add(msg.str(), id.getLine());
     return ret;
   }
 
@@ -297,8 +287,8 @@ ExpressionValue SemanticEval::evaluateLValue(RefPortugolAST id,
 
   if (lvalue.isFunction) {
     stringstream msg;
-    msg << "Faltando abrir parêntesis após função \"" << id->getText() << "\"";
-    GPTDisplay::self()->add(msg.str(), id->getLine());
+    msg << "Faltando abrir parêntesis após função \"" << id.getText() << "\"";
+    GPTDisplay::self()->add(msg.str(), id.getLine());
     return ret;
   }
 
@@ -306,25 +296,22 @@ ExpressionValue SemanticEval::evaluateLValue(RefPortugolAST id,
     ret.set(lvalue.type);
     if (dim.size() > 0) {
       stringstream msg;
-      msg << "Variável \"" << id->getText() << "\" não é uma matriz/conjunto";
-      GPTDisplay::self()->add(msg.str(), id->getLine());
+      msg << "Variável \"" << id.getText() << "\" não é uma matriz/conjunto";
+      GPTDisplay::self()->add(msg.str(), id.getLine());
       return ret;
     } else {
       return ret;
     }
   } else { // matriz/conjunto
 
-    //     ret.setPrimitive(true);
-    //     ret.setPrimitiveType(lvalue.type.primitiveType());
-
     // checar expressoes dos subscritos
     list<ExpressionValue>::iterator it;
     for (it = dim.begin(); it != dim.end(); ++it) {
       if (!(*it).isNumeric(true)) {
         stringstream msg;
-        msg << "Subscritos da matriz/conjunto \"" << id->getText()
+        msg << "Subscritos da matriz/conjunto \"" << id.getText()
             << "\" devem ser valores numéricos inteiros ou equivalente";
-        GPTDisplay::self()->add(msg.str(), id->getLine());
+        GPTDisplay::self()->add(msg.str(), id.getLine());
       }
     }
 
@@ -343,7 +330,7 @@ ExpressionValue SemanticEval::evaluateLValue(RefPortugolAST id,
 
       if (lvalue.type.dimensions().size() != dim.size()) {
         stringstream msg;
-        msg << "Matriz/conjunto \"" << id->getText() << "\" possui "
+        msg << "Matriz/conjunto \"" << id.getText() << "\" possui "
             << lvalue.type.dimensions().size();
 
         if (lvalue.type.dimensions().size() == 1) {
@@ -352,7 +339,7 @@ ExpressionValue SemanticEval::evaluateLValue(RefPortugolAST id,
           msg << " dimensões";
         }
         msg << ". Use " << lvalue.type.dimensions().size() << " subscrito(s)";
-        GPTDisplay::self()->add(msg.str(), id->getLine());
+        GPTDisplay::self()->add(msg.str(), id.getLine());
       }
     } else {
       // variavel matriz sem subscritos, retorna tipo matriz
@@ -379,73 +366,64 @@ void SemanticEval::evaluateParaExpr(ExpressionValue &ev, int line,
       err << "Expressão \"" << term << "\" deve ser do tipo inteiro";
       GPTDisplay::self()->add(err.str(), line);
     }
-  } /*else if(!ev.isNumeric()) {
-    stringstream err;
-    err << "Esperando uma expressão numérica. Encontrado expressão \"" <<
-  ev.toString() << "\""; GPTDisplay::self()->add(err.str(), line);
-  }*/
+  }
 }
 
 ExpressionValue SemanticEval::evaluateExpr(ExpressionValue &left,
                                            ExpressionValue &right,
-                                           RefPortugolAST op) {
+                                           const TokenRef &op) {
   // analisa expressoes binarias
 
   ExpressionValue ret, nulo;
-
-  // operadores suportam apenas primitivos
-  //   if(!left.isPrimitive() || !right.isPrimitive()) {
-  //     return ret;
-  //   }
 
   // não permitir TIPO_ALL em expressões binarias
   if ((left.primitiveType() == TIPO_ALL) ||
       (right.primitiveType() == TIPO_ALL)) {
     stringstream msg;
     msg << "Função interna \"leia\" não pode participar de expressão";
-    GPTDisplay::self()->add(msg.str(), op->getLine());
+    GPTDisplay::self()->add(msg.str(), op.getLine());
     return nulo;
   }
 
-  switch (op->getType()) {
+  switch (op.getType()) {
   // qualquer tipo, contanto que left e right sejam compativeis
-  case SemanticWalkerTokenTypes::T_IGUAL:
-  case SemanticWalkerTokenTypes::T_DIFERENTE:
+  case PortugolParser::T_IGUAL:
+  case PortugolParser::T_DIFERENTE:
 
   // nota sobre literais:
   //  operacoes aplicadas sobre o length() do literal
-  case SemanticWalkerTokenTypes::T_MAIOR:
-  case SemanticWalkerTokenTypes::T_MENOR:
-  case SemanticWalkerTokenTypes::T_MAIOR_EQ:
-  case SemanticWalkerTokenTypes::T_MENOR_EQ:
+  case PortugolParser::T_MAIOR:
+  case PortugolParser::T_MENOR:
+  case PortugolParser::T_MAIOR_EQ:
+  case PortugolParser::T_MENOR_EQ:
 
-  case SemanticWalkerTokenTypes::T_KW_OU:
-  case SemanticWalkerTokenTypes::T_KW_E:
+  case PortugolParser::T_KW_OU:
+  case PortugolParser::T_KW_E:
     if (left.isCompatibleWidth(right)) {
       ret.setPrimitiveType(TIPO_LOGICO);
       return ret;
     } else {
       stringstream msg;
-      msg << "Operador \"" << op->getText()
+      msg << "Operador \"" << op.getText()
           << "\" não pode ser usado em expressões no formato "
-          << "'" << left.toString() << " " << op->getText() << " "
+          << "'" << left.toString() << " " << op.getText() << " "
           << right.toString() << "'";
-      GPTDisplay::self()->add(msg.str(), op->getLine());
+      GPTDisplay::self()->add(msg.str(), op.getLine());
       return nulo;
     }
     break;
 
   // qualquer numerico não-real (inteiro, caractere, lógico)
-  case SemanticWalkerTokenTypes::T_BIT_OU:
-  case SemanticWalkerTokenTypes::T_BIT_XOU:
-  case SemanticWalkerTokenTypes::T_BIT_E:
+  case PortugolParser::T_BIT_OU:
+  case PortugolParser::T_BIT_XOU:
+  case PortugolParser::T_BIT_E:
     ret = evaluateNumTypes(left, right);
     if ((ret.primitiveType() == TIPO_REAL) ||
         (ret.primitiveType() == TIPO_NULO)) {
       stringstream msg;
-      msg << "Operador \"" << op->getText()
+      msg << "Operador \"" << op.getText()
           << "\" só pode ser usado com termos númericos não-reais";
-      GPTDisplay::self()->add(msg.str(), op->getLine());
+      GPTDisplay::self()->add(msg.str(), op.getLine());
       return nulo;
     } else {
       return ret;
@@ -453,29 +431,28 @@ ExpressionValue SemanticEval::evaluateExpr(ExpressionValue &left,
     break;
 
   // qualquer numérico
-  case SemanticWalkerTokenTypes::T_MAIS:
-  case SemanticWalkerTokenTypes::T_MENOS:
-  case SemanticWalkerTokenTypes::T_DIV:
-  case SemanticWalkerTokenTypes::T_MULTIP:
+  case PortugolParser::T_MAIS:
+  case PortugolParser::T_MENOS:
+  case PortugolParser::T_DIV:
+  case PortugolParser::T_MULTIP:
     ret = evaluateNumTypes(left, right);
     if (!ret.isNumeric()) {
       stringstream msg;
-      msg << "Operador \"" << op->getText()
+      msg << "Operador \"" << op.getText()
           << "\" só pode ser usado com termos numéricos";
-      GPTDisplay::self()->add(msg.str(), op->getLine());
+      GPTDisplay::self()->add(msg.str(), op.getLine());
       return nulo;
     } else {
       return ret;
     }
     break;
-  case SemanticWalkerTokenTypes::T_MOD:
+  case PortugolParser::T_MOD:
     ret = evaluateNumTypes(left, right);
     if (!ret.isNumeric(true)) {
       stringstream msg;
-      msg << "Operador \"" << op->getText()
-          << "\" só pode ser usado com termos "
+      msg << "Operador \"" << op.getText() << "\" só pode ser usado com termos "
           << "numéricos inteiros e compatíveis";
-      GPTDisplay::self()->add(msg.str(), op->getLine());
+      GPTDisplay::self()->add(msg.str(), op.getLine());
       return nulo;
     } else {
       return ret;
@@ -484,45 +461,45 @@ ExpressionValue SemanticEval::evaluateExpr(ExpressionValue &left,
   }
 
   stringstream msg;
-  msg << "Erro interno: operador não suportado: " << op->getText();
-  GPTDisplay::self()->add(msg.str(), op->getLine());
+  msg << "Erro interno: operador não suportado: " << op.getText();
+  GPTDisplay::self()->add(msg.str(), op.getLine());
   return nulo;
 }
 
-ExpressionValue SemanticEval::evaluateExpr(ExpressionValue &ev,
-                                           RefPortugolAST unary_op) {
+ExpressionValue SemanticEval::evaluateExpr(ExpressionValue &ev, UnaryOp op,
+                                           const TokenRef &unary_op) {
   ExpressionValue nulo;
 
-  // não permitir TIPO_ALL em expressões binarias
+  // não permitir TIPO_ALL em expressões unárias
   if (ev.primitiveType() == TIPO_ALL) {
     stringstream msg;
     msg << "Função interna \"leia\" não pode participar de expressão";
-    GPTDisplay::self()->add(msg.str(), unary_op->getLine());
+    GPTDisplay::self()->add(msg.str(), unary_op.getLine());
     return nulo;
   }
 
-  switch (unary_op->getType()) {
+  switch (op) {
 
   // operadores unarios para expressões numéricas (retorna o tipo da expressão
   // 'expr')
-  case SemanticWalkerTokenTypes::TI_UN_POS: //+
-  case SemanticWalkerTokenTypes::TI_UN_NEG: //-
+  case UN_POS: //+
+  case UN_NEG: //-
     if (!ev.isNumeric()) {
       stringstream msg;
-      msg << "Operador unário \"" << unary_op->getText()
+      msg << "Operador unário \"" << unary_op.getText()
           << "\" deve ser usado em termos numéricos";
-      GPTDisplay::self()->add(msg.str(), unary_op->getLine());
+      GPTDisplay::self()->add(msg.str(), unary_op.getLine());
       return nulo;
     } else {
       return ev;
     }
     break;
-  case SemanticWalkerTokenTypes::TI_UN_BNOT: //~
+  case UN_BNOT: //~
     if (!ev.isNumeric(true)) {
       stringstream msg;
-      msg << "Operador unário \"" << unary_op->getText()
+      msg << "Operador unário \"" << unary_op.getText()
           << "\" deve ser usado em termos numéricos inteiros e compatíveis";
-      GPTDisplay::self()->add(msg.str(), unary_op->getLine());
+      GPTDisplay::self()->add(msg.str(), unary_op.getLine());
       return nulo;
     } else {
       return ev;
@@ -530,15 +507,15 @@ ExpressionValue SemanticEval::evaluateExpr(ExpressionValue &ev,
     break;
 
   // operador "not", para todos os tipos. Retorna TIPO_LOGICO
-  case SemanticWalkerTokenTypes::TI_UN_NOT:
+  case UN_NOT:
     ev.setPrimitiveType(TIPO_LOGICO);
     return ev;
     break;
   }
 
   stringstream msg;
-  msg << "Erro interno: operador não suportado: " << unary_op->getText() << "";
-  GPTDisplay::self()->add(msg.str(), unary_op->getLine());
+  msg << "Erro interno: operador não suportado: " << unary_op.getText() << "";
+  GPTDisplay::self()->add(msg.str(), unary_op.getLine());
   return nulo;
 }
 
@@ -579,16 +556,16 @@ void SemanticEval::declareFunction(Funcao &f) {
     return;
   }
 
-  Symbol sfunc(SymbolTable::GlobalScope, f.id->getText(), f.id->getLine(), true,
+  Symbol sfunc(SymbolTable::GlobalScope, f.id.getText(), f.id.getLine(), true,
                f.return_type.primitiveType(), f.return_type.dimensions());
 
-  list<pair<RefPortugolAST, SymbolType>>::iterator it = f.params.begin();
+  list<pair<TokenRef, SymbolType>>::iterator it = f.params.begin();
   for (; it != f.params.end(); ++it) {
     if ((*it).second.isPrimitive()) {
-      sfunc.param.add((*it).first->getText(), (*it).second.primitiveType());
+      sfunc.param.add((*it).first.getText(), (*it).second.primitiveType());
       declareVar((*it).second.primitiveType(), (*it).first);
     } else {
-      sfunc.param.add((*it).first->getText(), (*it).second);
+      sfunc.param.add((*it).first.getText(), (*it).second);
       declareVar((*it).second.primitiveType(), (*it).second.dimensions(),
                  (*it).first);
     }
@@ -597,39 +574,24 @@ void SemanticEval::declareFunction(Funcao &f) {
   stable.insertSymbol(sfunc, SymbolTable::GlobalScope);
 }
 
-// ExpressionValue SemanticEval::evaluateFCall(RefPortugolAST f,
-// list<ExpressionValue>& args) {
-//   //avaliar, apenas no final da analise, as chamadas de funcoes (quando todas
-//   elas tiverem sido declaradas)
-//
-//   ExpressionValue v;
-//
-//   //funcoes sao declaradas em escopo global
-//   try {
-//     SymbolType s = stable.getSymbol(SymbolTable::GlobalScope,
-//     f->getText()).type; v.set(s);
-//     fcallsList.push_back(pair<RefPortugolAST,list<ExpressionValue>
-//     >(f,args));
-//   } catch(SymbolTableException& e) {
-//       stringstream msg;
-//       msg << "Função \"" << f->getText() << "\" não foi declarada";
-//       GPTDisplay::self()->add(msg.str(), f->getLine());
-//   }
-//
-//   return v;
-// }
-
-ExpressionValue SemanticEval::evaluateFCall(RefPortugolAST f,
+ExpressionValue SemanticEval::evaluateFCall(const TokenRef &f,
                                             list<ExpressionValue> &args) {
   ExpressionValue v;
   Symbol s;
   try {
-    s = stable.getSymbol(SymbolTable::GlobalScope, f->getText());
+    s = stable.getSymbol(SymbolTable::GlobalScope, f.getText());
     v.set(s.type);
   } catch (SymbolTableException &e) {
     stringstream msg;
-    msg << "Função \"" << f->getText() << "\" não foi declarada";
-    GPTDisplay::self()->add(msg.str(), f->getLine());
+    msg << "Função \"" << f.getText() << "\" não foi declarada";
+    GPTDisplay::self()->add(msg.str(), f.getLine());
+    return v;
+  }
+
+  if (!s.isFunction) {
+    stringstream msg;
+    msg << "\"" << f.getText() << "\" não é uma função";
+    GPTDisplay::self()->add(msg.str(), f.getLine());
     return v;
   }
 
@@ -640,8 +602,8 @@ ExpressionValue SemanticEval::evaluateFCall(RefPortugolAST f,
     if (args.size() == 0) {
       stringstream msg;
       msg << "Pelo menos um argumento deve ser passado para a função \""
-          << f->getText() << "\"";
-      GPTDisplay::self()->add(msg.str(), f->getLine());
+          << f.getText() << "\"";
+      GPTDisplay::self()->add(msg.str(), f.getLine());
       return v;
     }
     // nao permitir matrizes como argumentos de funcoes com parametros variaveis
@@ -651,9 +613,9 @@ ExpressionValue SemanticEval::evaluateFCall(RefPortugolAST f,
       if (!(*it).isPrimitive()) {
         stringstream msg;
         msg << "Argumento " << count;
-        msg << " da função \"" << f->getText()
+        msg << " da função \"" << f.getText()
             << "\" não pode ser matriz/conjunto";
-        GPTDisplay::self()->add(msg.str(), f->getLine());
+        GPTDisplay::self()->add(msg.str(), f.getLine());
         return v;
       }
       count++;
@@ -664,8 +626,8 @@ ExpressionValue SemanticEval::evaluateFCall(RefPortugolAST f,
   if (params.symbolList().size() != args.size()) {
     stringstream msg;
     msg << "Número de argumentos diferem do número de parâmetros da função \""
-        << f->getText() << "\"";
-    GPTDisplay::self()->add(msg.str(), f->getLine());
+        << f.getText() << "\"";
+    GPTDisplay::self()->add(msg.str(), f.getLine());
     return v;
   }
 
@@ -679,9 +641,9 @@ ExpressionValue SemanticEval::evaluateFCall(RefPortugolAST f,
   while ((pit != pend) && (ait != aend)) {
     if (!(*ait).isCompatibleWidth((*pit).second)) {
       stringstream msg;
-      msg << "Argumento " << count << " da função \"" << f->getText()
+      msg << "Argumento " << count << " da função \"" << f.getText()
           << "\" deve ser do tipo \"" << (*pit).second.toString() << "\"";
-      GPTDisplay::self()->add(msg.str(), f->getLine());
+      GPTDisplay::self()->add(msg.str(), f.getLine());
       return v;
     }
     ++count;
@@ -703,17 +665,12 @@ void SemanticEval::evaluatePasso(int line, const string &str) {
  * ***********************************/
 
 bool SemanticEval::evalVariableRedeclaration(const string &scope,
-                                             RefPortugolAST id) {
-
+                                             const TokenRef &id) {
   try {
-    Symbol s = stable.getSymbol(scope, id->getText());
+    stable.getSymbol(scope, id.getText());
     stringstream err;
-    err << "Variável/função redeclarada: \"" << id->getText() << "\"";
-    // usando mais de um arquivo, essa mensagem fica confusa
-    // err << "Variável/função redeclarada: \"" << id->getText() << "\".
-    // Primeira declaração na linha "
-    //     << s.line;
-    GPTDisplay::self()->add(err.str(), id->getLine());
+    err << "Variável/função redeclarada: \"" << id.getText() << "\"";
+    GPTDisplay::self()->add(err.str(), id.getLine());
     return true;
   } catch (SymbolTableException &e) {
     return false;

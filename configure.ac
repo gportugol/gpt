@@ -68,40 +68,89 @@ fi
 AM_CONDITIONAL(BUILD_DEBUGGER, test x$SO_WINDOWS = xno)
 
 dnl------------------------------
-dnl Checks for ANTLR
+dnl Checks for ANTLR4
 dnl------------------------------
 
-AC_PATH_PROG(ANTLR_BIN, runantlr)
+AC_PATH_PROG(ANTLR4_CMD, antlr4)
 
-if test "x${ANTLR}" = "x"; then
-  AC_PATH_PROG(ANTLR_BIN, runantlr)
-fi
-
-if test "x${ANTLR_BIN}" = "x"; then
+if test "x${ANTLR4_CMD}" = "x"; then
   AC_MSG_ERROR(
   [
-    O programa "antlr" (ou runantlr) nao foi encontrado no seu sistema (PATH).
-    GPT precisa do ANTLR (versao 2.7.x) instalado.
+    O programa "antlr4" nao foi encontrado no seu sistema (PATH).
+    GPT precisa do ANTLR4 (versao 4.x) instalado.
+    No Debian/Ubuntu: sudo apt-get install antlr4
     Baixe em: http://www.antlr.org
   ])
 fi
 
-AC_PATH_PROG(ANTLR_CFG, antlr-config)
-if test "x${ANTLR_CFG}" = "x"; then
-  AC_MSG_ERROR(
-  [
-    O programa "antlr-config" nao foi encontrado no seu sistema (PATH).
-    GPT precisa do ANTLR (versao 2.7.x) instalado.
-    Baixe em: http://www.antlr.org
-  ])
+AC_MSG_CHECKING([for ANTLR4])
+AC_MSG_RESULT([$ANTLR4_CMD])
+
+AC_SUBST(ANTLR4_CMD)
+
+dnl Check for ANTLR4 C++ runtime library
+dnl On MSYS2 the runtime lives under the active environment's prefix
+dnl ($MINGW_PREFIX, e.g. /ucrt64). It ships only an import library there,
+dnl which the AC_CHECK_LIB fallback cannot find under -static in LDFLAGS.
+ANTLR4_LIB=""
+
+AC_MSG_CHECKING([for ANTLR4 C++ runtime library])
+
+dnl First check if library exists in standard path or $MINGW_PREFIX/lib
+if test -n "$MINGW_PREFIX" && { test -f "$MINGW_PREFIX/lib/libantlr4-runtime.a" || test -f "$MINGW_PREFIX/lib/libantlr4-runtime.dll.a"; }; then
+  ANTLR4_LIB="-L$MINGW_PREFIX/lib -lantlr4-runtime"
+  AC_MSG_RESULT([yes (in $MINGW_PREFIX/lib)])
+elif test -f "/usr/lib/libantlr4-runtime.so" || test -f "/usr/lib/libantlr4-runtime.a"; then
+  ANTLR4_LIB="-lantlr4-runtime"
+  AC_MSG_RESULT([yes])
+elif test -f "/usr/lib/x86_64-linux-gnu/libantlr4-runtime.so" || test -f "/usr/lib/x86_64-linux-gnu/libantlr4-runtime.a"; then
+  ANTLR4_LIB="-lantlr4-runtime"
+  AC_MSG_RESULT([yes])
+else
+  dnl Fallback: try AC_CHECK_LIB
+  AC_MSG_RESULT([checking with linker...])
+  AC_CHECK_LIB([antlr4-runtime], [main],
+    [ANTLR4_LIB="-lantlr4-runtime"],
+    [])
 fi
 
-ANTLR_LIB=`${ANTLR_CFG} --libs`
-ANTLR_INC=`${ANTLR_CFG} --cflags`
+if test "x$ANTLR4_LIB" = "x"; then
+  AC_MSG_ERROR(
+    [
+      A biblioteca libantlr4-runtime nao foi encontrada.
+      GPT precisa da biblioteca C++ runtime do ANTLR4 instalada.
+      No Debian/Ubuntu: sudo apt-get install libantlr4-runtime-dev
+      No MSYS2 (UCRT64): pacman -S mingw-w64-ucrt-x86_64-antlr4-runtime-cpp
+      Baixe em: http://www.antlr.org
+    ])
+fi
 
-AC_SUBST(ANTLR_BIN)
-AC_SUBST(ANTLR_INC)
-AC_SUBST(ANTLR_LIB)
+dnl Check for ANTLR4 headers - they are in a subdirectory on Debian/MSYS2
+dnl Use -isystem to suppress warnings from ANTLR4 headers
+AC_MSG_CHECKING([for antlr4-runtime.h])
+if test -f "/usr/include/antlr4-runtime/antlr4-runtime.h"; then
+  ANTLR4_INC="-isystem /usr/include/antlr4-runtime"
+  AC_MSG_RESULT([yes (in /usr/include/antlr4-runtime)])
+elif test -n "$MINGW_PREFIX" && test -f "$MINGW_PREFIX/include/antlr4-runtime/antlr4-runtime.h"; then
+  ANTLR4_INC="-isystem $MINGW_PREFIX/include/antlr4-runtime"
+  AC_MSG_RESULT([yes (in $MINGW_PREFIX/include/antlr4-runtime)])
+elif test -f "/usr/include/antlr4-runtime.h"; then
+  ANTLR4_INC=""
+  AC_MSG_RESULT([yes])
+else
+  AC_MSG_RESULT([no])
+  AC_MSG_ERROR(
+    [
+      O header antlr4-runtime.h nao foi encontrado.
+      GPT precisa dos headers da biblioteca C++ runtime do ANTLR4 instalados.
+      No Debian/Ubuntu: sudo apt-get install libantlr4-runtime-dev
+      No MSYS2 (UCRT64): pacman -S mingw-w64-ucrt-x86_64-antlr4-runtime-cpp
+      Baixe em: http://www.antlr.org
+    ])
+fi
+
+AC_SUBST(ANTLR4_INC)
+AC_SUBST(ANTLR4_LIB)
 
 
 dnl------------------------------
@@ -165,9 +214,9 @@ AC_OUTPUT
 
 AC_MSG_NOTICE([
 Sumario:
-	antlr           : $ANTLR_BIN
-	antlr includes  : $ANTLR_INC
-	antr lib        : $ANTLR_LIB
+	ANTLR4 command  : $ANTLR4_CMD
+	ANTLR4 includes : $ANTLR4_INC
+	ANTLR4 lib      : $ANTLR4_LIB
 
 	pcre includes   : $PCRE_INC
 	pcre lib        : $PCRE_LIB

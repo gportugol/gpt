@@ -75,6 +75,12 @@ public:
 
   void setCurrentFile(const string &file);
   string getCurrentFile();
+
+  // Input files are concatenated before parsing; each range maps the first
+  // line of a file in the concatenated input back to its name.
+  void addFileRange(int firstLine, const string &file);
+  void clearFileRanges();
+  void mapLine(int line, string &file, int &localLine);
   //   void addInternalError(const string&);
   //   void addInternalError(const stringstream&);
 
@@ -114,6 +120,9 @@ private:
   errors_map_t _errors;
 
   string _currentFile;
+
+  typedef list<pair<int, string>> file_ranges_t;
+  file_ranges_t _file_ranges;
 };
 
 #endif
