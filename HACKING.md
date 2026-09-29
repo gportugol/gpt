@@ -12,6 +12,7 @@ Dependências:
 - automake
 - libtool
 - pkg-config
+- antlr (ANTLR 2.x — traz o `runantlr`, que o `configure` procura)
 - libantlr-dev (ANTLR 2.x)
 - libpcre2-dev
 - nasm
@@ -23,6 +24,29 @@ Dependências:
 git clone https://github.com/gportugol/gpt.git
 ```
 
+## Atalho: `make`
+
+A partir de um clone recém-feito, o `GNUmakefile` da raiz oferece os
+comandos do dia a dia sem que seja preciso decorar a sequência do
+autotools:
+
+```shell
+make          # lista o que existe
+make deps     # instala as dependências (Debian/Ubuntu)
+make build    # autoreconf + configure + make, na ordem, só o que faltar
+make test     # roda test/run_test.sh
+make dist     # gera o tarball do fonte
+make lint     # roda os hooks do pre-commit
+make ci       # repete build e testes num container limpo
+```
+
+Ele **não substitui** o build: o `configure` continua gerando o `Makefile`
+de verdade, e todo alvo que o `GNUmakefile` não define é repassado a ele.
+`make install`, `make distcheck` e companhia funcionam como sempre.
+
+As seções abaixo descrevem as mesmas etapas uma a uma, para quem preferir
+executá-las diretamente ou estiver em outro sistema.
+
 ## GNU/Linux
 
 O GPT pode ser compilado nativamente em distribuições GNU/Linux, como o
@@ -33,7 +57,7 @@ Debian/Ubuntu, usando os pacotes:
 ```shell
 sudo apt install -y \
   build-essential autoconf automake libtool pkg-config \
-  libantlr-dev libpcre2-dev nasm
+  antlr libantlr-dev libpcre2-dev nasm
 ```
 
 ### 2. Configurar e compilar no Debian/Ubuntu
