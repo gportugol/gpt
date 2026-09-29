@@ -77,14 +77,15 @@ Baixar em <https://www.msys2.org> e instalar o MSYS2
 
 ### 2. Instalar dependências
 
-Abra o terminal **MSYS2 MinGW 64-bit**.
+Abra o terminal **MSYS2 UCRT64**. Os executáveis gerados nesse ambiente usam a
+UCRT, que faz parte do Windows 10 e do Windows Server 2016 em diante.
 
 ```shell
 pacman -Syu --noconfirm
 pacman -S --noconfirm \
   autoconf automake libtool make \
-  mingw-w64-x86_64-gcc mingw-w64-x86_64-gcc-libs \
-  mingw-w64-x86_64-pcre2 pkg-config \
+  mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-gcc-libs \
+  mingw-w64-ucrt-x86_64-pcre2 pkg-config \
   tar unzip wget
 ```
 
@@ -98,8 +99,13 @@ export PATH=$PATH:$(pwd)/jdk-25.0.1/bin
 
 ### 4. Compilar ANTLR 2.7.7 no Windows (com patches aplicados)
 
-O ANTLR 2 é muito antigo e não compila corretamente no `Mingw64` sem correções.
+O ANTLR 2 é muito antigo e não compila corretamente no MinGW-w64 sem correções.
 Precisamos aplicar dois patches usando o `sed`.
+
+Se o ANTLR já foi instalado a partir do terminal MinGW 64-bit, refaça este
+passo inteiro no UCRT64, a partir de uma extração nova do tarball: o
+`/usr/local` é compartilhado entre os ambientes do MSYS2, e a `libantlr.a`
+antiga foi compilada contra a MSVCRT.
 
 #### Baixar e extrair
 
@@ -164,7 +170,7 @@ ln -s /usr/local/bin/antlr /usr/local/bin/runantlr || true
 ```shell
 wget https://www.nasm.us/pub/nasm/releasebuilds/0.99.06/nasm-0.99.06-win32.zip
 unzip nasm-0.99.06-win32.zip
-cp nasm-0.99.06/nasm.exe /mingw64/bin/
+cp nasm-0.99.06/nasm.exe /ucrt64/bin/
 ```
 
 ### 6. Compilar o GPT no Windows

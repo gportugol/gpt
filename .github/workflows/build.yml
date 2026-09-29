@@ -83,16 +83,16 @@ jobs:
         uses: msys2/setup-msys2@ec48f7c5447b3140e2b088413ae3a55687bccb6e # v2.33.0
         with:
           update: true
-          msystem: MINGW64
+          msystem: UCRT64
           path-type: inherit
           install: >-
             autoconf
             automake
             libtool
             make
-            mingw-w64-x86_64-gcc
-            mingw-w64-x86_64-gcc-libs
-            mingw-w64-x86_64-pcre2
+            mingw-w64-ucrt-x86_64-gcc
+            mingw-w64-ucrt-x86_64-gcc-libs
+            mingw-w64-ucrt-x86_64-pcre2
             pkg-config
             tar
             unzip
@@ -126,7 +126,7 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: D:/a/_temp/msys64/usr/local
-          key: antlr2.7.7-853aeb02-jdk25.0.1-msys2-static
+          key: antlr2.7.7-853aeb02-jdk25.0.1-ucrt64-static
 
       - shell: msys2 {0}
         name: Build ANTLR 2.7.7 (if not cached)
@@ -167,7 +167,7 @@ jobs:
           wget https://www.nasm.us/pub/nasm/releasebuilds/0.99.05/nasm-0.99.05-win32.zip
           echo "cc9d5e2890e230f51db617e414b9a5e6e107d1cd3a80d19018c8a53bde277408  nasm-0.99.05-win32.zip" | sha256sum -c -
           unzip nasm-0.99.05-win32.zip
-          cp nasm.exe /mingw64/bin/
+          cp nasm.exe /ucrt64/bin/
 
       - shell: msys2 {0}
         name: Run Tests
@@ -179,8 +179,8 @@ jobs:
           make install DESTDIR=$PWD/release
           mkdir -p dist
           mv release/usr/local/* dist/
-          cp /mingw64/bin/nasm.exe dist/bin/
-          ldd /usr/local/bin/gpt | grep "mingw" | awk '{print $3}' | while read dll; do
+          cp /ucrt64/bin/nasm.exe dist/bin/
+          ldd /usr/local/bin/gpt | grep "/ucrt64/" | awk '{print $3}' | while read dll; do
               if [ -f "$dll" ]; then
                   echo "Copying $dll"
                   cp "$dll" dist/bin/

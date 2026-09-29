@@ -257,7 +257,7 @@ echo "========================================"
 # Windows, gpt converts stderr to the OEM code page before writing it.
 if [ $CAN_EXEC_X86 -eq 1 ]; then
 	# Hiding nasm by emptying PATH also hides the MinGW DLLs that gpt.exe
-	# loads from /mingw64/bin, where HACKING.md installs nasm, so a failing
+	# loads from /ucrt64/bin, where HACKING.md installs nasm, so a failing
 	# nasm goes first in PATH instead: cmd.exe runs the .bat, sh the script.
 	mkdir -p "$TMP/nasm_falso"
 	printf '#!/bin/sh\nexit 1\n' >"$TMP/nasm_falso/nasm"

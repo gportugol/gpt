@@ -11,6 +11,12 @@ Este arquivo foi consolidado a partir do ChangeLog histórico (CVS/SVN).
   compara a saída dos três modos de execução com as saídas esperadas e as
   mensagens de erro de compilação.
 
+### Alterado
+
+- O binário para Windows passa a ser compilado no ambiente UCRT64 do MSYS2,
+  que descontinuou o MINGW64, e depende da UCRT, incluída no Windows 10 e no
+  Windows Server 2016 em diante.
+
 ## [1.2.0] - 2026-01-06
 
 ### Adicionado
