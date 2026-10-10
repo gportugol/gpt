@@ -202,26 +202,41 @@ gpt.exe -o olamundo.exe exemplos/olamundo.gpt
 
 ## Documentação
 
-Documentação na pasta [doc](doc) e o manual (LaTeX) em [doc/manual](doc/manual).
+As páginas man ficam em [doc/man](doc/man). O manual é escrito em Markdown
+(MyST) e gerado com Sphinx a partir de [doc/manual](doc/manual). O build só
+roda no release: o workflow de release anexa o PDF, e o Read the Docs publica o
+site apenas para tags, conforme [.readthedocs.yaml](.readthedocs.yaml).
 
-### Instalar dependências no Debian/Ubuntu
+O projeto no Read the Docs deve usar o idioma Portuguese (Brazil) e ter `stable`
+como versão padrão. O RTD passa o idioma do projeto ao Sphinx, sobrepondo o
+`language` do `conf.py`; com outro idioma, a interface, a busca e o PDF saem
+nesse idioma.
+
+### Instalar dependências
 
 ```shell
-sudo apt install -y latex-make texlive-latex-base texlive-lang-portuguese latex2html
+python3 -m venv .venv
+. .venv/bin/activate
+pip install -r doc/manual/requirements.txt
+```
+
+Para o PDF, no Debian/Ubuntu:
+
+```shell
+sudo apt install -y latexmk texlive-latex-recommended texlive-latex-extra \
+  texlive-fonts-recommended texlive-lang-portuguese tex-gyre
 ```
 
 ### Compilar o manual
 
-Para PDF:
+Para HTML (saída em `doc/_build/html`):
 
 ```shell
-cd doc/manual
-pdflatex manual.tex
+sphinx-build -M html doc/manual doc/_build -W --keep-going
 ```
 
-Para HTML:
+Para PDF (saída em `doc/_build/latex/manual.pdf`):
 
 ```shell
-cd doc/manual
-latex2html manual.tex
+sphinx-build -M latexpdf doc/manual doc/_build -W --keep-going
 ```

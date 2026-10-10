@@ -8,3 +8,11 @@ updates:
       github-actions:
         patterns:
           - "*"
+  - package-ecosystem: "pip"
+    directory: "/doc/manual"
+    schedule:
+      interval: "weekly"
+    groups:
+      docs:
+        patterns:
+          - "*"
