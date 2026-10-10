@@ -20,7 +20,8 @@ continuar compatível com GNU/Linux e Windows/MSYS2.
   `casos/` (programas com saída esperada) e `erros/` (programas inválidos com
   a mensagem esperada).
 - `exemplos/`: programas de exemplo.
-- `doc/`: páginas de manual e fonte LaTeX do manual.
+- `doc/`: páginas man e o manual em Markdown/Sphinx (`doc/manual/`), publicado
+  no Read the Docs.
 - `packages/win_setup/`: empacotamento e recursos do instalador Windows.
 
 ## Ambiente, build e testes

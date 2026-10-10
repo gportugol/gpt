@@ -61,11 +61,11 @@ gpt -i /usr/share/doc/gpt/examples/olamundo.gpt
 
 ## Manual do G-Portugol
 
-Um manual completo de uso do G-Portugol está disponível na wiki do projeto. Ele
-inclui instruções de instalação, exemplos de código, sintaxe da linguagem e
-tutoriais passo a passo.
+O manual do G-Portugol, com a sintaxe da linguagem, exemplos de programas, o uso
+do programa `gpt` e a gramática, está publicado no Read the Docs. Ele é
+atualizado a cada release e pode ser baixado em PDF e ePub.
 
-👉 Acesse aqui: [Manual do G-Portugol](https://github.com/gportugol/gpt/wiki/Manual)
+👉 Acesse aqui: [Manual do G-Portugol](https://gportugol.readthedocs.io/)
 
 ## Referências e citações sobre o G-Portugol
 

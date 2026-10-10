@@ -1,0 +1,6 @@
+extends: ../../.markdownlint.yaml
+# MyST targets such as "(cap-introducao)=" must sit right above the heading
+# they label, so a chapter cannot start with the heading itself.
+MD041: false
+MD013:
+  headings: false

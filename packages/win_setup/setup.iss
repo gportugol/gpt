@@ -42,7 +42,7 @@ Source: "..\..\HACKING.md"; DestDir: "{app}\doc"
 Source: "..\..\AGENTS.md"; DestDir: "{app}\doc"
 Source: "..\..\CONTRIBUTING.md"; DestDir: "{app}\doc"
 Source: "..\..\SECURITY.md"; DestDir: "{app}\doc"
-Source: "..\..\doc\manual\manual.pdf"; DestName: "G-Portugol - Manual.pdf"; DestDir: "{app}\doc"
+Source: "..\..\doc\_build\latex\manual.pdf"; DestName: "G-Portugol - Manual.pdf"; DestDir: "{app}\doc"
 
 
 ;syntax highlight

@@ -10,33 +10,6 @@ permissions:
   contents: read
 
 jobs:
-  generate-manual-pdf:
-    if: ${{ inputs.target == 'manual-pdf' || inputs.target == 'all' }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Install TeX Dependencies
-        run: |
-          sudo apt update
-          sudo apt install -y latex-make texlive-latex-base texlive-lang-portuguese
-
-      - name: Generate PDF from manual.tex
-        run: |
-          # First run: generate .toc and auxiliary files
-          pdflatex -interaction=nonstopmode -output-directory=doc doc/manual/manual.tex
-          # Second run: resolve table of contents and references
-          pdflatex -interaction=nonstopmode -output-directory=doc doc/manual/manual.tex
-          # Third run:  Label(s) may have changed. Rerun to get cross-references right.
-          pdflatex -interaction=nonstopmode -output-directory=doc doc/manual/manual.tex
-
-      - name: Upload PDF Artifact
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: manual-pdf
-          path: doc/manual.pdf
-
   build-linux:
     if: ${{ inputs.target == 'linux' || inputs.target == 'all' }}
     runs-on: ubuntu-latest
