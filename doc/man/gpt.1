@@ -68,6 +68,12 @@ The generated code is 32-bit x86, so this option only works on x86 machines;
 elsewhere, use
 .B \-t
 and compile the C code with the system compiler.
+On Windows and GNU/Linux,
+.BR nasm (1)
+is looked up first in the directory of
+.I gpt
+and then in
+.BR PATH .
 .br
 .ns
 .TP
