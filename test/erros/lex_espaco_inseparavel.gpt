@@ -1,0 +1,8 @@
+algoritmo lex_espaco_inseparavel;
+variáveis
+  x: inteiro;
+fim-variáveis
+início
+  x := 1;
+  imprima(x);
+fim

@@ -39,20 +39,20 @@ GPTDisplay::~GPTDisplay() {}
 
 int GPTDisplay::totalErrors() { return _totalErrors; }
 
+// U+0080 to U+00FF are two bytes in UTF-8, a 0xC2 or 0xC3 lead byte and a
+// continuation byte, and one byte with the same value in Latin-1. A lead byte
+// without a continuation byte is already Latin-1 text and is kept as is.
 string GPTDisplay::toLatin1(const string &str) {
-  char c = 0;
   string ret;
-  for (int i = 0; i < str.length(); i++) {
-    if (str[i] == 0xffffffc3) {
-      c = 1;
-      continue;
-    }
-    if (c) {
-      ret += str[i] | 0x40;
+  for (string::size_type i = 0; i < str.length(); i++) {
+    unsigned char b = (unsigned char)str[i];
+    unsigned char next = i + 1 < str.length() ? (unsigned char)str[i + 1] : 0;
+    if ((b == 0xC2 || b == 0xC3) && (next & 0xC0) == 0x80) {
+      ret += (char)(((b & 0x03) << 6) | (next & 0x3F));
+      i++;
     } else {
       ret += str[i];
     }
-    c = 0;
   }
   return ret;
 }
