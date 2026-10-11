@@ -1,0 +1,9 @@
+algoritmo literal_vazio;
+início
+  imprima("[", vazio(), "]");
+fim
+
+função vazio(): literal
+início
+  retorne "";
+fim

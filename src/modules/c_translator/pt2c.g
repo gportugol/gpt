@@ -294,6 +294,9 @@ options {
          "}\n";
     s << "char* return_literal(char* str) {\n"
          "  char* lit = NULL;\n"
+         "  if(!str) {\n"
+         "    return NULL;\n"
+         "  }\n"
          "  lit = (char*) malloc(sizeof(char)*(str_strlen(str)+1));\n"
          "  strcpy(lit, str);\n"
          "  collect(lit);\n"
