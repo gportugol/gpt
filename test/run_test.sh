@@ -6,8 +6,8 @@
 #   test/casos/       valid programs, run in the three modes:
 #                       NAME.gpt            source
 #                       NAME.entrada        stdin (optional)
-#                       NAME.args           extra command line files
-#                                           (optional, relative to casos/)
+#                       NAME.args           extra command line files, one per
+#                                           line (optional, relative to casos/)
 #                       NAME.saida          expected stdout (interpreter)
 #                       NAME.saida.nativo   expected stdout of the native
 #                                           binary, when it differs
@@ -18,6 +18,8 @@
 #                                           whole case on Windows
 #   test/erros/       invalid programs:
 #                       NAME.gpt            source
+#                       NAME.args           extra command line files, one per
+#                                           line (optional, relative to erros/)
 #                       NAME.msg            expected stderr of "gpt -s"
 #
 # Files whose name starts with "_" are helpers and are not run.
@@ -128,6 +130,18 @@ skip_mode() {
 	grep -qw "$mode" "$base.pular"
 }
 
+# read_args <.args file> <prefix>: the extra files, one per line, into ARGS.
+# git checks the file out with CRLF on Windows, so a trailing \r is dropped.
+read_args() {
+	ARGS=()
+	[ -f "$1" ] || return 0
+	local a
+	while IFS= read -r a || [ -n "$a" ]; do
+		a=${a%$'\r'}
+		[ -n "$a" ] && ARGS+=("$2$a")
+	done <"$1"
+}
+
 # run_caso <.gpt file> <prefix of the expected files>
 run_caso() {
 	local src="$1" base="$2"
@@ -137,16 +151,12 @@ run_caso() {
 	dir=$(dirname "$src")
 	local stdin=/dev/null
 	[ -f "$base.entrada" ] && stdin="$base.entrada"
-	local extra=""
-	if [ -f "$base.args" ]; then
-		for a in $(cat "$base.args"); do
-			extra="$extra $dir/$a"
-		done
-	fi
+	read_args "$base.args" "$dir/"
+	local extra=("${ARGS[@]}")
 
 	# interpretador
 	if ! skip_mode "$base" "interp"; then
-		$TIMEOUT "$GPT" -i "$src" $extra <"$stdin" >"$TMP/$name.i.out" 2>"$TMP/$name.i.err"
+		$TIMEOUT "$GPT" -i "$src" "${extra[@]}" <"$stdin" >"$TMP/$name.i.out" 2>"$TMP/$name.i.err"
 		check "$name (-i)" "$TMP/$name.i.out" $? \
 			"$(expected_for "$base" saida interp)" "$(expected_for "$base" codigo interp)"
 	fi
@@ -155,7 +165,7 @@ run_caso() {
 	if ! skip_mode "$base" "nativo"; then
 		if [ $CAN_EXEC_X86 -eq 0 ]; then
 			echo "⚠ $name (-o): pulado (gpt recusa -o na arquitetura $ARCH)"
-		elif $TIMEOUT "$GPT" -o "$TMP/$name.bin" "$src" $extra >"$TMP/$name.o.build" 2>&1; then
+		elif $TIMEOUT "$GPT" -o "$TMP/$name.bin" "$src" "${extra[@]}" >"$TMP/$name.o.build" 2>&1; then
 			$TIMEOUT "$TMP/$name.bin" <"$stdin" >"$TMP/$name.o.out" 2>"$TMP/$name.o.err"
 			check "$name (-o)" "$TMP/$name.o.out" $? \
 				"$(expected_for "$base" saida nativo)" "$(expected_for "$base" codigo nativo)"
@@ -171,12 +181,12 @@ run_caso() {
 		# POSIX getline() that MinGW-w64 lacks, so on Windows the generated C
 		# neither compiles nor links.
 		if [ $ON_WINDOWS -eq 1 ] || [ $HAVE_GCC -eq 0 ]; then
-			if $TIMEOUT "$GPT" -t "$TMP/$name.c" "$src" $extra >"$TMP/$name.t.build" 2>&1; then
+			if $TIMEOUT "$GPT" -t "$TMP/$name.c" "$src" "${extra[@]}" >"$TMP/$name.t.build" 2>&1; then
 				ok "$name (-t): tradução gerada (compilação do C pulada nesta plataforma)"
 			else
 				fail "$name (-t): tradução falhou"
 			fi
-		elif ! $TIMEOUT "$GPT" -t "$TMP/$name.c" "$src" $extra >"$TMP/$name.t.build" 2>&1; then
+		elif ! $TIMEOUT "$GPT" -t "$TMP/$name.c" "$src" "${extra[@]}" >"$TMP/$name.t.build" 2>&1; then
 			fail "$name (-t): tradução falhou"
 			head -5 "$TMP/$name.t.build"
 		elif ! gcc -w -o "$TMP/$name.cbin" "$TMP/$name.c" >"$TMP/$name.gcc" 2>&1; then
@@ -233,7 +243,8 @@ cd "$SCRIPT_DIR/erros" || exit 1
 for src in *.gpt; do
 	name=$(basename "$src" .gpt)
 	case "$name" in _*) continue ;; esac
-	$TIMEOUT "$GPT" -s "$TMP/$name.asm" "$src" </dev/null >"$TMP/$name.e.out" 2>"$TMP/$name.e.err"
+	read_args "$name.args" ""
+	$TIMEOUT "$GPT" -s "$TMP/$name.asm" "$src" "${ARGS[@]}" </dev/null >"$TMP/$name.e.out" 2>"$TMP/$name.e.err"
 	rc=$?
 	if [ $rc -eq 0 ]; then
 		fail "$name: programa inválido foi aceito"

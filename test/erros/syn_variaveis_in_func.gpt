@@ -1,0 +1,11 @@
+algoritmo erro;
+início
+  imprima(f(1));
+fim
+função f(n: inteiro): inteiro
+variáveis
+  j: inteiro;
+fim-variáveis
+início
+  retorne n;
+fim
