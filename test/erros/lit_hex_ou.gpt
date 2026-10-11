@@ -1,0 +1,7 @@
+algoritmo lit_hex_ou;
+variáveis
+  b: lógico;
+fim-variáveis
+início
+  b := 0x1Fou 0;
+fim

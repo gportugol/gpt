@@ -1,0 +1,11 @@
+algoritmo lit_prefixo_invalido;
+variáveis
+  x: inteiro;
+  b: lógico;
+fim-variáveis
+início
+  x := 0xZZ;
+  x := 0c19;
+  x := 0b102;
+  b := 0b1e 1;
+fim

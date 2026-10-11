@@ -1,0 +1,14 @@
+algoritmo syn_expr_incompleta;
+variáveis
+  x, y: inteiro;
+fim-variáveis
+início
+  x := 1 +;
+  y := 2;
+  se x > então
+    y := 1;
+  fim-se
+  enquanto x < faça
+    y := y + 1;
+  fim-enquanto
+fim
