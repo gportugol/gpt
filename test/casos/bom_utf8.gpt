@@ -1,0 +1,4 @@
+﻿algoritmo bom_utf8;
+início
+  imprima("ação");
+fim

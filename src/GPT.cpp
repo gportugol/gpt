@@ -118,6 +118,21 @@ void GPT::showVersion() {
   GPTDisplay::self()->showMessage(s);
 }
 
+// Editors on Windows often save UTF-8 with a byte order mark, which the
+// lexer would otherwise read as an invalid character. Nothing is read ahead
+// unless the first byte can start a BOM, since a pipe cannot seek back.
+static void skipUtf8Bom(istream &in) {
+  if (in.peek() != 0xEF) {
+    return;
+  }
+  char bom[3];
+  in.read(bom, 3);
+  if (in.gcount() != 3 || string(bom, 3) != "\xEF\xBB\xBF") {
+    in.clear();
+    in.seekg(0);
+  }
+}
+
 bool GPT::prologue(const list<string> &ifnames) {
   stringstream s;
   bool success = false;
@@ -144,6 +159,7 @@ bool GPT::prologue(const list<string> &ifnames) {
       GPTDisplay::self()->showError(s);
       goto bail;
     }
+    skipUtf8Bom(*fi);
     istream_list.push_back(pair<string, istream *>(*it, fi));
   }
 
