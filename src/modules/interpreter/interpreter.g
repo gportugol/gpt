@@ -260,14 +260,6 @@ stm_se
       e=expr   {exec = e.ifTrue();}
 
       conditional_statements[exec]
-      {
-        if(!exec) {
-          while((_t != antlr::nullAST) && (_t->getType() != T_KW_SENAO)) {
-            if(_t->getType() == NULL_TREE_LOOKAHEAD) break;
-            _t = _t->getNextSibling();
-          }
-        }
-      }
 
       (T_KW_SENAO
         conditional_statements[!exec]
@@ -275,15 +267,19 @@ stm_se
     )
   ;
 
+// Walks the statements of a branch up to its "senão", running them only
+// when doIt is set and until a retorne sets _returning.
 conditional_statements [bool doIt]
-  : {doIt}? (stm)*
-  | /* empty */
+  : {
+      while((_t != antlr::nullAST) && (_t->getType() != NULL_TREE_LOOKAHEAD) &&
+            (_t->getType() != T_KW_SENAO)) {
+        if(doIt && !_returning) {
+          stm(_t);
+        }
+        _t = _t->getNextSibling();
+      }
+    }
   ;
-
-  exception
-  catch[...] {
-    //nothing (doIt throws if false...)
-  }
 
 stm_enquanto
 {
@@ -296,11 +292,12 @@ stm_enquanto
       {
         stmNode = first_stm = _t;
 
-        while(exec) {
-          while(stmNode != antlr::nullAST) {
+        while(exec && !_returning) {
+          while(stmNode != antlr::nullAST && !_returning) {
             stm(stmNode);
             stmNode = stmNode->getNextSibling();
           }
+          if(_returning) break;
           exec = expr(exprNode).ifTrue();
           stmNode = first_stm;
         }
@@ -318,10 +315,11 @@ stm_repita
       {
         stmNode = first_stm = _t;
         do{
-          while(stmNode->getNextSibling() != antlr::nullAST) {
+          while(stmNode->getNextSibling() != antlr::nullAST && !_returning) {
             stm(stmNode);
 		        stmNode = stmNode->getNextSibling();
 		      }
+          if(_returning) break;
           exprNode = stmNode;
 		      exec = expr(exprNode).ifTrue();
 		      stmNode = first_stm;
@@ -361,10 +359,11 @@ stm_para
             } else {
               if(!interpreter.execBiggerEq(lv, ate)) break;
             }
-            while(stmNode != antlr::nullAST) {
+            while(stmNode != antlr::nullAST && !_returning) {
               stm(stmNode);
               stmNode = stmNode->getNextSibling();
             }
+            if(_returning) break;
             interpreter.execPasso(lv, ps);
             ate = expr(ateNode);
             stmNode = first_stm;
@@ -372,7 +371,9 @@ stm_para
 
           //lv deve ter um valor a mais do que até (ou a menos, se loop decrescente).
           //setar o valor de lv para valor de ate
-          interpreter.execAttribution(lv, ate);
+          if(!_returning) {
+            interpreter.execAttribution(lv, ate);
+          }
         }
     )
   ;
