@@ -233,6 +233,16 @@ for src in "$SCRIPT_DIR"/casos/*.gpt; do
 	case "$name" in _*) continue ;; esac
 	run_caso "$src" "$SCRIPT_DIR/casos/$name"
 done
+# A source read from a pipe cannot seek back, so looking for a byte order
+# mark must not lose its first bytes. /dev/stdin is a POSIX path.
+if [ $ON_WINDOWS -eq 0 ]; then
+	for bom in "" $'\xEF\xBB\xBF'; do
+		{ printf '%s' "$bom"; cat "$SCRIPT_DIR/casos/olamundo.gpt"; } |
+			$TIMEOUT "$GPT" -i /dev/stdin >"$TMP/pipe.out" 2>&1
+		check "olamundo.gpt (-i) via pipe${bom:+, com BOM}" "$TMP/pipe.out" $? \
+			"$SCRIPT_DIR/casos/olamundo.saida" ""
+	done
+fi
 echo ""
 
 echo "========================================"
