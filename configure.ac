@@ -9,6 +9,9 @@ AM_INIT_AUTOMAKE([foreign subdir-objects])
 AC_CONFIG_MACRO_DIRS([m4])
 AC_CONFIG_HEADERS([config.h])
 AC_LANG(C++)
+dnl Keep the CXXFLAGS given by the user; AC_PROG_CXX would default them
+dnl to "-g -O2" when the variable is unset.
+: ${CXXFLAGS=}
 AC_PROG_CXX
 LT_INIT
 
@@ -39,7 +42,6 @@ AC_ARG_ENABLE(debug,
     use_debug_define=no
 ])
 
-CXXFLAGS=
 if test "$use_debug_code" != "no"; then
   if test $use_debug_code = "full"; then
     CXXFLAGS="-g3 $CXXFLAGS"
