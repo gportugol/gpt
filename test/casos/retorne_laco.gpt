@@ -1,0 +1,42 @@
+algoritmo retorne_laco;
+variáveis
+  i : inteiro;
+fim-variáveis
+início
+  imprima(f());
+  imprima(g());
+  para i de 1 até 3 faça
+    retorne i;
+  fim-para
+  imprima("depois do para");
+fim
+
+função f() : inteiro
+  k : inteiro;
+início
+  enquanto verdadeiro faça
+    para k de 1 até 3 faça
+      se k = 2 então
+        retorne k;
+        imprima("depois do retorne no se");
+      fim-se
+    fim-para
+  fim-enquanto
+  retorne 0;
+fim
+
+função g() : inteiro
+  n : inteiro;
+início
+  n := 0;
+  repita
+    n := n + 1;
+    se n < 3 então
+      imprima("n=", n);
+    senão
+      retorne n;
+      imprima("depois do retorne no senão");
+    fim-se
+  até falso;
+  retorne 0;
+fim
