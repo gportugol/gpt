@@ -1,0 +1,4 @@
+algoritmo syn_fim_colado;
+início
+  se verdadeiro então imprima(1); fim-seimprima(2);
+fim

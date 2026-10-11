@@ -1,0 +1,7 @@
+algoritmo syn_virgula_literal;
+variáveis
+  a: inteiro;
+fim-variáveis
+início
+  imprima(a "x");
+fim

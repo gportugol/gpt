@@ -1,0 +1,11 @@
+algoritmo syn_funcao_sem_tipo;
+início
+  g();
+fim
+função g()
+variáveis
+  x: inteiro;
+fim-variáveis
+início
+  imprima(1);
+fim

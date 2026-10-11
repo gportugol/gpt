@@ -1,0 +1,11 @@
+algoritmo literal_hex_grande;
+variáveis
+  i : inteiro;
+  r : real;
+fim-variáveis
+início
+  i := 0xFFFFFFFF;
+  r := 0xFFFFFFFF;
+  imprima(i, " ", r, " ", 0x80000000 < 0);
+  imprima(0b11111111111111111111111111111110, " ", 0c37777777776);
+fim

@@ -327,6 +327,15 @@ else
 	fail "-i com variável chamada como função: código $RESULT (esperado: 1 e o erro da linha 6)"
 	echo "$ERRO"
 fi
+
+ERRO=$(cd erros && $TIMEOUT "$GPT" -d -s "$TMP/dica.asm" syn_virgula_literal.gpt 2>&1 </dev/null >/dev/null)
+RESULT=$?
+if [ $RESULT -eq 1 ] && grep -q 'antes de "x"\.' <<<"$ERRO"; then
+	ok "-d com literal sem vírgula antes"
+else
+	fail "-d com literal sem vírgula antes: código $RESULT (esperado: 1 e a dica com \"x\")"
+	echo "$ERRO"
+fi
 echo ""
 
 echo "========================================"
