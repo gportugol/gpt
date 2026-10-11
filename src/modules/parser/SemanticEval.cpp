@@ -633,6 +633,13 @@ ExpressionValue SemanticEval::evaluateFCall(RefPortugolAST f,
     return v;
   }
 
+  if (!s.isFunction) {
+    stringstream msg;
+    msg << "\"" << f->getText() << "\" não é uma função";
+    GPTDisplay::self()->add(msg.str(), f->getLine());
+    return v;
+  }
+
   ParameterSig params = s.param;
 
   if (params.isVariable()) {

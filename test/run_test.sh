@@ -308,6 +308,15 @@ else
 	fail "-i com erro de sintaxe: código $RESULT (esperado: 1 e o erro da linha 4)"
 	echo "$ERRO"
 fi
+
+ERRO=$(cd erros && $TIMEOUT "$GPT" -i call_var_as_func.gpt 2>&1 </dev/null >/dev/null)
+RESULT=$?
+if [ $RESULT -eq 1 ] && grep -q '^call_var_as_func.gpt:6 - "a" ' <<<"$ERRO"; then
+	ok "-i com variável chamada como função"
+else
+	fail "-i com variável chamada como função: código $RESULT (esperado: 1 e o erro da linha 6)"
+	echo "$ERRO"
+fi
 echo ""
 
 echo "========================================"
