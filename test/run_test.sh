@@ -330,6 +330,34 @@ fi
 echo ""
 
 echo "========================================"
+echo "nasm ao lado do gpt"
+echo "========================================"
+# gpt -o runs the nasm in its own directory before the one in PATH. Copies of
+# gpt and of the real nasm go to a directory with a space in its name and the
+# failing nasm stays first in PATH, so only the copy next to gpt can work.
+NASM_REAL=$(command -v nasm)
+if [ $CAN_EXEC_X86 -eq 0 ] || [ -z "$NASM_REAL" ]; then
+	echo "⚠ -o com o nasm ao lado do gpt: pulado (sem x86 ou sem NASM)"
+else
+	EXE=""
+	[ $ON_WINDOWS -eq 1 ] && EXE=".exe"
+	[ -f "$NASM_REAL.exe" ] && NASM_REAL="$NASM_REAL.exe"
+	IRMAO="$TMP/nasm irmao"
+	mkdir -p "$IRMAO"
+	cp "$GPT$EXE" "$IRMAO/gpt$EXE"
+	cp "$NASM_REAL" "$IRMAO/nasm$EXE"
+	ERRO=$(PATH="$TMP/nasm_falso:$PATH" $TIMEOUT "$IRMAO/gpt$EXE" -o "$IRMAO/olamundo$EXE" casos/olamundo.gpt 2>&1 >/dev/null)
+	RESULT=$?
+	if [ $RESULT -eq 0 ] && "$IRMAO/olamundo$EXE" | grep -q "Mundo"; then
+		ok "-o com o nasm ao lado do gpt, num diretório com espaço"
+	else
+		fail "-o com o nasm ao lado do gpt: código $RESULT (esperado: 0 e o programa montado)"
+		echo "$ERRO"
+	fi
+fi
+echo ""
+
+echo "========================================"
 echo "Resumo dos testes"
 echo "========================================"
 echo "$PASSED verificação(ões) passou(aram)"

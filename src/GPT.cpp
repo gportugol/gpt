@@ -22,7 +22,9 @@
 #include "config.h"
 
 #ifdef WIN32
+#define WIN32_LEAN_AND_MEAN
 #include <io.h> //unlink()
+#include <windows.h>
 #endif
 
 #include "InterpreterWalker.hpp"
@@ -34,6 +36,7 @@
 #include <antlr/AST.hpp>
 #include <antlr/TokenStreamSelector.hpp>
 
+#include <climits>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
@@ -73,6 +76,42 @@ void GPT::printParseTree(bool value) { _printParseTree = value; }
 void GPT::setOutputFile(string str) {
   _useOutputFile = true;
   _outputfile = str;
+}
+
+// Find nasm executable - check same directory as gpt first, then PATH
+static string findNasm() {
+#ifdef WIN32
+  char exePath[MAX_PATH];
+  // A result of MAX_PATH means the path did not fit and was truncated.
+  DWORD len = GetModuleFileNameA(NULL, exePath, MAX_PATH);
+  if (len > 0 && len < MAX_PATH) {
+    string dir(exePath);
+    size_t pos = dir.find_last_of("\\/");
+    if (pos != string::npos) {
+      string nasmPath = dir.substr(0, pos + 1) + "nasm.exe";
+      if (GetFileAttributesA(nasmPath.c_str()) != INVALID_FILE_ATTRIBUTES) {
+        return "\"" + nasmPath + "\"";
+      }
+    }
+  }
+  return "nasm"; // Fall back to PATH
+#else
+  char exePath[PATH_MAX];
+  // readlink truncates silently, so a full buffer may hold a partial path.
+  ssize_t len = readlink("/proc/self/exe", exePath, sizeof(exePath) - 1);
+  if (len > 0 && len < (ssize_t)sizeof(exePath) - 1) {
+    exePath[len] = '\0';
+    string dir(exePath);
+    size_t pos = dir.find_last_of('/');
+    if (pos != string::npos) {
+      string nasmPath = dir.substr(0, pos + 1) + "nasm";
+      if (access(nasmPath.c_str(), X_OK) == 0) {
+        return "\"" + nasmPath + "\"";
+      }
+    }
+  }
+  return "nasm"; // Fall back to PATH
+#endif
 }
 
 string GPT::createTmpFile() {
@@ -230,9 +269,16 @@ bool GPT::compile(const list<string> &ifnames, bool genBinary) {
       fo.close();
 
       stringstream cmd;
-      cmd << "nasm -O1 -fbin -o \"" << ofname << "\" " << ftmpname;
+      cmd << findNasm() << " -O1 -fbin -o \"" << ofname << "\" \"" << ftmpname
+          << "\"";
+      string line = cmd.str();
+#ifdef WIN32
+      // cmd /c strips the first and last quote of a line that starts with one,
+      // which would break the quoted nasm path.
+      line = "\"" + line + "\"";
+#endif
 
-      if (system(cmd.str().c_str()) != 0) {
+      if (system(line.c_str()) != 0) {
         s << PACKAGE << ": não foi possível montar o programa com o nasm."
           << endl;
         GPTDisplay::self()->showError(s);
@@ -241,7 +287,7 @@ bool GPT::compile(const list<string> &ifnames, bool genBinary) {
 
 #ifndef WIN32
       cmd.str("");
-      cmd << "chmod +x " << ofname;
+      cmd << "chmod +x \"" << ofname << "\"";
       system(cmd.str().c_str());
 #endif
     }

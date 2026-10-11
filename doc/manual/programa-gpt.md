@@ -114,7 +114,9 @@ Consequentemente, não existe etapa de linkagem. A fase de otimização de códi
 também não foi implementada.
 
 Para usar esse recurso, é necessário que o NASM esteja instalado no sistema. Ele
-pode ser encontrado em <https://www.nasm.us/>.
+pode ser encontrado em <https://www.nasm.us/>. No Windows e no GNU/Linux, o GPT
+procura o `nasm` primeiro no diretório do próprio executável e depois nos
+diretórios do `PATH`.
 
 ### Tradução para a linguagem C
 
