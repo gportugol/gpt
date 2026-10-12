@@ -68,6 +68,34 @@ jobs:
           gh release upload "$TAG" release/manual/manual.pdf --clobber
           --repo "$GITHUB_REPOSITORY"
 
+  upload-source-dist:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install Build Dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y build-essential autoconf automake libtool \
+            pkg-config libantlr-dev libpcre2-dev nasm
+
+      - name: Build source tarball
+        run: |
+          autoreconf -i
+          ./configure
+          make dist
+
+      - name: Upload source tarball to GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: >-
+          gh release upload "$TAG" gpt-*.tar.gz --clobber
+          --repo "$GITHUB_REPOSITORY"
+
   upload-release-assets:
     needs: build-for-release
     runs-on: ubuntu-latest
