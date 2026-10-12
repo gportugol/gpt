@@ -10,12 +10,67 @@ Este arquivo foi consolidado a partir do ChangeLog histórico (CVS/SVN).
 - Suíte de regressão em `test/casos/` e `test/erros/`: `test/run_test.sh`
   compara a saída dos três modos de execução com as saídas esperadas e as
   mensagens de erro de compilação.
+- Manual publicado no Read the Docs (<https://gportugol.readthedocs.io/>),
+  gerado a cada release. O PDF continua anexado à release.
+- `CONTRIBUTING.md`, `SECURITY.md` e `AGENTS.md`, distribuídos e instalados
+  com o restante da documentação.
+- Dependabot para manter as GitHub Actions atualizadas.
 
 ### Alterado
 
 - O binário para Windows passa a ser compilado no ambiente UCRT64 do MSYS2,
   que descontinuou o MINGW64, e depende da UCRT, incluída no Windows 10 e no
   Windows Server 2016 em diante.
+- Arquivos fonte que não estão em UTF-8 são rejeitados com
+  `gpt: <arquivo>: o arquivo não está em UTF-8`. Antes, um programa salvo em
+  ISO-8859-1 gerava uma série de caracteres inválidos e aspas não fechadas,
+  sem indicar a codificação.
+- `gpt -i` termina com código de saída 1 quando o programa tem erro de
+  sintaxe ou semântico. Antes saía com 0.
+- `gpt -o` recusa gerar executável em máquinas que não são x86 e sugere `-t`,
+  e qualquer falha do `nasm`, inclusive quando ele não é encontrado, passa a
+  ser erro. Antes o `gpt` saía com 0 nesses casos.
+- `gpt -o` procura o `nasm` primeiro no diretório do próprio `gpt` (no
+  GNU/Linux e no Windows) e depois no `PATH`, então o pacote para Windows
+  funciona sem colocar o `nasm` no `PATH`.
+- O `configure` passa a respeitar o `CXXFLAGS` informado pelo usuário, que
+  antes era descartado.
+- O manual foi convertido de LaTeX para Markdown com Sphinx e revisado para
+  refletir o comportamento atual: a saída real de `-h`, `repita` na tabela de
+  palavras reservadas, dígitos octais de 0 a 7, identificadores que podem
+  começar com `_` e `;` como separador do `GPT_INCLUDE` no Windows.
+- O `HACKING.md` explica por que o Windows precisa do NASM 0.99.05 (as
+  versões 2.16.01 e 3.01 rejeitam o assembly gerado) e como rodar a suíte de
+  regressão.
+- Os downloads usados no build da release (ANTLR 2.7.7, JDK e NASM) são
+  conferidos por SHA-256, e as GitHub Actions são fixadas por commit.
+- O push só dispara o CI na `master`, então um commit de pull request deixa
+  de rodar duas vezes, pelo push e pelo evento `pull_request`.
+
+### Corrigido
+
+- Arquivos fonte salvos com BOM UTF-8, comum em editores do Windows, eram
+  rejeitados na primeira linha com "Caractere inválido".
+- No interpretador, `retorne` dentro de `enquanto`, `repita`, `para` ou de um
+  `se` não encerrava a função: as instruções seguintes continuavam a rodar, e
+  um `enquanto verdadeiro` com `retorne` nunca terminava. Agora `gpt -i` se
+  comporta como o executável nativo e a tradução para C.
+- Chamar uma variável como função (`a()`) era aceito e derrubava o
+  interpretador com falha de segmentação. Agora é rejeitado com
+  `"a" não é uma função.`, com arquivo e linha.
+- Uma função que retorna um literal vazio fazia o programa traduzido para C
+  terminar com falha de segmentação.
+- No backend x86, `retorne` sem valor lia uma variável não inicializada para
+  decidir se emitia instruções de conversão x87.
+- No Windows, caracteres de U+0080 a U+00BF nas mensagens, como o espaço
+  inseparável, `º` e `°`, apareciam no console como dois caracteres errados.
+- Um literal octal com letra, como `0c7e`, era descrito como hexadecimal na
+  mensagem de erro, e três mensagens terminavam com ponto duplo.
+- `gpt -o` passava caminhos sem aspas ao shell: uma pasta temporária com
+  espaços no caminho fazia o `nasm` falhar, e no GNU/Linux um executável com
+  espaços no nome ficava sem permissão de execução.
+- `INSTALL.md` ficava fora do `make dist` e do `make install`, e o script do
+  instalador do Windows citava `README.pt_BR` e `NEWS`, que não existem mais.
 
 ## [1.2.0] - 2026-01-06
 
