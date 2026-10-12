@@ -70,7 +70,6 @@ jobs:
             tar
             unzip
             wget
-            zip
 
       - name: Cache JDK 25
         id: cache-jdk

@@ -168,10 +168,16 @@ ln -s /usr/local/bin/antlr /usr/local/bin/runantlr || true
 ### 5. Instalar o NASM
 
 ```shell
-wget https://www.nasm.us/pub/nasm/releasebuilds/0.99.06/nasm-0.99.06-win32.zip
-unzip nasm-0.99.06-win32.zip
-cp nasm-0.99.06/nasm.exe /ucrt64/bin/
+wget https://www.nasm.us/pub/nasm/releasebuilds/0.99.05/nasm-0.99.05-win32.zip
+echo "cc9d5e2890e230f51db617e414b9a5e6e107d1cd3a80d19018c8a53bde277408  nasm-0.99.05-win32.zip" | sha256sum -c -
+unzip nasm-0.99.05-win32.zip
+cp nasm.exe /ucrt64/bin/
 ```
+
+O `gpt -o` no Windows precisa desse NASM antigo, o mesmo que o CI usa e
+distribui no zip: as macros que montam o executável PE não são aceitas pelo
+NASM 2.16 nem pelo 3.01. O `gpt` procura o `nasm` no mesmo diretório do
+`gpt.exe` e depois no `PATH`.
 
 ### 6. Compilar o GPT no Windows
 
@@ -186,6 +192,12 @@ make install
 ```
 
 ### 7. Testar no Windows
+
+Para rodar a suíte de regressão:
+
+```shell
+bash test/run_test.sh
+```
 
 #### Interpretador no Windows
 
