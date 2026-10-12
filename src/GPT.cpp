@@ -157,19 +157,48 @@ void GPT::showVersion() {
   GPTDisplay::self()->showMessage(s);
 }
 
-// Editors on Windows often save UTF-8 with a byte order mark, which the
-// lexer would otherwise read as an invalid character. Nothing is read ahead
-// unless the first byte can start a BOM, since a pipe cannot seek back.
-static void skipUtf8Bom(istream &in) {
-  if (in.peek() != 0xEF) {
-    return;
+// UTF-8 as in RFC 3629: no overlong forms, no surrogates and nothing above
+// U+10FFFF. A file in another encoding, such as ISO-8859-1, would otherwise
+// reach the lexer as a run of invalid characters and unclosed quotes.
+static bool isValidUtf8(const string &text) {
+  string::size_type i = 0;
+  while (i < text.size()) {
+    unsigned char c = (unsigned char)text[i];
+    if (c < 0x80) {
+      i++;
+      continue;
+    }
+    string::size_type len;
+    unsigned int cp;
+    if (c >= 0xC2 && c <= 0xDF) {
+      len = 2;
+      cp = c & 0x1F;
+    } else if (c >= 0xE0 && c <= 0xEF) {
+      len = 3;
+      cp = c & 0x0F;
+    } else if (c >= 0xF0 && c <= 0xF4) {
+      len = 4;
+      cp = c & 0x07;
+    } else {
+      return false;
+    }
+    if (i + len > text.size()) {
+      return false;
+    }
+    for (string::size_type k = 1; k < len; ++k) {
+      unsigned char cc = (unsigned char)text[i + k];
+      if ((cc & 0xC0) != 0x80) {
+        return false;
+      }
+      cp = (cp << 6) | (cc & 0x3F);
+    }
+    if ((len == 3 && cp < 0x800) || (len == 4 && cp < 0x10000) ||
+        (cp >= 0xD800 && cp <= 0xDFFF) || cp > 0x10FFFF) {
+      return false;
+    }
+    i += len;
   }
-  char bom[3];
-  in.read(bom, 3);
-  if (in.gcount() != 3 || string(bom, 3) != "\xEF\xBB\xBF") {
-    in.clear();
-    in.seekg(0);
-  }
+  return true;
 }
 
 bool GPT::prologue(const list<string> &ifnames) {
@@ -190,16 +219,28 @@ bool GPT::prologue(const list<string> &ifnames) {
   list<pair<string, istream *>> istream_list;
   for (list<string>::const_iterator it = ifnames.begin(); it != ifnames.end();
        ++it) {
-    ifstream *fi = new ifstream((*it).c_str());
-    // fi.open((*it).c_str(), ios_base::in);
-    if (!*fi) {
+    ifstream fi((*it).c_str());
+    if (!fi) {
       s << PACKAGE << ": não foi possível abrir o arquivo: \"" << (*it) << "\""
         << endl;
       GPTDisplay::self()->showError(s);
       goto bail;
     }
-    skipUtf8Bom(*fi);
-    istream_list.push_back(pair<string, istream *>(*it, fi));
+    stringstream content;
+    content << fi.rdbuf();
+    string text = content.str();
+    // Editors on Windows often save UTF-8 with a byte order mark, which the
+    // lexer would otherwise read as an invalid character.
+    if (text.compare(0, 3, "\xEF\xBB\xBF") == 0) {
+      text.erase(0, 3);
+    }
+    if (!isValidUtf8(text)) {
+      s << PACKAGE << ": " << (*it) << ": o arquivo não está em UTF-8" << endl;
+      GPTDisplay::self()->showError(s);
+      goto bail;
+    }
+    istream_list.push_back(
+        pair<string, istream *>(*it, new istringstream(text)));
   }
 
   if (!parse(istream_list)) {
@@ -209,6 +250,10 @@ bool GPT::prologue(const list<string> &ifnames) {
   success = true;
 
 bail:
+  for (list<pair<string, istream *>>::iterator it = istream_list.begin();
+       it != istream_list.end(); ++it) {
+    delete it->second;
+  }
   return success;
 }
 

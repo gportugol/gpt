@@ -1,0 +1,4 @@
+algoritmo encoding_latin1;
+inÃ­cio
+  imprima("ação");
+fim

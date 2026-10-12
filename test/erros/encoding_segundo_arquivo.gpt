@@ -1,0 +1,4 @@
+algoritmo encoding_segundo_arquivo;
+início
+  imprima(f());
+fim
