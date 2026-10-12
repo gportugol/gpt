@@ -1,0 +1,5 @@
+função f() : inteiro
+início
+  imprima("ação");
+  retorne 0;
+fim
