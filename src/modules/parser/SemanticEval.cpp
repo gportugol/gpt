@@ -560,7 +560,7 @@ void SemanticEval::evaluateReturnCmd(ExpressionValue &ev, int line) {
       if (!ev.isCompatibleWidth(sctype)) {
         stringstream msg;
         if (sctype.primitiveType() == TIPO_NULO) {
-          msg << "Função não tem tipo de retorno.";
+          msg << "Função não tem tipo de retorno";
         } else {
           msg << "Expressão de retorno deve ser compatível com o tipo \""
               << sctype.toString() << "\"";

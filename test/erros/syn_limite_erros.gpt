@@ -1,0 +1,18 @@
+algoritmo syn_limite_erros;
+variáveis
+  x: inteiro;
+fim-variáveis
+início
+  x := 1
+  ação1 := 1;
+  ação2 := 1;
+  ação3 := 1;
+  ação4 := 1;
+  ação5 := 1;
+  ação6 := 1;
+  ação7 := 1;
+  ação8 := 1;
+  ação9 := 1;
+  ação10 := 1;
+  ação11 := 1;
+fim

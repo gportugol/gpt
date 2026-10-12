@@ -1,0 +1,4 @@
+algoritmo lex_comentario_segundo_arquivo;
+início
+  imprima(f());
+fim

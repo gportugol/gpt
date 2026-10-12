@@ -307,7 +307,7 @@ T_OCTAL_LIT
           for(unsigned int i = 2; i < str.length(); ++i) {
             if(!isdigit(str[i])) {
               stringstream s;
-              s << "\"" << str << "\" não é um valor hexadecimal válido";
+              s << "\"" << str << "\" não é um valor octal válido";
               GPTDisplay::self()->add(s.str(), getLine());
               haserror = true;
               break;
@@ -470,7 +470,7 @@ ML_COMMENT
 exception
 catch[antlr::RecognitionException] {
   stringstream s;
-  s << "AVISO: comentário iniciado na linha " << line << " não termina com \"*/\".";
+  s << "AVISO: comentário iniciado na linha " << line << " não termina com \"*/\"";
   GPTDisplay::self()->add(s.str(), getLine());
 
   _ttype = antlr::Token::SKIP;
@@ -548,7 +548,7 @@ options {
     //check for latim non-keywords
     if(hasLatim && (testLiteralsTable(_ttype) == T_IDENTIFICADOR)) {
       stringstream s;
-      s << "Identificador \"" << $getText << "\" não pode ter caracteres especiais.";
+      s << "Identificador \"" << $getText << "\" não pode ter caracteres especiais";
       GPTDisplay::self()->add(s.str(), getLine());
     }
   }
