@@ -1,0 +1,5 @@
+/* biblioteca */
+função f(): inteiro
+início
+  retorne 1;
+fim

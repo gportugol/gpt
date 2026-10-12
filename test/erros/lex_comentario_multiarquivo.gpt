@@ -1,0 +1,5 @@
+algoritmo lex_comentario_multiarquivo;
+início
+  imprima(f());
+fim
+/* comentário sem fim

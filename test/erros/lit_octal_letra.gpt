@@ -1,0 +1,7 @@
+algoritmo lit_octal_letra;
+variáveis
+  b: lógico;
+fim-variáveis
+início
+  b := 0c7e 1;
+fim
