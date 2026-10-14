@@ -45,6 +45,14 @@ autoreconf -i
 make -j$(nproc)
 ```
 
+O CI compila no Linux com `-Wall -Wextra -Werror`, então qualquer aviso novo
+do compilador quebra o build. Para conferir antes de enviar:
+
+```shell
+./configure --prefix=/usr/local CXXFLAGS="-Wall -Wextra -Werror"
+make -j$(nproc)
+```
+
 ### 3. Testar no Debian/Ubuntu
 
 A suíte de regressão compara a saída do interpretador, do binário nativo e da
