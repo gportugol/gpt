@@ -25,6 +25,10 @@
 #define WIN32_LEAN_AND_MEAN
 #include <io.h> //unlink()
 #include <windows.h>
+#else
+#include <spawn.h>
+#include <sys/stat.h>
+#include <sys/wait.h>
 #endif
 
 #include "InterpreterWalker.hpp"
@@ -36,12 +40,18 @@
 #include <antlr/AST.hpp>
 #include <antlr/TokenStreamSelector.hpp>
 
+#include <cerrno>
 #include <climits>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <unistd.h>
+#include <vector>
+
+#ifndef WIN32
+extern char **environ;
+#endif
 
 // The native backend emits 32-bit x86 assembly and NASM turns it into a flat
 // binary, so -o only yields something runnable when gpt itself runs on x86.
@@ -90,7 +100,7 @@ static string findNasm() {
     if (pos != string::npos) {
       string nasmPath = dir.substr(0, pos + 1) + "nasm.exe";
       if (GetFileAttributesA(nasmPath.c_str()) != INVALID_FILE_ATTRIBUTES) {
-        return "\"" + nasmPath + "\"";
+        return nasmPath;
       }
     }
   }
@@ -106,7 +116,7 @@ static string findNasm() {
     if (pos != string::npos) {
       string nasmPath = dir.substr(0, pos + 1) + "nasm";
       if (access(nasmPath.c_str(), X_OK) == 0) {
-        return "\"" + nasmPath + "\"";
+        return nasmPath;
       }
     }
   }
@@ -114,16 +124,153 @@ static string findNasm() {
 #endif
 }
 
-string GPT::createTmpFile() {
+// The arguments reach nasm as they are, without a shell: the output name
+// comes from the command line and may hold any character.
+static bool runNasm(const string &ofname, const string &asmfile) {
+  string nasm = findNasm();
+  const char *argv[] = {nasm.c_str(),   "-O1",           "-fbin", "-o",
+                        ofname.c_str(), asmfile.c_str(), NULL};
 #ifdef WIN32
-  string cf = getenv("TEMP");
-  cf += "gpt_tmp"; // TODO! criar real tmp file
-  return cf;
+  // CreateProcess hands nasm a single command line, which its C runtime
+  // splits back into argv: quote each argument the way that split expects.
+  string cmdline;
+  for (const char **arg = argv; *arg; ++arg) {
+    string a(*arg);
+    if (arg != argv) {
+      cmdline += ' ';
+    }
+    if (!a.empty() && a.find_first_of(" \t\n\v\"") == string::npos) {
+      cmdline += a;
+      continue;
+    }
+    cmdline += '"';
+    for (string::size_type i = 0;; ++i) {
+      string::size_type backslashes = 0;
+      while (i < a.size() && a[i] == '\\') {
+        ++backslashes;
+        ++i;
+      }
+      if (i == a.size()) {
+        cmdline.append(backslashes * 2, '\\');
+        break;
+      }
+      if (a[i] == '"') {
+        cmdline.append(backslashes * 2 + 1, '\\');
+      } else {
+        cmdline.append(backslashes, '\\');
+      }
+      cmdline += a[i];
+    }
+    cmdline += '"';
+  }
+
+  vector<char> buf(cmdline.begin(), cmdline.end());
+  buf.push_back('\0');
+  STARTUPINFOA si;
+  ZeroMemory(&si, sizeof(si));
+  si.cb = sizeof(si);
+  si.dwFlags = STARTF_USESTDHANDLES;
+  si.hStdInput = GetStdHandle(STD_INPUT_HANDLE);
+  si.hStdOutput = GetStdHandle(STD_OUTPUT_HANDLE);
+  si.hStdError = GetStdHandle(STD_ERROR_HANDLE);
+  PROCESS_INFORMATION pi;
+  if (!CreateProcessA(NULL, &buf[0], NULL, NULL, TRUE, 0, NULL, NULL, &si,
+                      &pi)) {
+    return false;
+  }
+  WaitForSingleObject(pi.hProcess, INFINITE);
+  DWORD code = 1;
+  bool ok = GetExitCodeProcess(pi.hProcess, &code) && code == 0;
+  CloseHandle(pi.hThread);
+  CloseHandle(pi.hProcess);
+  return ok;
 #else
-  char cfilepath[] = "/tmp/c__XXXXXX";
-  int fd = mkstemp(cfilepath);
-  close(fd);
-  return cfilepath;
+  pid_t pid;
+  if (posix_spawnp(&pid, argv[0], NULL, NULL, const_cast<char **>(argv),
+                   environ) != 0) {
+    return false;
+  }
+  int status;
+  while (waitpid(pid, &status, 0) == -1) {
+    if (errno != EINTR) {
+      return false;
+    }
+  }
+  return WIFEXITED(status) && WEXITSTATUS(status) == 0;
+#endif
+}
+
+#ifndef WIN32
+// Same bits as "chmod +x": execute for everyone, except what the umask hides.
+static bool makeExecutable(const string &path) {
+  struct stat st;
+  if (stat(path.c_str(), &st) != 0) {
+    return false;
+  }
+  mode_t mask = umask(0);
+  umask(mask);
+  mode_t exec = (S_IXUSR | S_IXGRP | S_IXOTH) & ~mask;
+  return chmod(path.c_str(), st.st_mode | exec) == 0;
+}
+#endif
+
+// The content goes through the handle that created the file: reopening the
+// name would follow whatever sits at that path by then.
+bool GPT::writeTmpFile(const string &content, string &path) {
+#ifdef WIN32
+  char dir[MAX_PATH + 1];
+  DWORD len = GetTempPathA(sizeof(dir), dir);
+  if (len == 0 || len > sizeof(dir)) {
+    return false;
+  }
+  DWORD unique = GetTickCount() ^ GetCurrentProcessId();
+  for (int tries = 0; tries < 100; ++tries, ++unique) {
+    stringstream name;
+    name << dir << "c__" << hex << unique << ".tmp";
+    // With FILE_FLAG_OPEN_REPARSE_POINT a link left at the name is itself the
+    // existing file, so CREATE_NEW fails instead of resolving it.
+    HANDLE h =
+        CreateFileA(name.str().c_str(), GENERIC_WRITE, 0, NULL, CREATE_NEW,
+                    FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OPEN_REPARSE_POINT, NULL);
+    if (h == INVALID_HANDLE_VALUE) {
+      if (GetLastError() == ERROR_FILE_EXISTS) {
+        continue;
+      }
+      return false;
+    }
+    path = name.str();
+    DWORD written;
+    bool ok = WriteFile(h, content.data(), content.size(), &written, NULL) &&
+              written == content.size();
+    return CloseHandle(h) && ok;
+  }
+  return false;
+#else
+  const char *tmpdir = getenv("TMPDIR");
+  string name = string(tmpdir && *tmpdir ? tmpdir : "/tmp") + "/c__XXXXXX";
+  vector<char> buf(name.begin(), name.end());
+  buf.push_back('\0');
+  int fd = mkstemp(&buf[0]);
+  if (fd == -1) {
+    return false;
+  }
+  path = &buf[0];
+
+  const char *data = content.data();
+  string::size_type left = content.size();
+  while (left > 0) {
+    ssize_t n = write(fd, data, left);
+    if (n == -1) {
+      if (errno == EINTR) {
+        continue;
+      }
+      close(fd);
+      return false;
+    }
+    data += n;
+    left -= n;
+  }
+  return close(fd) == 0;
 #endif
 }
 
@@ -290,7 +437,7 @@ bool GPT::compile(const list<string> &ifnames, bool genBinary) {
     X86Walker x86(_stable);
     string asmsrc = x86.algoritmo(_astree);
 
-    string ftmpname = createTmpFile();
+    string ftmpname;
     ofstream fo;
 
     if (!genBinary) { // salva assembly code
@@ -304,26 +451,13 @@ bool GPT::compile(const list<string> &ifnames, bool genBinary) {
       fo << asmsrc;
       fo.close();
     } else { // compile
-      fo.open(ftmpname.c_str(), ios_base::out);
-      if (!fo) {
+      if (!writeTmpFile(asmsrc, ftmpname)) {
         s << PACKAGE << ": erro ao processar arquivo temporário" << endl;
         GPTDisplay::self()->showError(s);
         goto bail;
       }
-      fo << asmsrc;
-      fo.close();
 
-      stringstream cmd;
-      cmd << findNasm() << " -O1 -fbin -o \"" << ofname << "\" \"" << ftmpname
-          << "\"";
-      string line = cmd.str();
-#ifdef WIN32
-      // cmd /c strips the first and last quote of a line that starts with one,
-      // which would break the quoted nasm path.
-      line = "\"" + line + "\"";
-#endif
-
-      if (system(line.c_str()) != 0) {
+      if (!runNasm(ofname, ftmpname)) {
         s << PACKAGE << ": não foi possível montar o programa com o nasm."
           << endl;
         GPTDisplay::self()->showError(s);
@@ -331,9 +465,12 @@ bool GPT::compile(const list<string> &ifnames, bool genBinary) {
       }
 
 #ifndef WIN32
-      cmd.str("");
-      cmd << "chmod +x \"" << ofname << "\"";
-      system(cmd.str().c_str());
+      if (!makeExecutable(ofname)) {
+        s << PACKAGE << ": não foi possível tornar o arquivo executável: \""
+          << ofname << "\"" << endl;
+        GPTDisplay::self()->showError(s);
+        goto bail;
+      }
 #endif
     }
 

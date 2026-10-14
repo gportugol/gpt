@@ -279,11 +279,15 @@ echo "========================================"
 if [ $CAN_EXEC_X86 -eq 1 ]; then
 	# Hiding nasm by emptying PATH also hides the MinGW DLLs that gpt.exe
 	# loads from /ucrt64/bin, where HACKING.md installs nasm, so a failing
-	# nasm goes first in PATH instead: cmd.exe runs the .bat, sh the script.
+	# nasm goes first in PATH instead. gpt starts nasm without a shell, and on
+	# Windows CreateProcess only looks for nasm.exe, so there it is a program.
 	mkdir -p "$TMP/nasm_falso"
 	printf '#!/bin/sh\nexit 1\n' >"$TMP/nasm_falso/nasm"
-	printf '@exit /b 1\r\n' >"$TMP/nasm_falso/nasm.bat"
 	chmod +x "$TMP/nasm_falso/nasm"
+	if [ $ON_WINDOWS -eq 1 ]; then
+		printf 'int main(void) { return 1; }\n' >"$TMP/nasm_falso.c"
+		gcc -o "$TMP/nasm_falso/nasm.exe" "$TMP/nasm_falso.c"
+	fi
 	ERRO=$(PATH="$TMP/nasm_falso:$PATH" $TIMEOUT "$GPT" -o "$TMP/recusa.bin" tester.gpt 2>&1 >/dev/null)
 	RESULT=$?
 	if [ $RESULT -eq 1 ] && grep -q "montar o programa com o nasm" <<<"$ERRO"; then
@@ -363,6 +367,30 @@ else
 		fail "-o com o nasm ao lado do gpt: código $RESULT (esperado: 0 e o programa montado)"
 		echo "$ERRO"
 	fi
+fi
+echo ""
+
+echo "========================================"
+echo "Nome de saída com caracteres especiais"
+echo "========================================"
+# The name given to -o reaches nasm and chmod as it is, never through a shell:
+# nothing in it may run, and the program must be written under that name.
+if [ $CAN_EXEC_X86 -eq 0 ] || [ -z "$NASM_REAL" ]; then
+	echo "⚠ -o com caracteres especiais: pulado (sem x86 ou sem NASM)"
+else
+	cp casos/olamundo.gpt "$TMP/especial.gpt"
+	for nome in 'saida$(touch marcador)' 'saida`touch marcador`' \
+		'saida; touch marcador' 'saida com espaco' 'saida%OS%'; do
+		rm -f "$TMP/marcador"
+		ERRO=$(cd "$TMP" && $TIMEOUT "$GPT" -o "$nome" especial.gpt 2>&1 >/dev/null)
+		RESULT=$?
+		if [ $RESULT -eq 0 ] && [ -f "$TMP/$nome" ] && [ ! -e "$TMP/marcador" ]; then
+			ok "-o \"$nome\""
+		else
+			fail "-o \"$nome\": código $RESULT (esperado: 0, o programa com esse nome e nenhum comando executado)"
+			echo "$ERRO"
+		fi
+	done
 fi
 echo ""
 
