@@ -51,12 +51,12 @@ algoritmo
   ;
 
   exception //nem "variaveis" nem "inicio"
-  catch[antlr::NoViableAltException e] {
+  catch[antlr::NoViableAltException& e] {
     reportParserError(e.getLine(),
       "\"variáveis\" ou \"início\" após declaração de algoritmo", getTokenDescription(e.token));
   }
 
-  catch[antlr::MismatchedTokenException e] { //EOF
+  catch[antlr::MismatchedTokenException& e] { //EOF
     reportParserError(e.getLine(), expecting_eof_or_function, getTokenDescription(e.token));
   }
 
@@ -67,7 +67,7 @@ declaracao_algoritmo
   ;
 
   exception //T_KW_ALGORITMO, T_IDENTIFICADOR, T_SEMICOL
-  catch[antlr::MismatchedTokenException e] {
+  catch[antlr::MismatchedTokenException& e] {
     if(e.expecting == T_IDENTIFICADOR) {
       if(alg->getLine() != e.getLine()) {
         reportParserError(alg->getLine(), expecting_algorithm_name, "", alg->getText());
@@ -94,7 +94,7 @@ var_decl_block
   //Nota: T_KW_VARIAVEIS ja foi checado.
 
   exception //nenhum T_IDENTIFICADOR (var_decl)
-  catch[antlr::NoViableAltException e] {
+  catch[antlr::NoViableAltException& e] {
 
     int cd;
     if(e.getLine() == tvars->getLine()) {
@@ -111,7 +111,7 @@ var_decl_block
     consumeUntil(b);
   }
 
-  catch[antlr::MismatchedTokenException e] {
+  catch[antlr::MismatchedTokenException& e] {
     if(e.expecting == T_SEMICOL) {
       if(isDatatype(tk->getType())) {
         reportParserError(tk->getLine(), getTokenNames()[e.expecting], "", tk->getText());
@@ -148,7 +148,7 @@ var_decl!
 
   //Nota: T_IDENTIFICADOR ja foi checado
   exception
-  catch[antlr::MismatchedTokenException e] {
+  catch[antlr::MismatchedTokenException& e] {
 
     if(e.expecting == T_COLON) {
       if((e.token->getType() != EOF_) && (e.getLine() == lastId->getLine())) {
@@ -171,7 +171,7 @@ var_decl!
     consumeUntil(T_SEMICOL);
   }
 
-  catch[antlr::NoViableAltException e] { //no datatype
+  catch[antlr::NoViableAltException& e] { //no datatype
     if(e.getLine() == colon->getLine()) {
       reportParserError(e.getLine(), expecting_datatype,  getTokenDescription(e.token));
     } else {
@@ -187,7 +187,7 @@ var_more
   ;
 
   exception
-  catch[antlr::MismatchedTokenException e] {
+  catch[antlr::MismatchedTokenException& e] {
     if(lst->getLine() == e.getLine()) {
       reportParserError(e.getLine(), expecting_variable, getTokenDescription(e.token));
     } else {
@@ -207,7 +207,7 @@ tp_prim
 
 
   exception //for function return
-  catch[antlr::NoViableAltException e] {
+  catch[antlr::NoViableAltException& e] {
     if(e.getLine() == tk->getLine()) {
       reportParserError(e.getLine(), expecting_datatype, getTokenDescription(e.token));
     } else {
@@ -228,7 +228,7 @@ tp_matriz!
   ;
 
   exception
-  catch[antlr::MismatchedTokenException e] {
+  catch[antlr::MismatchedTokenException& e] {
     if(lst->getType() == T_FECHAC) {
       if(e.getLine() == mt->getLine()) {
         reportParserError(e.getLine(), getTokenNames()[e.expecting], getTokenDescription(e.token));
@@ -270,7 +270,7 @@ dimensoes
   ;
 
   exception
-  catch[antlr::MismatchedTokenException e] {
+  catch[antlr::MismatchedTokenException& e] {
 
     if(e.getLine() == lst->getLine()) {
       reportParserError(e.getLine(), getTokenNames()[e.expecting], "", lst->getText());//getTokenDescription(e.token));
@@ -280,7 +280,7 @@ dimensoes
     consumeUntil(T_KW_DE);
   }
 
-  catch[antlr::NoViableAltException e] {
+  catch[antlr::NoViableAltException& e] {
     if(mt->getLine() == e.getLine()) {
       reportParserError(e.getLine(), getTokenNames()[T_ABREC], "", mt->getText());
     } else {
@@ -310,7 +310,7 @@ stm_block!
   ;
 
   exception
-  catch[antlr::MismatchedTokenException e] {
+  catch[antlr::MismatchedTokenException& e] {
     if(e.expecting == T_KW_FIM) {
       int cd = reportParserError(e.getLine(), expecting_stm_or_fim, getTokenDescription(e.token));
       if(e.token->getType() == T_IDENTIFICADOR) {
@@ -354,7 +354,7 @@ stm_list
   //Nota: caso haja excecao em (stm_list)*, não haverá outra tentativa (causada pelo *),
   //      isso eh, a funcao stm_list retornara.
   exception
-  catch[antlr::MismatchedTokenException e] {
+  catch[antlr::MismatchedTokenException& e] {
     if(e.expecting == T_SEMICOL) {
       if(tk->getLine() == e.getLine()) {
         reportParserError(tk->getLine(), getTokenNames()[e.expecting], getTokenDescription(e.token));
@@ -384,7 +384,7 @@ stm_ret!
   ;
 
   exception
-  catch[antlr::NoViableAltException e] {
+  catch[antlr::NoViableAltException& e] {
     reportParserError(lastToken->getLine(), expecting_expression, "", lastToken->getText());
 
     //tudo o que vem depois de stm_list
@@ -413,7 +413,7 @@ array_sub
 
   exception //apenas para rvalue. se array_sub pertence a um lvalue, ele ja foi validado porcausa
             //do predicado em stm_list
-  catch[antlr::MismatchedTokenException e] {
+  catch[antlr::MismatchedTokenException& e] {
     reportParserError(tk->getLine(), getTokenNames()[e.expecting], "", tk->getText());
 
     //consumeUntil: para tudo o que vem depois de lvalue
@@ -438,7 +438,7 @@ lvalue!
   ;
 
   exception
-  catch[antlr::MismatchedTokenException e] {
+  catch[antlr::MismatchedTokenException& e] {
     if(lst->getLine() == e.getLine()) {
       reportParserError(e.getLine(), expecting_variable, getTokenDescription(e.token));
     } else {
@@ -478,7 +478,7 @@ stm_se
   ;
 
   exception
-  catch[antlr::MismatchedTokenException e] {
+  catch[antlr::MismatchedTokenException& e] {
     if(e.expecting != T_KW_FIM_SE) {
       if(e.getLine() == tk->getLine()) {
         reportParserError(e.getLine(), getTokenNames()[e.expecting], getTokenDescription(e.token));
@@ -509,7 +509,7 @@ stm_se
     consumeUntil(b);
   }
 
-  catch[antlr::NoViableAltException e] { //fimse
+  catch[antlr::NoViableAltException& e] { //fimse
     if(e.getLine() == tk->getLine()) {
       reportParserError(e.getLine(), expecting_stm_or_fimse, getTokenDescription(e.token));
     } else {
@@ -540,7 +540,7 @@ stm_enquanto
   ;
 
   exception
-  catch[antlr::MismatchedTokenException e] {
+  catch[antlr::MismatchedTokenException& e] {
     if(e.expecting != T_KW_FIM_ENQUANTO) {
       if(e.getLine() == tk->getLine()) {
         reportParserError(e.getLine(), getTokenNames()[e.expecting], getTokenDescription(e.token));
@@ -581,7 +581,7 @@ stm_repita
   ;
 
   exception
-  catch[antlr::MismatchedTokenException e] {
+  catch[antlr::MismatchedTokenException& e] {
     if(e.expecting != T_KW_ATE) {
       if(e.getLine() == tk->getLine()) {
         reportParserError(e.getLine(), getTokenNames()[e.expecting], getTokenDescription(e.token));
@@ -632,7 +632,7 @@ stm_para
   ;
 
   exception
-  catch[antlr::MismatchedTokenException e] {
+  catch[antlr::MismatchedTokenException& e] {
     if(e.expecting != T_KW_FIM_PARA) {
       if(e.getLine() == tk->getLine()) {
         reportParserError(e.getLine(), getTokenNames()[e.expecting], getTokenDescription(e.token));
@@ -669,7 +669,7 @@ passo
   ;
 
   exception
-  catch[antlr::NoViableAltException e] {
+  catch[antlr::NoViableAltException& e] {
     // passo faz lookahead para checar T_KW_FACA
     if(tk->getType() != T_KW_PASSO) {
       if(e.getLine() == tk->getLine()) {
@@ -683,7 +683,7 @@ passo
     }
   }
 
-  catch[antlr::MismatchedTokenException e] {
+  catch[antlr::MismatchedTokenException& e] {
     if(e.getLine() == tk->getLine()) {
       reportParserError(e.getLine(), getTokenNames()[e.expecting], getTokenDescription(e.token));
     } else {
@@ -705,7 +705,7 @@ expr
   ;
 
   exception //catch todas as excecoes nas expr_*
-  catch[ANTLR_USE_NAMESPACE(antlr)NoViableAltException e] {
+  catch[ANTLR_USE_NAMESPACE(antlr)NoViableAltException& e] {
     //nothing
   }
 
@@ -783,7 +783,7 @@ op_unario!
 
   exception  //op_unario faz um lookahead e lanca noViable
             //se LA(1) nao servir em nenhuma alternativa de expr_elemento
-  catch[ANTLR_USE_NAMESPACE(antlr)NoViableAltException e] {
+  catch[ANTLR_USE_NAMESPACE(antlr)NoViableAltException& e] {
 
     if(lastToken->getLine() == e.getLine()) {
       reportParserError(e.getLine(), expecting_expression, getTokenDescription(e.token), lastToken->getText());
@@ -815,11 +815,11 @@ expr_elemento
   ;
 
   exception //ja foi tratado em op_unario
-  catch[ANTLR_USE_NAMESPACE(antlr)NoViableAltException e] {
+  catch[ANTLR_USE_NAMESPACE(antlr)NoViableAltException& e] {
     //nothing
   }
   //catch para exceptions herdadas em expr
-  catch[antlr::MismatchedTokenException e] {
+  catch[antlr::MismatchedTokenException& e] {
     reportParserError(e.getLine(), getTokenNames()[e.expecting], getTokenDescription(e.token));
   }
 
@@ -836,7 +836,7 @@ fcall!
   ;
 
   exception //T_FECHAP
-  catch[antlr::MismatchedTokenException e] {
+  catch[antlr::MismatchedTokenException& e] {
 
     if(tk->getLine() == e.getLine()) {
       int cd = reportParserError(e.getLine(), getTokenNames()[e.expecting], getTokenDescription(e.token));
@@ -869,7 +869,7 @@ fargs
   ;
 
   exception
-  catch[ANTLR_USE_NAMESPACE(antlr)NoViableAltException e] {
+  catch[ANTLR_USE_NAMESPACE(antlr)NoViableAltException& e] {
 
     if(lst->getLine() == e.getLine()) {
       reportParserError(e.getLine(), expecting_expression, getTokenDescription(e.token));
@@ -905,7 +905,7 @@ func_decls!
   ;
 
   exception
-  catch[antlr::MismatchedTokenException e] {
+  catch[antlr::MismatchedTokenException& e] {
 
     if(e.expecting == T_IDENTIFICADOR) {
       if(f->getLine() == e.getLine()) {
@@ -948,13 +948,13 @@ rettype
   ;
 
   exception //rettype does lookahead
-  catch[antlr::NoViableAltException e] {
+  catch[antlr::NoViableAltException& e] {
 //     cerr << "rettype:NoViableAltException\n";
 //     reportParserError(e.getLine(), getTokenNames()[T_KW_INICIO], getTokenDescription(e.token));
 //     consumeUntil(T_KW_FIM);
   }
 
-  catch[antlr::MismatchedTokenException e] {
+  catch[antlr::MismatchedTokenException& e] {
 //     cerr << "rettype:MismatchedTokenException\n";
   }
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -965,7 +965,7 @@ fffvar_decl
   ;
 
   exception //T_SEMICOL
-  catch[antlr::MismatchedTokenException e] {
+  catch[antlr::MismatchedTokenException& e] {
     if(tk->getLine() == e.getLine()) {
       reportParserError(e.getLine(), getTokenNames()[e.expecting], getTokenDescription(e.token));
     } else {
@@ -974,7 +974,7 @@ fffvar_decl
     consumeUntil(T_KW_INICIO);
   }
 
-  catch[ANTLR_USE_NAMESPACE(antlr)NoViableAltException e] {
+  catch[ANTLR_USE_NAMESPACE(antlr)NoViableAltException& e] {
 //     cerr << "fffvar_decl::NoViableAltException" << endl;
   }
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -988,7 +988,7 @@ fvar_decl!
   ;
 
   exception
-  catch[antlr::NoViableAltException e] {
+  catch[antlr::NoViableAltException& e] {
 //     cerr << "fvar_decl::NoViableAltException" << endl;
   }
 
@@ -1005,7 +1005,7 @@ fparams
   ;
 
   exception
-  catch[ANTLR_USE_NAMESPACE(antlr)NoViableAltException e] {
+  catch[ANTLR_USE_NAMESPACE(antlr)NoViableAltException& e] {
     if(e.getLine() == tk->getLine()) {
       reportParserError(e.getLine(), expecting_param_or_fparen, getTokenDescription(e.token));
     } else {
@@ -1031,7 +1031,7 @@ fparam!
   ;
 
   exception
-  catch[antlr::MismatchedTokenException e] {
+  catch[antlr::MismatchedTokenException& e] {
     if(e.expecting == T_IDENTIFICADOR) {
       if(e.getLine() == tk->getLine()) {
         reportParserError(e.getLine(), expecting_variable, getTokenDescription(e.token));
@@ -1045,7 +1045,7 @@ fparam!
   }
 
 
-  catch[ANTLR_USE_NAMESPACE(antlr)NoViableAltException e] {
+  catch[ANTLR_USE_NAMESPACE(antlr)NoViableAltException& e] {
     //no datatype found
     if(tk->getLine() == e.getLine()) {
       reportParserError(e.getLine(), expecting_datatype, getTokenDescription(e.token));

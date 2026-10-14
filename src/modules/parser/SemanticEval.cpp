@@ -274,18 +274,12 @@ ExpressionValue SemanticEval::evaluateLValue(RefPortugolAST id,
     inteiras. [1.2] ou ["aa"] ->erro
   */
 
-  bool islocal;
   Symbol lvalue;
   ExpressionValue ret;
   ret.setID(id->getText());
 
   try {
     lvalue = stable.getSymbol(currentScope, id->getText(), true);
-    if (lvalue.scope == SymbolTable::GlobalScope) {
-      islocal = false;
-    } else {
-      islocal = true;
-    }
   } catch (SymbolTableException &e) {
     stringstream msg;
     msg << "Variável \"" << id->getText() << "\" não foi declarada";

@@ -301,7 +301,7 @@ string X86::addGlobalLiteral(string str) {
   return lb;
 }
 
-string X86::translateFuncLeia(const string &id, int type) {
+string X86::translateFuncLeia(int type) {
   switch (type) {
   case TIPO_REAL:
     return "leia_real";
@@ -316,25 +316,6 @@ string X86::translateFuncLeia(const string &id, int type) {
   default:
     GPTDisplay::self()->showError(
         "Erro interno: tipo nao suportado (x86::translateFuncLeia).");
-    exit(1);
-  }
-}
-
-string X86::translateFuncImprima(const string &id, int type) {
-  switch (type) {
-  case TIPO_REAL:
-    return "imprima_real";
-  case TIPO_LITERAL:
-    return "imprima_literal";
-  case TIPO_CARACTERE:
-    return "imprima_caractere";
-  case TIPO_LOGICO:
-    return "imprima_logico";
-  case TIPO_INTEIRO:
-    return "imprima_inteiro";
-  default:
-    GPTDisplay::self()->showError(
-        "Erro interno: tipo nao suportado (x86::translateFuncImprima).");
     exit(1);
   }
 }

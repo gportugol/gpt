@@ -86,8 +86,7 @@ public:
   void declareMatrix(int decl_type, int type, string name, list<string> dims);
 
   string addGlobalLiteral(string str);
-  string translateFuncLeia(const string &id, int type);
-  string translateFuncImprima(const string &id, int type);
+  string translateFuncLeia(int type);
   string createLabel(bool local, string tmpl);
 
   void writeExit();

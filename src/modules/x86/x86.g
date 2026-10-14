@@ -265,7 +265,7 @@ fcall[int expct_type] returns [int type=TIPO_NULO]
       {
         f = stable.getSymbol(SymbolTable::GlobalScope, id->getText()); //so we get the params
         if(f.lexeme == "leia") {
-          fname = x86.translateFuncLeia(id->getText(), expct_type);
+          fname = x86.translateFuncLeia(expct_type);
           type = expct_type;
           //ptype doesn't matter: (expr)* is not used
         } else {
