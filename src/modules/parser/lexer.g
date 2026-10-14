@@ -34,6 +34,12 @@ header {
   using namespace std;
 }
 
+header "post_include_cpp" {
+  // ANTLR 2 declares _saveIndex in every lexer rule, whether or not the rule
+  // uses it.
+  #pragma GCC diagnostic ignored "-Wunused-but-set-variable"
+}
+
 options {
   language="Cpp";
 }
@@ -468,7 +474,7 @@ ML_COMMENT
   ;
 
 exception
-catch[antlr::RecognitionException] {
+catch[antlr::RecognitionException&] {
   stringstream s;
   s << "AVISO: comentário iniciado na linha " << line << " não termina com \"*/\"";
   GPTDisplay::self()->add(s.str(), getLine());

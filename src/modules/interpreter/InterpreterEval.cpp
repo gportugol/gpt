@@ -771,7 +771,7 @@ void InterpreterEval::nextCmd(const string &file, int line) {
     stringstream s;
     int cmd;
 
-    InterpreterDBG::self()->sendInfo(currentLine, variables, program_stack);
+    InterpreterDBG::self()->sendInfo(variables, program_stack);
     cmd = InterpreterDBG::self()->getCmd();
     switch (cmd) {
     case InterpreterDBG::CMDStepInto:

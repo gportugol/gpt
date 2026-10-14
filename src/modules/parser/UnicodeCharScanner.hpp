@@ -75,7 +75,7 @@ public:
         return;
       } else if (c < 0x800) {
         text += ((c >> 6) | 0xC0);
-        text += (c & 0x3F | 0x80);
+        text += ((c & 0x3F) | 0x80);
       } else if (c < 0x10000) {
         text += ((c >> 12) | 0xE0);
         text += (((c >> 6) & 0x3F) | 0x80);
@@ -382,7 +382,7 @@ public:
   }
 
 #ifndef NO_STATIC_CONSTS
-  static const int EOF_CHAR = EOF;
+  static const char_type EOF_CHAR = static_cast<char_type>(EOF);
 #else
   enum { EOF_CHAR = EOF };
 #endif

@@ -42,8 +42,7 @@ public:
 
   void checkData();
 
-  void sendInfo(int line, Variables &v,
-                list<pair<string, pair<string, int>>> &stk);
+  void sendInfo(Variables &v, list<pair<string, pair<string, int>>> &stk);
 
   int getCmd();
 

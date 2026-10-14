@@ -38,7 +38,7 @@
 #include <unistd.h>
 
 #ifndef WIN32
-void sigPipeHandler(int signum) { InterpreterDBG::self()->closeSock(); }
+void sigPipeHandler(int) { InterpreterDBG::self()->closeSock(); }
 #endif
 
 InterpreterDBG *InterpreterDBG::singleton = NULL;
@@ -161,7 +161,7 @@ void InterpreterDBG::checkData() {
   }
 }
 
-void InterpreterDBG::sendInfo(int line, Variables &v,
+void InterpreterDBG::sendInfo(Variables &v,
                               list<pair<string, pair<string, int>>> &stk) {
 
   sendStackInfo(stk);

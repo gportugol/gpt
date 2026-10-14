@@ -549,13 +549,11 @@ bool GPT::parse(list<pair<string, istream *>> &istream_list) {
     // 2: utilizar o filename adequado para error reporting
 
     PortugolLexer *lexer;
-    PortugolLexer *prev = 0;
     PortugolLexer *fst = 0;
     string firstFile;
-    int c = 0;
     for (list<pair<string, istream *>>::reverse_iterator it =
              istream_list.rbegin();
-         it != istream_list.rend(); ++it, ++c) {
+         it != istream_list.rend(); ++it) {
       lexer = new PortugolLexer(*((*it).second), selector);
 
       selector->addInputStream(lexer, (*it).first);
@@ -565,7 +563,6 @@ bool GPT::parse(list<pair<string, istream *>> &istream_list) {
         lexer->setNextFilename(firstFile);
       }
 
-      prev = lexer;
       GPTDisplay::self()->addFileName((*it).first);
 
       firstFile = (*it).first;

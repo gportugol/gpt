@@ -111,6 +111,7 @@ static int init(int argc, char **argv) {
       if (optarg) {
         _asmsource = optarg;
       }
+      break;
     case 'H':
       if (optarg) {
         _host = optarg;

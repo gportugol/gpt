@@ -50,7 +50,7 @@ options {
     class ReturnException {};
 
     InterpreterWalker(SymbolTable& st, string host, int port)
-      : interpreter(st, host, port), _returning(false) {    }
+      : _returning(false), interpreter(st, host, port) {    }
 
   private:
     bool _returning;
