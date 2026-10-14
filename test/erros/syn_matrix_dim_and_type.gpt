@@ -1,0 +1,6 @@
+algoritmo t;
+variáveis
+  a: matriz[1x2] de inteiro;
+fim-variáveis
+início
+fim
