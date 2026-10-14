@@ -26,7 +26,7 @@ jobs:
       - name: Build GPT Project
         run: |
           autoreconf -i
-          ./configure --prefix=/usr/local
+          ./configure --prefix=/usr/local CXXFLAGS="-Wall -Wextra -Werror"
           make -j$(nproc)
 
       - name: Run Tests
