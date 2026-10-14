@@ -50,13 +50,13 @@ string BasePortugolParser::expecting_param_or_fparen = "variável ou \")\"";
 
 BasePortugolParser::BasePortugolParser(const ParserSharedInputState &lexer,
                                        int k_)
-    : LLkParser(lexer, k) {}
+    : LLkParser(lexer, k_) {}
 
 BasePortugolParser::BasePortugolParser(TokenBuffer &tokenBuf, int k_)
-    : LLkParser(tokenBuf, k) {}
+    : LLkParser(tokenBuf, k_) {}
 
 BasePortugolParser::BasePortugolParser(TokenStream &lexer, int k_)
-    : LLkParser(lexer, k) {}
+    : LLkParser(lexer, k_) {}
 
 string BasePortugolParser::nomeAlgoritmo() { return _name; }
 
