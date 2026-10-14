@@ -53,7 +53,7 @@ private:
 
   static GPT *_self;
 
-  string createTmpFile();
+  bool writeTmpFile(const string &content, string &path);
 
   bool parse(list<pair<string, istream *>> &);
 
