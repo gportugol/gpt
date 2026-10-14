@@ -20,18 +20,23 @@
 
 #include "PortugolAST.hpp"
 #include "GPTDisplay.hpp"
+#include "Symbol.hpp"
 #include <iostream>
 
 const char *const PortugolAST::TYPE_NAME = "PortugolAST";
 
-PortugolAST::PortugolAST() : CommonAST(), line(-1), endLine(-1) {}
+PortugolAST::PortugolAST()
+    : CommonAST(), line(-1), endLine(-1), eval_type(TIPO_NULO) {}
 
-PortugolAST::PortugolAST(RefToken t) : CommonAST(t), line(t->getLine()) {}
+PortugolAST::PortugolAST(RefToken t)
+    : CommonAST(t), line(t->getLine()), endLine(-1), eval_type(TIPO_NULO) {}
 
-PortugolAST::PortugolAST(const CommonAST &other) : CommonAST(other), line(-1) {}
+PortugolAST::PortugolAST(const CommonAST &other)
+    : CommonAST(other), line(-1), endLine(-1), eval_type(TIPO_NULO) {}
 
 PortugolAST::PortugolAST(const PortugolAST &other)
-    : CommonAST(other), line(other.line) {}
+    : CommonAST(other), line(other.line), endLine(other.endLine),
+      eval_type(other.eval_type), filename(other.filename) {}
 
 PortugolAST::~PortugolAST() {}
 

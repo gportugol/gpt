@@ -115,7 +115,7 @@ primitivo returns [pair<int, list<RefPortugolAST> >  p]
     )
   ;
 
-tipo_prim returns [int type]
+tipo_prim returns [int type=TIPO_NULO]
   : T_KW_INTEIRO   {type = TIPO_INTEIRO;}
   | T_KW_REAL      {type = TIPO_REAL;}
   | T_KW_CARACTERE {type = TIPO_CARACTERE;}

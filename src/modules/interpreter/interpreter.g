@@ -378,7 +378,7 @@ stm_para
     )
   ;
 
-passo returns [int p]
+passo returns [int p=1]
 {bool pos = true;}
   : #(T_KW_PASSO (T_MAIS|T_MENOS{pos=false;})? i:T_INT_LIT)
       {p = atoi(i->getText().c_str());if(!pos) p = -p;}
