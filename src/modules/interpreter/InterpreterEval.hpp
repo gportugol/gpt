@@ -36,6 +36,8 @@ using namespace std;
 
 class ExprValue {
 public:
+  ExprValue() : type(TIPO_NULO) {}
+
   void setValue(string str);
   void setValue(const stringstream &s);
   bool ifTrue();

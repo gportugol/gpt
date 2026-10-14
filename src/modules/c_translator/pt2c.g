@@ -58,7 +58,7 @@ options {
 {
   public:
   Portugol2CWalker(SymbolTable& st)
-    : stable(st) { }
+    : stable(st), _currentScopeType(-1) { }
 
   private:
 
@@ -554,7 +554,7 @@ primitivo returns [production p]
     )
   ;
 
-tipo_prim returns [int t]
+tipo_prim returns [int t=TIPO_NULO]
   : T_KW_INTEIRO   {t = TIPO_INTEIRO;}
   | T_KW_REAL      {t = TIPO_REAL;}
   | T_KW_CARACTERE {t = TIPO_CARACTERE;}

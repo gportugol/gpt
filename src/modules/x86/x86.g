@@ -88,7 +88,7 @@ primitivo[int decl_type]
     )
   ;
 
-tipo_prim returns [int t]
+tipo_prim returns [int t=TIPO_NULO]
   : T_KW_INTEIRO   {t = TIPO_INTEIRO;}
   | T_KW_REAL      {t = TIPO_REAL;}
   | T_KW_CARACTERE {t = TIPO_CARACTERE;}
@@ -248,7 +248,7 @@ lvalue returns [pair< pair<int, bool>, string> p] //pair< pair<type, using_addr>
     }
   ;
 
-fcall[int expct_type] returns [int type]
+fcall[int expct_type] returns [int type=TIPO_NULO]
 {
   Symbol f;
   int count = 0;
@@ -722,7 +722,7 @@ expr[int expecting_type] returns [int etype]
   | etype=element[expecting_type]
   ;
 
-element[int expecting_type] returns [int etype]
+element[int expecting_type] returns [int etype=TIPO_NULO]
 {
   stringstream s;
   string str;
