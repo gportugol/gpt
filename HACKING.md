@@ -12,6 +12,7 @@ Dependências:
 - automake
 - libtool
 - pkg-config
+- antlr (ANTLR 2.x, fornece o `runantlr`)
 - libantlr-dev (ANTLR 2.x)
 - libpcre2-dev
 - nasm
@@ -33,7 +34,7 @@ Debian/Ubuntu, usando os pacotes:
 ```shell
 sudo apt install -y \
   build-essential autoconf automake libtool pkg-config \
-  libantlr-dev libpcre2-dev nasm
+  antlr libantlr-dev libpcre2-dev nasm
 ```
 
 ### 2. Configurar e compilar no Debian/Ubuntu
