@@ -222,8 +222,8 @@ tp_prim
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 tp_matriz!
-{RefToken lst;}
-  : mt:T_KW_MATRIZ dim:dimensoes {lst=lastToken;}T_KW_DE tipo:tp_prim_pl
+{RefToken lst; RefToken de;}
+  : mt:T_KW_MATRIZ dim:dimensoes {lst=lastToken;}T_KW_DE {de=lastToken;} tipo:tp_prim_pl
     {#tp_matriz = #(tipo, dim);#tp_matriz->setLine(mt->getLine());}
   ;
 
@@ -237,6 +237,18 @@ tp_matriz!
       }
     }//else: dimensoes deu erro. Nao reporte nada aqui.
 
+    consumeUntil(T_SEMICOL);
+  }
+
+  // tp_prim_pl leaves its errors to this handler: had it recovered on its
+  // own, the action above would run without a type, and with no dimensions
+  // either #(tipo, dim) is null.
+  catch[antlr::NoViableAltException& e] {
+    if(de->getLine() == e.getLine()) {
+      reportParserError(e.getLine(), expecting_datatype_pl, getTokenDescription(e.token));
+    } else {
+      reportParserError(de->getLine(), expecting_datatype_pl, "", de->getText());
+    }
     consumeUntil(T_SEMICOL);
   }
 
@@ -280,23 +292,15 @@ dimensoes
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 tp_prim_pl
-{RefToken lst=lastToken;}
+options {
+  defaultErrorHandler=false; //noviable should be caught on tp_matriz
+}
   : T_KW_INTEIROS
   | T_KW_REAIS
   | T_KW_CARACTERES
   | T_KW_LITERAIS
   | T_KW_LOGICOS
   ;
-
-exception
-catch[antlr::NoViableAltException e] {
-  if(lst->getLine() == e.getLine()) {
-    reportParserError(e.getLine(), expecting_datatype_pl, getTokenDescription(e.token));
-  } else {
-    reportParserError(lst->getLine(), expecting_datatype_pl, "", lst->getText());
-  }
-  consumeUntil(T_SEMICOL);
-}
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 stm_block!
