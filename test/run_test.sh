@@ -21,6 +21,9 @@
 #                       NAME.args           extra command line files, one per
 #                                           line (optional, relative to erros/)
 #                       NAME.msg            expected stderr of "gpt -s"
+#                       NAME.pular          "windows" to skip the case on
+#                                           Windows (its console cannot show
+#                                           the characters in the message)
 #
 # Files whose name starts with "_" are helpers and are not run.
 
@@ -253,6 +256,9 @@ cd "$SCRIPT_DIR/erros" || exit 1
 for src in *.gpt; do
 	name=$(basename "$src" .gpt)
 	case "$name" in _*) continue ;; esac
+	if [ $ON_WINDOWS -eq 1 ] && [ -f "$name.pular" ] && grep -qw "windows" "$name.pular"; then
+		continue
+	fi
 	read_args "$name.args" ""
 	$TIMEOUT "$GPT" -s "$TMP/$name.asm" "$src" "${ARGS[@]}" </dev/null >"$TMP/$name.e.out" 2>"$TMP/$name.e.err"
 	rc=$?

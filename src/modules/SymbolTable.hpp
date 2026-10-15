@@ -58,12 +58,22 @@ public:
 
   list<Symbol> getSymbols(const string &scope);
 
+  // Evaluated type (TIPO_*) of each expression node of the parse tree,
+  // recorded by SemanticAnalyzer and read by the code generators. Replaces
+  // PortugolAST::setEvalType/getEvalType of the ANTLR2 AST.
+  void setEvalType(const void *node, int type) { evalTypes[node] = type; }
+  int getEvalType(const void *node) const {
+    map<const void *, int>::const_iterator it = evalTypes.find(node);
+    return (it == evalTypes.end()) ? TIPO_NULO : it->second;
+  }
+
 protected:
   void registrarLeia();
   void registrarImprima();
 
   int currentCod;
   map<string, list<Symbol>> symbols; // map<scope, symbols>
+  map<const void *, int> evalTypes;
 };
 
 #endif

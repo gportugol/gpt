@@ -81,13 +81,19 @@ void GPTDisplay::stopOnError(bool val) { _stopOnError = val; }
 
 bool GPTDisplay::hasError() { return _totalErrors > 0; }
 
+// The lexical errors of the whole input are found before parsing starts, so
+// the limit applies to the earliest errors rather than to the first found.
 void GPTDisplay::showErrors() {
-  errors_map_t::reverse_iterator it;
-  for (it = _errors.rbegin(); it != _errors.rend(); ++it) {
+  int shown = 0;
+  errors_map_t::iterator it;
+  for (it = _errors.begin(); it != _errors.end(); ++it) {
     for (map<int, list<ErrorMsg>>::iterator ll = it->second.begin();
          ll != it->second.end(); ++ll) {
       for (list<ErrorMsg>::iterator lit = ll->second.begin();
            lit != ll->second.end(); ++lit) {
+        if (shown++ == MAX_ERRORS) {
+          return;
+        }
         showError((*lit));
         if (_showTips && (*lit).hasTip) {
           showTip((*lit));
@@ -110,25 +116,25 @@ void GPTDisplay::addFileName(const string &str) {
 }
 
 int GPTDisplay::add(const string &msg, int line) {
+  string file = _currentFile;
+  int localLine;
+  mapLine(line, file, localLine);
+  return add(msg, file, localLine);
+}
+
+int GPTDisplay::add(const string &msg, const string &file, int line) {
   _totalErrors++;
   if (_stopOnError)
     throw UniqueErrorException(msg, line);
 
-  if (totalErrors() > MAX_ERRORS) {
-    showErrors();
-    exit(1);
-  }
-
   ErrorMsg err;
   err.line = line;
   err.msg = msg;
-  err.file = _currentFile;
+  err.file = file;
 
-  //_errors[line].push_back(err);
-  _errors[_file_map[_currentFile]][line].push_back(err);
+  _errors[_file_map[file]][line].push_back(err);
 
-  return _errors[_file_map[_currentFile]][line].size();
-  // return _errors[line].size();
+  return _errors[_file_map[file]][line].size();
 }
 
 void GPTDisplay::showError(ErrorMsg &err) {
@@ -144,8 +150,9 @@ void GPTDisplay::showTip(ErrorMsg &err) {
 }
 
 void GPTDisplay::addTip(const string &msg, int line, int cd) {
-  // list<ErrorMsg>::iterator it = _errors[line].begin();
-  list<ErrorMsg>::iterator it = _errors[_file_map[_currentFile]][line].begin();
+  string file = _currentFile;
+  mapLine(line, file, line);
+  list<ErrorMsg>::iterator it = _errors[_file_map[file]][line].begin();
 
   for (int i = 0; i < cd - 1; ++i, ++it)
     ;
@@ -154,6 +161,47 @@ void GPTDisplay::addTip(const string &msg, int line, int cd) {
 }
 
 void GPTDisplay::setCurrentFile(const string &file) { _currentFile = file; }
+
+void GPTDisplay::addFileRange(int firstLine, const string &file) {
+  _file_ranges.push_back(pair<int, string>(firstLine, file));
+}
+
+void GPTDisplay::clearFileRanges() { _file_ranges.clear(); }
+
+void GPTDisplay::mapLine(int line, string &file, int &localLine) {
+  localLine = line;
+  for (file_ranges_t::reverse_iterator it = _file_ranges.rbegin();
+       it != _file_ranges.rend(); ++it) {
+    if (line >= it->first) {
+      file = it->second;
+      localLine = line - it->first + 1;
+      return;
+    }
+  }
+}
+
+bool GPTDisplay::isFileStart(int line) {
+  file_ranges_t::iterator it = _file_ranges.begin();
+  if (it == _file_ranges.end()) {
+    return false;
+  }
+  for (++it; it != _file_ranges.end(); ++it) {
+    if (it->first == line) {
+      return true;
+    }
+  }
+  return false;
+}
+
+int GPTDisplay::nextFileStart(int line) {
+  for (file_ranges_t::iterator it = _file_ranges.begin();
+       it != _file_ranges.end(); ++it) {
+    if (it->first > line) {
+      return it->first;
+    }
+  }
+  return 0;
+}
 
 string GPTDisplay::getCurrentFile() { return _currentFile; }
 
