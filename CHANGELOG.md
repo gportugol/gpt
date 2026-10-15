@@ -15,6 +15,8 @@ Este arquivo foi consolidado a partir do ChangeLog histórico (CVS/SVN).
 - `CONTRIBUTING.md`, `SECURITY.md` e `AGENTS.md`, distribuídos e instalados
   com o restante da documentação.
 - Dependabot para manter as GitHub Actions atualizadas.
+- Cada release passa a publicar também o tarball do código-fonte gerado pelo
+  `make dist`, junto com os binários e o manual.
 
 ### Alterado
 
@@ -46,6 +48,9 @@ Este arquivo foi consolidado a partir do ChangeLog histórico (CVS/SVN).
   conferidos por SHA-256, e as GitHub Actions são fixadas por commit.
 - O push só dispara o CI na `master`, então um commit de pull request deixa
   de rodar duas vezes, pelo push e pelo evento `pull_request`.
+- O job Linux do CI compila com `-Wall -Wextra -Werror`, então um aviso novo
+  do compilador quebra o build. O `HACKING.md` mostra como fazer a mesma
+  verificação antes de enviar.
 
 ### Corrigido
 
@@ -66,9 +71,26 @@ Este arquivo foi consolidado a partir do ChangeLog histórico (CVS/SVN).
   inseparável, `º` e `°`, apareciam no console como dois caracteres errados.
 - Um literal octal com letra, como `0c7e`, era descrito como hexadecimal na
   mensagem de erro, e três mensagens terminavam com ponto duplo.
-- `gpt -o` passava caminhos sem aspas ao shell: uma pasta temporária com
-  espaços no caminho fazia o `nasm` falhar, e no GNU/Linux um executável com
-  espaços no nome ficava sem permissão de execução.
+- `gpt -o` montava comandos de shell com o nome do executável e o caminho do
+  arquivo temporário. Uma pasta temporária com espaços no caminho fazia o
+  `nasm` falhar. No GNU/Linux, um executável com espaços no nome ficava sem
+  permissão de execução, e um nome com `$( )`, crases ou `;` executava os
+  comandos contidos nele. Agora o `nasm` roda sem shell e a permissão de
+  execução é dada por `chmod(2)`.
+- O arquivo temporário do `gpt -o` ignorava o `TMPDIR` no GNU/Linux e, no
+  Windows, tinha nome fixo e ficava fora da pasta `TEMP`, porque o nome era
+  colado ao caminho sem separador (`...\Tempgpt_tmp`). Agora ele respeita o
+  `TMPDIR` e, no Windows, cada compilação cria um arquivo com nome novo na
+  pasta temporária.
+- Uma declaração de matriz com as dimensões e o tipo dos elementos errados,
+  como `a: matriz[1x2] de inteiro;`, derrubava o `gpt` com falha de
+  segmentação em `-i`, `-t` e `-o`. Agora os dois erros são reportados com
+  arquivo e linha.
+- O interpretador lia o tipo não inicializado do valor de retorno de uma
+  função que não retorna nada, a tradução para C lia o escopo não
+  inicializado num `retorne` do bloco principal, e o parser recebia uma
+  profundidade de lookahead indeterminada. Nenhum desses casos mudava a saída
+  dos testes, mas o valgrind e o GCC os apontavam.
 - `INSTALL.md` ficava fora do `make dist` e do `make install`, e o script do
   instalador do Windows citava `README.pt_BR` e `NEWS`, que não existem mais.
 
