@@ -224,9 +224,12 @@ gpt.exe -o olamundo.exe exemplos/olamundo.gpt
 ## Documentação
 
 As páginas man ficam em [doc/man](doc/man). O manual é escrito em Markdown
-(MyST) e gerado com Sphinx a partir de [doc/manual](doc/manual). O build só
-roda no release: o workflow de release anexa o PDF, e o Read the Docs publica o
-site apenas para tags, conforme [.readthedocs.yaml](.readthedocs.yaml).
+(MyST) e gerado com Sphinx a partir de [doc/manual](doc/manual). O workflow de
+release anexa o PDF a cada release. O Read the Docs publica a `master` como
+`latest` e a maior tag de release como `stable`, e cancela os builds de pull
+request, conforme [.readthedocs.yaml](.readthedocs.yaml). Sem a integração do
+projeto no RTD com o GitHub, push e tag novos não disparam build, e ele precisa
+ser iniciado no painel.
 
 O projeto no Read the Docs deve usar o idioma Portuguese (Brazil) e ter `stable`
 como versão padrão. O RTD passa o idioma do projeto ao Sphinx, sobrepondo o
