@@ -5,6 +5,30 @@ Notícias e destaques das versões do **GPT (GPortugol)**.
 Este arquivo apresenta um resumo das principais mudanças de cada versão, com
 foco em funcionalidades e correções relevantes para os usuários.
 
+## 1.3.0 - 2026-10-16
+
+- Manual convertido para Markdown com Sphinx, revisado e publicado no Read
+  the Docs (<https://gportugol.readthedocs.io/>). O PDF continua anexado à
+  release, que agora traz também o tarball do código-fonte.
+- O binário para Windows passa a ser compilado no UCRT64 do MSYS2 e depende
+  da UCRT, incluída no Windows 10 e no Windows Server 2016 em diante.
+- `gpt -i` termina com código 1 quando o programa tem erro de sintaxe ou
+  semântico, e `gpt -o` falha quando o `nasm` falha ou não é encontrado.
+- `gpt -o` procura o `nasm` no diretório do próprio `gpt`, então o pacote
+  para Windows funciona sem colocar o `nasm` no `PATH`.
+- Arquivos salvos com BOM UTF-8 passam a ser aceitos, e arquivos que não
+  estão em UTF-8 são rejeitados com uma mensagem que indica a codificação.
+- No interpretador, `retorne` dentro de laços ou de um `se` passa a encerrar
+  a função, como no executável nativo e na tradução para C.
+- Correção de falhas de segmentação ao chamar uma variável como função, ao
+  declarar uma matriz com dimensões e tipo errados e ao traduzir para C uma
+  função que retorna um literal vazio.
+- `gpt -o` roda o `nasm` sem shell, então espaços e caracteres especiais no
+  nome do executável ou no caminho temporário deixam de quebrar a compilação
+  ou de executar comandos, e o arquivo temporário respeita o `TMPDIR`.
+- Suíte de regressão que compara a saída dos três modos de execução, e CI
+  compilando com `-Wall -Wextra -Werror`.
+
 ## 1.2.0 — 2026-01-06
 
 - Novo site oficial do projeto e ampliação da documentação, agora
