@@ -272,6 +272,38 @@ cd "$SCRIPT_DIR" || exit 1
 echo ""
 
 echo "========================================"
+echo "Ajuda e versão"
+echo "========================================"
+SAIDA=$($TIMEOUT "$GPT" -v 2>&1 </dev/null)
+RESULT=$?
+if [ $RESULT -eq 0 ] && grep -q "Compilador G-Portugol" <<<"$SAIDA"; then
+	ok "-v"
+else
+	fail "-v: código $RESULT (esperado: 0 e a versão)"
+	echo "$SAIDA"
+fi
+
+SAIDA=$($TIMEOUT "$GPT" -h 2>&1 </dev/null)
+RESULT=$?
+if [ $RESULT -eq 0 ] && grep -q "Modo de uso" <<<"$SAIDA"; then
+	ok "-h"
+else
+	fail "-h: código $RESULT (esperado: 0 e a ajuda)"
+	echo "$SAIDA"
+fi
+
+# Without arguments gpt shows the help too, but as a usage error.
+SAIDA=$($TIMEOUT "$GPT" 2>&1 </dev/null)
+RESULT=$?
+if [ $RESULT -eq 1 ] && grep -q "Modo de uso" <<<"$SAIDA"; then
+	ok "sem argumentos"
+else
+	fail "sem argumentos: código $RESULT (esperado: 1 e a ajuda)"
+	echo "$SAIDA"
+fi
+echo ""
+
+echo "========================================"
 echo "Recusas (código de saída 1)"
 echo "========================================"
 # The refusal checks grep ASCII-only fragments of gpt's diagnostics: on

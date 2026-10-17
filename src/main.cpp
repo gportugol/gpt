@@ -43,6 +43,7 @@ enum {
 enum {
   CMD_SHOW_VERSION,
   CMD_SHOW_HELP,
+  CMD_NO_ARGS,
   CMD_COMPILE,
   CMD_GPT_2_C,
   CMD_GPT_2_ASM,
@@ -67,7 +68,7 @@ string _binprogram;
 static int init(int argc, char **argv) {
 
   if (argc == 1) {
-    return CMD_SHOW_HELP;
+    return CMD_NO_ARGS;
   }
 
   stringstream s;
@@ -242,8 +243,13 @@ int main(int argc, char **argv) {
   switch (cmd) {
   case CMD_SHOW_VERSION:
     GPT::self()->showVersion();
+    success = true;
     break;
   case CMD_SHOW_HELP:
+    GPT::self()->showHelp();
+    success = true;
+    break;
+  case CMD_NO_ARGS:
     GPT::self()->showHelp();
     break;
   case CMD_COMPILE:
