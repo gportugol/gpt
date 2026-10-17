@@ -125,6 +125,8 @@ jobs:
           cd release
           TAG=${{ github.event.release.tag_name }}
           mv linux "gpt-${TAG}"
+          # The artifact zip stores every file as 644.
+          chmod +x "gpt-${TAG}/bin/gpt"
           tar -czf "gpt-linux-x86_64.tar.gz" "gpt-${TAG}"
           rm -rf "gpt-${TAG}"
 
