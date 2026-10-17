@@ -9,10 +9,9 @@ build:
     python: "3.13"
   jobs:
     post_checkout:
-      # Publish released versions only: exit code 183 cancels the build of
-      # branches (latest) and pull requests, while stable and release tags
-      # are both of type "tag".
-      - if [ "$READTHEDOCS_VERSION_TYPE" != "tag" ]; then exit 183; fi
+      # Exit code 183 cancels pull request builds, which are of type
+      # "external", so only master (latest) and release tags (stable) publish.
+      - if [ "$READTHEDOCS_VERSION_TYPE" = "external" ]; then exit 183; fi
 
 sphinx:
   configuration: doc/manual/conf.py
