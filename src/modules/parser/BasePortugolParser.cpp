@@ -58,8 +58,6 @@ BasePortugolParser::BasePortugolParser(TokenBuffer &tokenBuf, int k_)
 BasePortugolParser::BasePortugolParser(TokenStream &lexer, int k_)
     : LLkParser(lexer, k_) {}
 
-string BasePortugolParser::nomeAlgoritmo() { return _name; }
-
 void BasePortugolParser::match(int t) {
   lastToken = LT(1);
   LLkParser::match(t);

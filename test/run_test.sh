@@ -423,7 +423,76 @@ else
 			echo "$ERRO"
 		fi
 	done
+
+	# Without -o the program takes the name of the source file, not the name
+	# written inside it, so a source cannot choose which file it replaces. A
+	# source without an extension gets one instead of being overwritten.
+	EXE=""
+	SEMEXT="semext.out"
+	if [ $ON_WINDOWS -eq 1 ]; then
+		EXE=".exe"
+		SEMEXT="semext.exe"
+	fi
+	cp casos/olamundo.gpt "$TMP/semext"
+	rm -f "$TMP/especial$EXE" "$TMP/$SEMEXT" "$TMP/olamundo$EXE"
+	ERRO=$(cd "$TMP" && $TIMEOUT "$GPT" especial.gpt 2>&1 >/dev/null)
+	RESULT=$?
+	if [ $RESULT -eq 0 ] && [ ! -e "$TMP/olamundo$EXE" ] && "$TMP/especial$EXE" | grep -q "Mundo"; then
+		ok "sem -o: programa com o nome do arquivo fonte"
+	else
+		fail "sem -o: código $RESULT (esperado: 0 e o programa em especial$EXE)"
+		echo "$ERRO"
+	fi
+	ERRO=$(cd "$TMP" && $TIMEOUT "$GPT" semext 2>&1 >/dev/null)
+	RESULT=$?
+	if [ $RESULT -eq 0 ] && cmp -s "$TMP/semext" casos/olamundo.gpt && "$TMP/$SEMEXT" | grep -q "Mundo"; then
+		ok "sem -o: fonte sem extensão continua intacto"
+	else
+		fail "sem -o com fonte sem extensão: código $RESULT (esperado: 0, o fonte intacto e o programa em $SEMEXT)"
+		echo "$ERRO"
+	fi
+	# Outside Windows a backslash is an ordinary character in a file name.
+	if [ $ON_WINDOWS -eq 0 ]; then
+		cp casos/olamundo.gpt "$TMP/aula\\prog.gpt"
+		rm -f "$TMP/prog" "$TMP/aula\\prog"
+		ERRO=$(cd "$TMP" && $TIMEOUT "$GPT" 'aula\prog.gpt' 2>&1 >/dev/null)
+		RESULT=$?
+		if [ $RESULT -eq 0 ] && [ ! -e "$TMP/prog" ] && "$TMP/aula\\prog" | grep -q "Mundo"; then
+			ok "sem -o: barra invertida no nome do fonte"
+		else
+			fail "sem -o com barra invertida: código $RESULT (esperado: 0 e o programa em aula\\prog)"
+			echo "$ERRO"
+		fi
+	fi
+	if [ $ON_WINDOWS -eq 1 ]; then
+		# On Windows the caller appends .exe, so a source already named *.exe
+		# must not be replaced by its own program.
+		cp casos/olamundo.gpt "$TMP/semexe.exe"
+		rm -f "$TMP/semexe.out.exe"
+		ERRO=$(cd "$TMP" && $TIMEOUT "$GPT" semexe.exe 2>&1 >/dev/null)
+		RESULT=$?
+		if [ $RESULT -eq 0 ] && cmp -s "$TMP/semexe.exe" casos/olamundo.gpt && "$TMP/semexe.out.exe" | grep -q "Mundo"; then
+			ok "sem -o: fonte .exe no Windows não é sobrescrito"
+		else
+			fail "sem -o com fonte .exe: código $RESULT (esperado: 0, o fonte intacto e o programa em semexe.out.exe)"
+			echo "$ERRO"
+		fi
+	fi
 fi
+
+# An empty name for -s or -t is an error, not a request for the default name.
+cp casos/olamundo.gpt "$TMP/vazio.gpt"
+rm -f "$TMP/vazio" "$TMP/vazio.out"
+for opcao in -s -t; do
+	ERRO=$(cd "$TMP" && $TIMEOUT "$GPT" "$opcao" "" vazio.gpt 2>&1 >/dev/null)
+	RESULT=$?
+	if [ $RESULT -ne 0 ] && [ ! -e "$TMP/vazio" ] && [ ! -e "$TMP/vazio.out" ]; then
+		ok "$opcao com nome vazio é rejeitado"
+	else
+		fail "$opcao com nome vazio: código $RESULT (esperado: erro e nenhum arquivo criado)"
+		echo "$ERRO"
+	fi
+done
 echo ""
 
 echo "========================================"

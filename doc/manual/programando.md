@@ -44,7 +44,8 @@ Após salvar o arquivo, digite o seguinte na linha de comando:
 
 Esse comando compila o algoritmo e salva o arquivo binário resultante como
 `olamundo` (ou `olamundo.exe`) no diretório atual. Se a opção `-o <arquivo>` não
-for informada, o GPT criará o executável usando o nome do algoritmo. Após
+for informada, o GPT criará o executável com o nome do arquivo fonte sem a
+extensão, também `olamundo` neste caso. Após
 executar o programa criado, é exibido o texto "Olá mundo!" na tela.
 
 Como já deve ter assumido, comentários ao estilo C (`/* */`) e C++ (`//`) são

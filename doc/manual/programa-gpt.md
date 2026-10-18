@@ -57,10 +57,14 @@ As opções são comentadas a seguir.
 
 `-o <arquivo>`
 : Ao compilar um algoritmo, salva o executável com o nome de `<arquivo>`. Se
-  essa opção for omitida na compilação, o nome do algoritmo será usado para
-  criar o arquivo executável. O código gerado é x86 de 32 bits, então essa opção
-  só funciona em máquinas x86; nas demais, use a opção `-t` e compile o código C
-  com o compilador do sistema.
+  essa opção for omitida na compilação, o executável recebe o nome do arquivo
+  fonte sem a extensão, no diretório atual (`olamundo.gpt` gera `olamundo`, ou
+  `olamundo.exe` no Windows); um fonte sem extensão gera um executável com a
+  extensão `.out` (`.exe` no Windows), como `programa.out`. No Windows, um
+  fonte com extensão `.exe` gera um executável cujo nome termina em `.out.exe`,
+  para que o fonte não seja substituído. O código gerado é x86 de 32 bits, então
+  essa opção só funciona em máquinas x86; nas demais, use a opção `-t` e compile
+  o código C com o compilador do sistema.
 
 `-t <arquivo>`
 : Traduz o algoritmo para C e salva o código fonte com o nome de `<arquivo>`.
