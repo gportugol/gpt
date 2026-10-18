@@ -427,6 +427,33 @@ fi
 echo ""
 
 echo "========================================"
+echo "Segmentos do executável"
+echo "========================================"
+# The generated ELF must declare a non-executable stack and keep the code
+# and the writable data in separate segments on separate pages.
+if [ $CAN_EXEC_X86 -eq 0 ] || [ $ON_WINDOWS -eq 1 ] || [ -z "$NASM_REAL" ] || ! command -v readelf &>/dev/null; then
+	echo "⚠ segmentos do executável: pulado (sem x86, no Windows, sem NASM ou sem readelf)"
+elif ! $TIMEOUT "$GPT" -o "$TMP/segmentos.bin" casos/olamundo.gpt >"$TMP/segmentos.build" 2>&1; then
+	fail "segmentos do executável: compilação falhou"
+	head -5 "$TMP/segmentos.build"
+else
+	SEGS=$(readelf -lW "$TMP/segmentos.bin" 2>/dev/null)
+	if grep -qE '^\s*GNU_STACK\s.*\sRW\s' <<<"$SEGS"; then
+		ok "PT_GNU_STACK sem execução"
+	else
+		fail "PT_GNU_STACK sem execução: cabeçalho ausente ou executável"
+		echo "$SEGS"
+	fi
+	if grep -qE '^\s*LOAD\s.*\sR E\s' <<<"$SEGS" && grep -qE '^\s*LOAD\s+0x[0-9a-f]+ 0x[0-9a-f]+000 .*\sRW\s' <<<"$SEGS"; then
+		ok "código R E e dados RW em páginas distintas"
+	else
+		fail "código R E e dados RW em páginas distintas"
+		echo "$SEGS"
+	fi
+fi
+echo ""
+
+echo "========================================"
 echo "Resumo dos testes"
 echo "========================================"
 echo "$PASSED verificação(ões) passou(aram)"
