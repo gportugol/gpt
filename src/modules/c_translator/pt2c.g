@@ -198,6 +198,35 @@ options {
          "   }\n"
          "   return idx;\n"
          "}\n";
+    s << "void divisao_por_zero(int line) {\n"
+         "   fprintf(stderr, \"gpt: Erro de execução próximo a linha %d"
+         " - Divisão por 0 é ilegal. Abortando...\\n\", line);\n"
+         "   exit(1);\n"
+         "}\n";
+    s << "int div_inteiro(int a, int b, int line) {\n"
+         "   if(b == 0) {\n"
+         "     divisao_por_zero(line);\n"
+         "   }\n"
+         "   if(b == -1) {\n"
+         "     return (int)(0u - (unsigned)a);\n"
+         "   }\n"
+         "   return a / b;\n"
+         "}\n";
+    s << "double div_real(double a, double b, int line) {\n"
+         "   if(b == 0) {\n"
+         "     divisao_por_zero(line);\n"
+         "   }\n"
+         "   return a / b;\n"
+         "}\n";
+    s << "int mod_inteiro(int a, int b, int line) {\n"
+         "   if(b == 0) {\n"
+         "     divisao_por_zero(line);\n"
+         "   }\n"
+         "   if(b == -1) {\n"
+         "     return 0;\n"
+         "   }\n"
+         "   return a % b;\n"
+         "}\n";
     s << "void imprima(char* format, ...) {\n"
          "   va_list args;\n"
          "   va_start(args, format);\n"
@@ -939,9 +968,22 @@ expr[int expecting_type] returns [production p]
   | #(T_MENOR_EQ  left=expr[expecting_type] right=expr[expecting_type]) {p.expr.second="("+p.expr.second+=translateBinExpr(left,right,T_MENOR_EQ);p.expr.second+=")";p.expr.first=#expr->getEvalType();}
   | #(T_MAIS      left=expr[expecting_type] right=expr[expecting_type]) {p.expr.second="("+left.expr.second;p.expr.second+="+";p.expr.second+=right.expr.second+")";p.expr.first=#expr->getEvalType();}
   | #(T_MENOS     left=expr[expecting_type] right=expr[expecting_type]) {p.expr.second="("+left.expr.second;p.expr.second+="-";p.expr.second+=right.expr.second+")";p.expr.first=#expr->getEvalType();}
-  | #(T_DIV       left=expr[expecting_type] right=expr[expecting_type]) {p.expr.second="("+left.expr.second;p.expr.second+="/";p.expr.second+=right.expr.second+")";p.expr.first=#expr->getEvalType();}
+  | #(d:T_DIV     left=expr[expecting_type] right=expr[expecting_type])
+      {
+        p.expr.first=#expr->getEvalType();
+        stringstream call;
+        call << (p.expr.first == TIPO_REAL ? "div_real(" : "div_inteiro(")
+             << left.expr.second << ", " << right.expr.second << ", " << d->getLine() << ")";
+        p.expr.second = call.str();
+      }
   | #(T_MULTIP    left=expr[expecting_type] right=expr[expecting_type]) {p.expr.second="("+left.expr.second;p.expr.second+="*";p.expr.second+=right.expr.second+")";p.expr.first=#expr->getEvalType();}
-  | #(T_MOD       left=expr[expecting_type] right=expr[expecting_type]) {p.expr.second="("+left.expr.second;p.expr.second+="%";p.expr.second+=right.expr.second+")";p.expr.first=#expr->getEvalType();}
+  | #(m:T_MOD     left=expr[expecting_type] right=expr[expecting_type])
+      {
+        stringstream call;
+        call << "mod_inteiro(" << left.expr.second << ", " << right.expr.second << ", " << m->getLine() << ")";
+        p.expr.second = call.str();
+        p.expr.first=#expr->getEvalType();
+      }
   | #(TI_UN_NEG  right=element[expecting_type]) {p.expr.second="(-";p.expr.second+=right.expr.second+")";p.expr.first=#expr->getEvalType();}
   | #(TI_UN_POS  right=element[expecting_type]) {p.expr.second="(+";p.expr.second+=right.expr.second+")";p.expr.first=#expr->getEvalType();}
   | #(TI_UN_NOT  right=element[expecting_type]) {p.expr.second="(!";p.expr.second+=right.expr.second+")";p.expr.first=#expr->getEvalType();}

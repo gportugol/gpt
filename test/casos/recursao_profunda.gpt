@@ -1,0 +1,9 @@
+algoritmo recursao_profunda;
+início
+  imprima(desce(1));
+fim
+
+função desce(n : inteiro) : inteiro
+início
+  retorne desce(n + 1);
+fim

@@ -105,9 +105,9 @@ public:
   void writeMenorEqExpr(int e1, int e2);
   void writeMaisExpr(int e1, int e2);
   void writeMenosExpr(int e1, int e2);
-  void writeDivExpr(int e1, int e2);
+  void writeDivExpr(int e1, int e2, int line);
   void writeMultipExpr(int e1, int e2);
-  void writeModExpr();
+  void writeModExpr(int line);
   void writeUnaryNeg(int etype);
   void writeUnaryNot();
   void writeUnaryBitNotExpr();
@@ -122,6 +122,8 @@ public:
 
 private:
   string toNasmString(string str);
+  void writeDivisorCheck(int line, bool realDivisor);
+  void writeSignedDivide(int line, bool remainder);
 
   SymbolTable &_stable;
 

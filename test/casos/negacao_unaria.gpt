@@ -1,0 +1,13 @@
+algoritmo negacao_unaria;
+variáveis
+  x : inteiro;
+  r : real;
+fim-variáveis
+início
+  x := 1234567;
+  r := 2.5;
+  imprima(-x);
+  imprima(+x);
+  imprima(-r);
+  imprima(-2147483647 - 1);
+fim
