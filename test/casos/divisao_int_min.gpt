@@ -1,0 +1,11 @@
+algoritmo divisao_int_min;
+variáveis
+  x, y : inteiro;
+fim-variáveis
+início
+  x := -2147483647 - 1;
+  y := -1;
+  imprima(x / y);
+  imprima(x % y);
+  imprima(x / 2, " ", x % 2);
+fim

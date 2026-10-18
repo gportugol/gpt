@@ -26,6 +26,40 @@
 #endif
 #include "GPTDisplay.hpp"
 
+#ifdef WIN32
+#include <windows.h>
+#else
+#include <sys/resource.h>
+#endif
+
+// How much native stack the interpreter may use before it reports a
+// recursion as a runtime error instead of overflowing: the limit of the
+// process minus a reserve for the frames of the deepest call itself. Each
+// call of a Portugol function costs the tree walker a few KiB. The default
+// Windows reserve is 2 MiB, so the reserve is an eighth of the limit there.
+static size_t stackBudget() {
+#ifdef WIN32
+  size_t limit = 1024 * 1024;
+  char marker;
+  MEMORY_BASIC_INFORMATION mbi;
+  if (VirtualQuery(&marker, &mbi, sizeof(mbi)) == sizeof(mbi)) {
+    limit = (size_t)(&marker - (const char *)mbi.AllocationBase);
+  }
+#else
+  size_t limit = 8 * 1024 * 1024;
+  struct rlimit rl;
+  if (getrlimit(RLIMIT_STACK, &rl) == 0) {
+    limit = rl.rlim_cur == RLIM_INFINITY ? (size_t)1024 * 1024 * 1024
+                                         : (size_t)rl.rlim_cur;
+  }
+#endif
+  size_t reserve = limit / 8;
+  if (reserve > 1024 * 1024) {
+    reserve = 1024 * 1024;
+  }
+  return limit - reserve;
+}
+
 void ExprValue::setValue(string str) { value = str; }
 void ExprValue::setValue(const stringstream &s) { value = s.str(); }
 
@@ -161,12 +195,16 @@ map<string, Variable> &Variables::getGlobals() { return *globalVars; }
 //------------------------------------------------------------------------
 
 InterpreterEval::InterpreterEval(SymbolTable &st, string host, int port)
-    : stable(st), dbg_host(host), dbg_port(port), currentLine(-1),
-      currentSkip(false), globalSkip(false) {
+    : stable(st), stackBase(NULL), stackBudget(0), dbg_host(host),
+      dbg_port(port), currentLine(-1), currentSkip(false), globalSkip(false) {
   skipStack.push(false);
 }
 
 void InterpreterEval::init(const string &file) {
+  char marker;
+  stackBase = &marker;
+  stackBudget = ::stackBudget();
+
   list<Symbol> globals = stable.getSymbols(SymbolTable::GlobalScope);
 
   map<string, Variable> vars;
@@ -442,15 +480,12 @@ ExprValue InterpreterEval::evaluateMenos(ExprValue &left, ExprValue &right) {
   return v;
 }
 
-ExprValue InterpreterEval::evaluateDiv(ExprValue &left, ExprValue &right) {
+ExprValue InterpreterEval::evaluateDiv(ExprValue &left, ExprValue &right,
+                                       int line) {
   ExprValue v;
 
   if (atof(right.value.c_str()) == 0) {
-    stringstream s;
-    s << PACKAGE << ": Erro de execução próximo a linha " << currentLine
-      << " - Divisão por 0 é ilegal. Abortando..." << endl;
-    GPTDisplay::self()->showError(s);
-    exit(1);
+    runtimeError(line, "Divisão por 0 é ilegal");
   }
 
   stringstream s;
@@ -458,7 +493,14 @@ ExprValue InterpreterEval::evaluateDiv(ExprValue &left, ExprValue &right) {
     s << (atof(left.value.c_str()) / atof(right.value.c_str()));
     v.type = TIPO_REAL;
   } else {
-    s << (atoi(left.value.c_str()) / atoi(right.value.c_str()));
+    int dividend = atoi(left.value.c_str());
+    int divisor = atoi(right.value.c_str());
+    // INT_MIN / -1 does not fit an int and traps on x86, like idiv does
+    if (divisor == -1) {
+      s << (int)(0u - (unsigned)dividend);
+    } else {
+      s << (dividend / divisor);
+    }
     v.type = TIPO_INTEIRO;
   }
 
@@ -482,21 +524,42 @@ ExprValue InterpreterEval::evaluateMultip(ExprValue &left, ExprValue &right) {
   return v;
 }
 
-ExprValue InterpreterEval::evaluateMod(ExprValue &left, ExprValue &right) {
+ExprValue InterpreterEval::evaluateMod(ExprValue &left, ExprValue &right,
+                                       int line) {
   ExprValue v;
 
-  stringstream s;
+  int divisor = atoi(right.value.c_str());
+  if (divisor == 0) {
+    runtimeError(line, "Divisão por 0 é ilegal");
+  }
 
-  s << (atoi(left.value.c_str()) % atoi(right.value.c_str()));
+  stringstream s;
+  if (divisor == -1) {
+    s << 0;
+  } else {
+    s << (atoi(left.value.c_str()) % divisor);
+  }
   v.type = TIPO_INTEIRO;
 
   v.setValue(s);
   return v;
 }
 
+// Values are kept as text, so the operand of -2147483648 is the literal
+// 2147483648, which does not fit an int; truncate it like the native code,
+// where the negation then wraps to INT_MIN. atoi would clamp it to INT_MAX
+// where long has 32 bits.
+static int wrapToInt(const string &text) {
+  return (int)(unsigned)strtoll(text.c_str(), NULL, 10);
+}
+
 ExprValue InterpreterEval::evaluateUnNeg(ExprValue &v) {
   stringstream s;
-  s << -(atof(v.value.c_str()));
+  if (v.type == TIPO_REAL) {
+    s << -(atof(v.value.c_str()));
+  } else {
+    s << (int)(0u - (unsigned)wrapToInt(v.value));
+  }
 
   v.setValue(s);
   return v;
@@ -504,7 +567,11 @@ ExprValue InterpreterEval::evaluateUnNeg(ExprValue &v) {
 
 ExprValue InterpreterEval::evaluateUnPos(ExprValue &v) {
   stringstream s;
-  s << +(atof(v.value.c_str()));
+  if (v.type == TIPO_REAL) {
+    s << +(atof(v.value.c_str()));
+  } else {
+    s << wrapToInt(v.value);
+  }
   v.setValue(s);
   return v;
 }
@@ -681,9 +748,27 @@ string InterpreterEval::castLeiaChar(Variable &var, ExprValue &v) {
   }
 }
 
+void InterpreterEval::runtimeError(int line, const string &what) {
+  stringstream s;
+  s << PACKAGE << ": Erro de execução próximo a linha " << line << " - " << what
+    << ". Abortando..." << endl;
+  GPTDisplay::self()->showError(s);
+  exit(1);
+}
+
+void InterpreterEval::checkStack(int line) {
+  char marker;
+  size_t used = stackBase > &marker ? stackBase - &marker : &marker - stackBase;
+  if (used > stackBudget) {
+    runtimeError(line, "Pilha de execução esgotada (recursão muito profunda)");
+  }
+}
+
 void InterpreterEval::beginFunctionCall(const string &file,
                                         const string &funcname,
                                         list<ExprValue> &args, int line) {
+  checkStack(line);
+
   // setup local vars
 
   list<Symbol> globals = stable.getSymbols(funcname);

@@ -841,12 +841,48 @@ void X86::writeMenosExpr(int e1, int e2) {
   writeTEXT("push eax");
 }
 
-void X86::writeDivExpr(int e1, int e2) {
+// With the divisor in ebx, a zero ends the program with the interpreter's
+// message. A real divisor is tested without its sign bit so that -0.0 also
+// counts as zero.
+void X86::writeDivisorCheck(int line, bool realDivisor) {
+  string ok = createLabel(true, "div");
+  stringstream s;
+
+  writeTEXT(realDivisor ? "test ebx, 0x7fffffff" : "cmp ebx, 0");
+  writeTEXT("jne " + ok);
+  s << "addarg " << line;
+  writeTEXT(s.str());
+  writeTEXT("call div_zero_error");
+  writeTEXT(ok + ":");
+}
+
+// idiv traps on INT_MIN / -1, so a divisor of -1 is handled without it:
+// the quotient is the negation, which wraps to INT_MIN, and the remainder
+// is 0.
+void X86::writeSignedDivide(int line, bool remainder) {
+  writeDivisorCheck(line, false);
+  string divide = createLabel(true, remainder ? "imod" : "idiv");
+  string done = createLabel(true, remainder ? "endmod" : "enddiv");
+  writeTEXT("cmp ebx, -1");
+  writeTEXT("jne " + divide);
+  writeTEXT(remainder ? "xor eax, eax" : "neg eax");
+  writeTEXT("jmp " + done);
+  writeTEXT(divide + ":");
+  writeTEXT("cdq");
+  writeTEXT("idiv ebx");
+  if (remainder) {
+    writeTEXT("mov eax, edx");
+  }
+  writeTEXT(done + ":");
+}
+
+void X86::writeDivExpr(int e1, int e2, int line) {
   writeTEXT("pop ebx");
   writeTEXT("pop eax");
 
   if ((e1 == TIPO_REAL) || (e2 == TIPO_REAL)) {
     string divpop;
+    writeDivisorCheck(line, e2 == TIPO_REAL);
     writeTEXT("fninit");
     if ((e1 == TIPO_REAL) && (e2 != TIPO_REAL)) { // float/integer
       writeTEXT("mov [aux], eax");
@@ -868,8 +904,7 @@ void X86::writeDivExpr(int e1, int e2) {
     writeTEXT("fstp dword [aux]");
     writeTEXT("mov eax, dword [aux]");
   } else {
-    writeTEXT("xor edx, edx");
-    writeTEXT("idiv ebx");
+    writeSignedDivide(line, false);
   }
 
   writeTEXT("push eax");
@@ -908,13 +943,11 @@ void X86::writeMultipExpr(int e1, int e2) {
   writeTEXT("push eax");
 }
 
-void X86::writeModExpr() {
+void X86::writeModExpr(int line) {
   writeTEXT("pop ebx");
   writeTEXT("pop eax");
 
-  writeTEXT("xor edx, edx");
-  writeTEXT("idiv ebx");
-  writeTEXT("mov eax, edx");
+  writeSignedDivide(line, true);
 
   writeTEXT("push eax");
 }

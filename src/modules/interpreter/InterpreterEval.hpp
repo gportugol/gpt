@@ -123,9 +123,9 @@ public:
   ExprValue evaluateMenorEq(ExprValue &left, ExprValue &right);
   ExprValue evaluateMais(ExprValue &left, ExprValue &right);
   ExprValue evaluateMenos(ExprValue &left, ExprValue &right);
-  ExprValue evaluateDiv(ExprValue &left, ExprValue &right);
+  ExprValue evaluateDiv(ExprValue &left, ExprValue &right, int line);
   ExprValue evaluateMultip(ExprValue &left, ExprValue &right);
-  ExprValue evaluateMod(ExprValue &left, ExprValue &right);
+  ExprValue evaluateMod(ExprValue &left, ExprValue &right, int line);
   ExprValue evaluateUnNeg(ExprValue &v);
   ExprValue evaluateUnPos(ExprValue &v);
   ExprValue evaluateUnNot(ExprValue &v);
@@ -142,6 +142,8 @@ public:
 
   void beginFunctionCall(const string &file, const string &fname,
                          list<ExprValue> &args, int line);
+  void checkStack(int line);
+  void runtimeError(int line, const string &what);
   void endFunctionCall();
 
   bool isBuiltInFunction(const string &fname);
@@ -164,6 +166,8 @@ private:
   void executeImprima(list<ExprValue> &args);
 
   SymbolTable &stable;
+  const char *stackBase;
+  size_t stackBudget;
   string dbg_host;
   int dbg_port;
   int currentLine;

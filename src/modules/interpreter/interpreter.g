@@ -399,9 +399,9 @@ expr returns [ExprValue v]
   | #(T_MENOR_EQ    left=expr right=expr) {v = interpreter.evaluateMenorEq(left, right);}
   | #(T_MAIS        left=expr right=expr) {v = interpreter.evaluateMais(left, right);}
   | #(T_MENOS       left=expr right=expr) {v = interpreter.evaluateMenos(left, right);}
-  | #(T_DIV         left=expr right=expr) {v = interpreter.evaluateDiv(left, right);}
+  | #(d:T_DIV       left=expr right=expr) {v = interpreter.evaluateDiv(left, right, d->getLine());}
   | #(T_MULTIP      left=expr right=expr) {v = interpreter.evaluateMultip(left, right);}
-  | #(T_MOD         left=expr right=expr) {v = interpreter.evaluateMod(left, right);}
+  | #(m:T_MOD       left=expr right=expr) {v = interpreter.evaluateMod(left, right, m->getLine());}
   | #(TI_UN_NEG     right=element) {v = interpreter.evaluateUnNeg(right);}
   | #(TI_UN_POS     right=element) {v = interpreter.evaluateUnPos(right);}
   | #(TI_UN_NOT     right=element) {v = interpreter.evaluateUnNot(right);}

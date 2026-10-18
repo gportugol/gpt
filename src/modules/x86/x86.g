@@ -695,17 +695,17 @@ expr[int expecting_type] returns [int etype]
       {
         x86.writeMenosExpr(e1, e2);
       }
-  | #(T_DIV       e1=expr[expecting_type] e2=expr[expecting_type])
+  | #(d:T_DIV     e1=expr[expecting_type] e2=expr[expecting_type])
       {
-        x86.writeDivExpr(e1, e2);
+        x86.writeDivExpr(e1, e2, d->getLine());
       }
   | #(T_MULTIP    e1=expr[expecting_type] e2=expr[expecting_type])
       {
         x86.writeMultipExpr(e1, e2);
       }
-  | #(T_MOD       e1=expr[expecting_type] e2=expr[expecting_type])
+  | #(m:T_MOD     e1=expr[expecting_type] e2=expr[expecting_type])
       {
-        x86.writeModExpr();
+        x86.writeModExpr(m->getLine());
       }
   | #(TI_UN_NEG   etype=element[expecting_type])
       {

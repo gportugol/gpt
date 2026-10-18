@@ -1,0 +1,10 @@
+algoritmo divzero_int_real;
+variáveis
+  z : real;
+fim-variáveis
+início
+  z := -0.0;
+  imprima("antes");
+  imprima(7 / z);
+  imprima("depois");
+fim

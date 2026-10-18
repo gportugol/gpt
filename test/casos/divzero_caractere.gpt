@@ -1,0 +1,10 @@
+algoritmo divzero_caractere;
+variáveis
+  a, b : caractere;
+fim-variáveis
+início
+  a := 'x'; b := 0;
+  imprima("antes");
+  imprima(a / b);
+  imprima("depois");
+fim

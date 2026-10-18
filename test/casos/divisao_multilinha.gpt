@@ -1,0 +1,11 @@
+algoritmo divisao_multilinha;
+variáveis
+  a, b, c : inteiro;
+fim-variáveis
+início
+  a := 1; b := 2; c := 0;
+  imprima("antes");
+  a := a +
+    b / c;
+  imprima("depois");
+fim
