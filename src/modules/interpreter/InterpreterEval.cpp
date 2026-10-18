@@ -54,6 +54,18 @@ bool Variable::checkBounds(list<string> &d) {
   return true;
 }
 
+bool Variable::checkLastIndex(list<string> &d) {
+  list<int>::iterator it = dimensions.begin();
+  for (size_t pos = 1; pos < d.size() && it != dimensions.end(); ++pos) {
+    ++it;
+  }
+  if (it == dimensions.end()) {
+    return true;
+  }
+  int num = atoi(d.back().c_str());
+  return num >= 0 && num < *it;
+}
+
 string Variable::getValue(list<string> &d) {
   stringstream sub;
   string colon;
@@ -605,6 +617,20 @@ bool InterpreterEval::execBiggerEq(LValue &lv, ExprValue &ate) {
       GPTDisplay::self()->showError(s);
       exit(1);
     }
+  }
+}
+
+void InterpreterEval::checkLValueBounds(LValue &lvalue, int line) {
+  if (lvalue.dims.empty()) {
+    return;
+  }
+  if (!variables.get(lvalue.name).checkLastIndex(lvalue.dims)) {
+    stringstream s;
+    s << PACKAGE << ": Erro de execução próximo a linha " << line
+      << " - Overflow em \"" << lvalue.name << lvalue.dimsToString()
+      << "\". Abortando..." << endl;
+    GPTDisplay::self()->showError(s);
+    exit(1);
   }
 }
 

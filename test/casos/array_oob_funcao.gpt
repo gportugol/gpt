@@ -1,0 +1,16 @@
+algoritmo array_oob_funcao;
+variáveis
+  v : matriz[3] de inteiros;
+fim-variáveis
+início
+  imprima("antes");
+  altera(v, 2);
+  imprima(v[2]);
+  altera(v, 3);
+  imprima("depois");
+fim
+
+função altera(m : matriz[3] de inteiros, i : inteiro)
+início
+  m[i] := 9;
+fim

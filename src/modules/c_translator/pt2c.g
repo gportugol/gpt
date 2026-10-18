@@ -36,6 +36,7 @@ header {
       pair<int, pair< list<string>, list<string> > > matrizvars;//pair<type, pair<list<ids>,list<dims> > >
       pair<int, list<string> > tipo_matriz; //pair<type, list<dimsize> >
       pair<int, string> lvalue;    //pair<type, text> : ex TIPO_INTEIRO,"a[1][2]".
+      list<string> checks; //subscript checks hoisted before the statement
       pair<int, string> fcall; //pair<type, text>
       pair<bool,string> passo;
       pair<int, string> expr;
@@ -58,7 +59,7 @@ options {
 {
   public:
   Portugol2CWalker(SymbolTable& st)
-    : stable(st), _currentScopeType(-1) { }
+    : stable(st), _currentScopeType(-1), _indexTemps(0) { }
 
   private:
 
@@ -69,6 +70,8 @@ options {
   string _currentScope;
 
   string _indent;
+
+  int _indexTemps;
 
   stringstream _scope_init_stms;
 
@@ -186,6 +189,14 @@ options {
          "       fprintf(stderr, \"bug: tipo nao suportado: %c\\n\", type);\n"
          "       exit(1);\n"
          "   }\n"
+         "}\n";
+    s << "int check_index(int idx, int size, int line, const char* name) {\n"
+         "   if(idx < 0 || idx >= size) {\n"
+         "     fprintf(stderr, \"gpt: Erro de execução próximo a linha %d"
+         " - Overflow em \\\"%s[%d]\\\". Abortando...\\n\", line, name, idx);\n"
+         "     exit(1);\n"
+         "   }\n"
+         "   return idx;\n"
          "}\n";
     s << "void imprima(char* format, ...) {\n"
          "   va_list args;\n"
@@ -313,6 +324,18 @@ options {
 
   void setScope(const string& scope) {
     _currentScope = scope;
+  }
+
+  string nextIndexTemp() {
+    stringstream s;
+    s << "gpt_idx" << _indexTemps++;
+    return s.str();
+  }
+
+  void writeChecks(const list<string>& checks) {
+    for(list<string>::const_iterator it = checks.begin(); it != checks.end(); ++it) {
+      writeln(*it);
+    }
   }
 
   void addPrototype(stringstream& str) {
@@ -656,29 +679,62 @@ stm_attr
   stringstream str;
   int expecting_type;
 }
-  : #(T_ATTR lv=lvalue
+  : #(T_ATTR lv=lvalue[true]
       {
         expecting_type = lv.lvalue.first;
       }
       e=expr[expecting_type])
     {
       str << lv.lvalue.second << " = " << e.expr.second << ";";
-      writeln(str);
+      if(lv.checks.empty()) {
+        writeln(str);
+      } else {
+        writeln("{");
+        indent();
+        writeChecks(lv.checks);
+        writeln(str);
+        unindent();
+        writeln("}");
+      }
     }
   ;
 
-lvalue returns [production p]
+// With hoist the subscripts are checked by statements left in p.checks,
+// which the caller emits before the statement that uses the lvalue, so an
+// out-of-range subscript aborts before the right-hand side runs, as in the
+// interpreter and the native binary.
+lvalue[bool hoist] returns [production p]
 {
   stringstream s;
   production e; //pair<int type, string expr> lvalue;
+  Symbol symb;
+  list<int> dims;
+  list<int>::iterator dim;
+  string temp;
 }
   : #(id:T_IDENTIFICADOR
       {
-        p.lvalue.first = stable.getSymbol(_currentScope, id->getText(), true).type.primitiveType();
+        symb = stable.getSymbol(_currentScope, id->getText(), true);
+        p.lvalue.first = symb.type.primitiveType();
+        dims = symb.type.dimensions();
+        dim = dims.begin();
         s << "_" << id->getText();
       }
       (
-        e=expr[TIPO_INTEIRO] {s << "[" << e.expr.second <<  "]";}
+        e=expr[TIPO_INTEIRO]
+        {
+          stringstream check;
+          check << "check_index(" << e.expr.second << ", " << *dim << ", "
+                << id->getLine() << ", \"" << id->getText() << "\")";
+          if(hoist) {
+            temp = nextIndexTemp();
+            p.checks.push_back("int " + temp + " = " + check.str() + ";");
+            s << "[" << temp << "]";
+          } else {
+            s << "[" << check.str() << "]";
+          }
+          ++dim;
+        }
       )*
     )
     {p.lvalue.second = s.str();}
@@ -816,8 +872,13 @@ stm_para
   production var, de, ate, ps;
   stringstream str;
 }
-  : #(T_KW_PARA var=lvalue de=expr[TIPO_INTEIRO] ate=expr[TIPO_INTEIRO] (ps=passo {haspasso=true;})?
+  : #(T_KW_PARA var=lvalue[true] de=expr[TIPO_INTEIRO] ate=expr[TIPO_INTEIRO] (ps=passo {haspasso=true;})?
       {
+        if(!var.checks.empty()) {
+          writeln("{");
+          indent();
+          writeChecks(var.checks);
+        }
         if(!haspasso) {
             str  << "for(" <<    var.lvalue.second << "=" << de.expr.second << ";"
                               << var.lvalue.second << "<=" << ate.expr.second << ";"
@@ -843,6 +904,10 @@ stm_para
       str.str("");
       str << var.lvalue.second << " = " << ate.expr.second << ";";
       writeln(str);
+      if(!var.checks.empty()) {
+        unindent();
+        writeln("}");
+      }
     }
     )
   ;
@@ -891,7 +956,7 @@ element[int expecting_type] returns [production p]
 }
   : other=literal             {p.expr.first = other.expr.first; p.expr.second = other.expr.second;}
   | other=fcall[expecting_type]   {p.expr = other.fcall;}
-  | other=lvalue              {p.expr = other.lvalue;}
+  | other=lvalue[false]       {p.expr = other.lvalue;}
   | #(TI_PARENTHESIS other=expr[expecting_type])  {p.expr = other.expr;}
   ;
 

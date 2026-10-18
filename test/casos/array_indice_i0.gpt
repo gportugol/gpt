@@ -1,0 +1,12 @@
+algoritmo array_indice_i0;
+variáveis
+  v : matriz[5] de inteiros;
+  i0 : inteiro;
+fim-variáveis
+início
+  i0 := 2;
+  v[i0] := i0 + 10;
+  imprima(v[2]);
+  v[i0 + 1] := i0;
+  imprima(v[3]);
+fim

@@ -1,0 +1,11 @@
+algoritmo array_oob_negativo;
+variáveis
+  v : matriz[3] de inteiros;
+  i : inteiro;
+fim-variáveis
+início
+  i := -1;
+  imprima("antes");
+  imprima(v[i]);
+  imprima("depois");
+fim

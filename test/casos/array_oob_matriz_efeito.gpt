@@ -1,0 +1,15 @@
+algoritmo array_oob_matriz_efeito;
+variáveis
+  m : matriz[2][3] de inteiros;
+fim-variáveis
+início
+  imprima("antes");
+  m[9][marca()] := 1;
+  imprima("depois");
+fim
+
+função marca() : inteiro
+início
+  imprima("marca");
+  retorne 1;
+fim

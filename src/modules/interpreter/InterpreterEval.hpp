@@ -51,6 +51,7 @@ public:
 class Variable {
 public:
   bool checkBounds(list<string> &d);
+  bool checkLastIndex(list<string> &d);
 
   string getValue(list<string> &d);
 
@@ -136,6 +137,7 @@ public:
   bool execLowerEq(LValue &lv, ExprValue &ate);
   bool execBiggerEq(LValue &lv, ExprValue &ate);
 
+  void checkLValueBounds(LValue &lvalue, int line);
   void execAttribution(LValue &lvalue, ExprValue &v);
 
   void beginFunctionCall(const string &file, const string &fname,

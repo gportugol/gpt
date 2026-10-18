@@ -20,6 +20,7 @@
 
 #include "X86.hpp"
 #include "GPTDisplay.hpp"
+#include "config.h"
 
 #include <stdlib.h>
 
@@ -954,6 +955,28 @@ void X86::writeLiteralExpr(const string &src) {
   stringstream s;
   s << "push " << src;
   writeTEXT(s.str());
+}
+
+// The message names only the subscript that failed, so for a matrix with
+// several dimensions it shows "m[7]" where the interpreter shows "m[1][7]".
+void X86::writeIndexCheck(const string &name, int line, int size) {
+  map<string, string>::iterator lit = _nameLiterals.find(name);
+  if (lit == _nameLiterals.end()) {
+    lit = _nameLiterals.insert(make_pair(name, addGlobalLiteral(name))).first;
+  }
+  string ok = createLabel(true, "idx");
+
+  stringstream s;
+  s << "cmp eax, " << size;
+  writeTEXT(s.str());
+  writeTEXT("jb " + ok);
+  writeTEXT("addarg eax");
+  writeTEXT("addarg " + lit->second);
+  s.str("");
+  s << "addarg " << line;
+  writeTEXT(s.str());
+  writeTEXT("call index_error");
+  writeTEXT(ok + ":");
 }
 
 void X86::writeLValueExpr(pair<pair<int, bool>, string> &lv) {
