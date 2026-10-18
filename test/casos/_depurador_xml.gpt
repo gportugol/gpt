@@ -1,0 +1,18 @@
+algoritmo depurador_xml;
+variáveis
+  s, t, u, v : literal;
+  m : matriz[1] de literais;
+fim-variáveis
+início
+  s := "a\" <b>";
+  t := leia();
+  u := "a&b\tc";
+  m[0] := "\"";
+  v := "ação";
+  imprima(s);
+  imprima(t);
+  imprima(u);
+  imprima(m[0]);
+  imprima(v);
+  imprima("fim");
+fim
