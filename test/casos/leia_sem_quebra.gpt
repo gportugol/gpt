@@ -1,0 +1,8 @@
+algoritmo leia_sem_quebra;
+variáveis
+  s : literal;
+fim-variáveis
+início
+  s := leia();
+  imprima(s);
+fim

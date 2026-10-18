@@ -14,8 +14,9 @@
 #                       NAME.saida.c        same for the C translation
 #                       NAME.codigo[.nativo|.c]  exit code (default: 0)
 #                       NAME.pular          modes to skip ("interp", "nativo",
-#                                           "c"), or "windows" to skip the
-#                                           whole case on Windows
+#                                           "c"); "windows" skips the whole
+#                                           case on Windows and "windows:MODE"
+#                                           skips one mode there
 #   test/erros/       invalid programs:
 #                       NAME.gpt            source
 #                       NAME.args           extra command line files, one per
@@ -122,12 +123,16 @@ expected_for() {
 }
 
 skip_mode() {
-	local base="$1" mode="$2"
+	local base="$1" mode="$2" token
 	[ -f "$base.pular" ] || return 1
-	if [ $ON_WINDOWS -eq 1 ] && grep -qw "windows" "$base.pular"; then
-		return 0
-	fi
-	grep -qw "$mode" "$base.pular"
+	for token in $(cat "$base.pular"); do
+		token=${token%$'\r'}
+		case "$token" in
+		"$mode") return 0 ;;
+		windows | "windows:$mode") [ $ON_WINDOWS -eq 1 ] && return 0 ;;
+		esac
+	done
+	return 1
 }
 
 # read_args <.args file> <prefix>: the extra files, one per line, into ARGS.

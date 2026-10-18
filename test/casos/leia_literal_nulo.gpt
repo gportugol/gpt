@@ -1,0 +1,9 @@
+algoritmo leia_literal_nulo;
+variáveis
+  s : literal;
+fim-variáveis
+início
+  s := leia();
+  imprima(s);
+  imprima("fim");
+fim
