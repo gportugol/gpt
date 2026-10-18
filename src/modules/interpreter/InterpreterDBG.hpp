@@ -58,7 +58,7 @@ private:
   static InterpreterDBG *singleton;
 
   void sendStackInfo(list<pair<string, pair<string, int>>> &stk);
-  void sendVariables(map<string, Variable> globals,
+  void sendVariables(const map<string, Variable> &globals,
                      list<pair<string, pair<string, int>>> &stk,
                      bool globalScope);
   int receiveCmd(bool nonBlocking = false);
@@ -73,8 +73,8 @@ private:
   void removeBreakpoint(string &cmd);
 
   string matrixValuesNodes(unsigned int level, int dimsize,
-                           map<string, string> &values, list<int> &dims,
-                           int type, string vindex = "");
+                           const map<string, string> &values,
+                           const list<int> &dims, int type, string vindex = "");
 
 #ifndef WIN32
   int clientsock;

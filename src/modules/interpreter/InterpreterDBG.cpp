@@ -45,6 +45,101 @@ void sigPipeHandler(int) { InterpreterDBG::self()->closeSock(); }
 
 InterpreterDBG *InterpreterDBG::singleton = NULL;
 
+// Length of the well-formed UTF-8 sequence that starts at str[i], or 0 when
+// there is none (stray or truncated bytes, overlong forms, surrogates, values
+// above U+10FFFF).
+static size_t xmlUtf8Length(const string &str, string::size_type i) {
+  unsigned char c = str[i];
+  size_t len;
+  unsigned char lo = 0x80, hi = 0xBF;
+  if (c >= 0xC2 && c <= 0xDF) {
+    len = 2;
+  } else if (c >= 0xE0 && c <= 0xEF) {
+    len = 3;
+    if (c == 0xE0) {
+      lo = 0xA0;
+    } else if (c == 0xED) {
+      hi = 0x9F;
+    }
+  } else if (c >= 0xF0 && c <= 0xF4) {
+    len = 4;
+    if (c == 0xF0) {
+      lo = 0x90;
+    } else if (c == 0xF4) {
+      hi = 0x8F;
+    }
+  } else {
+    return 0;
+  }
+  if (i + len > str.length()) {
+    return 0;
+  }
+  for (size_t k = 1; k < len; k++) {
+    unsigned char b = str[i + k];
+    if (b < (k == 1 ? lo : 0x80) || b > (k == 1 ? hi : 0xBF)) {
+      return 0;
+    }
+  }
+  return len;
+}
+
+// Every text that reaches the XML sent to the debugger comes from the program
+// being run: file names, identifiers and, through leia(), whatever the user
+// typed. Escaped, a quote in a value cannot close the attribute holding it.
+// Control characters other than tab, newline and carriage return, and bytes
+// that are not valid UTF-8, or encode U+FFFE or U+FFFF, are not allowed
+// anywhere in an XML document, not even as references, so each becomes U+FFFD
+// and the client still sees that something was there.
+static string xmlEscape(const string &str) {
+  string ret;
+  for (string::size_type i = 0; i < str.length(); i++) {
+    unsigned char c = str[i];
+    if (c >= 0x80) {
+      size_t len = xmlUtf8Length(str, i);
+      bool noncharacter = len == 3 && c == 0xEF &&
+                          (unsigned char)str[i + 1] == 0xBF &&
+                          (unsigned char)str[i + 2] >= 0xBE;
+      if (len == 0 || noncharacter) {
+        ret += "\xEF\xBF\xBD";
+      } else {
+        ret.append(str, i, len);
+      }
+      i += (len == 0 ? 1 : len) - 1;
+      continue;
+    }
+    if (c < 0x20 && c != '\t' && c != '\n' && c != '\r') {
+      ret += "\xEF\xBF\xBD";
+      continue;
+    }
+    switch (c) {
+    case '&':
+      ret += "&amp;";
+      break;
+    case '<':
+      ret += "&lt;";
+      break;
+    case '>':
+      ret += "&gt;";
+      break;
+    case '"':
+      ret += "&quot;";
+      break;
+    case '\n':
+      ret += "&#10;";
+      break;
+    case '\r':
+      ret += "&#13;";
+      break;
+    case '\t':
+      ret += "&#9;";
+      break;
+    default:
+      ret += c;
+    }
+  }
+  return ret;
+}
+
 InterpreterDBG::InterpreterDBG() {
   currentCmd = CMDNull;
 #ifndef WIN32
@@ -194,8 +289,8 @@ void InterpreterDBG::sendStackInfo(list<pair<string, pair<string, int>>> &stk) {
   for (list<pair<string, pair<string, int>>>::reverse_iterator it =
            stk.rbegin();
        it != stk.rend(); ++it) {
-    s << "<entry id=\"" << id++ << "\" file=\"" << (*it).first
-      << "\" function=\"" << (*it).second.first << "\" line=\""
+    s << "<entry id=\"" << id++ << "\" file=\"" << xmlEscape((*it).first)
+      << "\" function=\"" << xmlEscape((*it).second.first) << "\" line=\""
       << (*it).second.second << "\"/>";
   }
   s << "</stackinfo>";
@@ -203,7 +298,7 @@ void InterpreterDBG::sendStackInfo(list<pair<string, pair<string, int>>> &stk) {
   sendData(s);
 }
 
-void InterpreterDBG::sendVariables(map<string, Variable> globals,
+void InterpreterDBG::sendVariables(const map<string, Variable> &globals,
                                    list<pair<string, pair<string, int>>> &stk,
                                    bool globalScope) {
   if (clientsock < 0)
@@ -211,17 +306,18 @@ void InterpreterDBG::sendVariables(map<string, Variable> globals,
 
   stringstream s;
   s << "<vars for=\"" << (globalScope ? "$global" : "$local") << "\" scope=\""
-    << (globalScope ? stk.front().second.first : stk.back().first) << "\">";
+    << xmlEscape(globalScope ? stk.front().second.first : stk.back().first)
+    << "\">";
 
   bool primitive;
-  for (map<string, Variable>::iterator it = globals.begin();
+  for (map<string, Variable>::const_iterator it = globals.begin();
        it != globals.end(); ++it) {
     primitive = it->second.isPrimitive;
-    s << "<var name=\"" << it->first << "\" type=\""
+    s << "<var name=\"" << xmlEscape(it->first) << "\" type=\""
       << Symbol::typeToString(it->second.type) << "\" primitive=\""
       << (primitive ? "true" : "false") << "\"";
     if (primitive) {
-      s << " value=\"" << it->second.primitiveValue << "\"/>";
+      s << " value=\"" << xmlEscape(it->second.primitiveValue) << "\"/>";
     } else {
       stringstream vv;
       s << "><values>";
@@ -256,10 +352,10 @@ void InterpreterDBG::sendVariables(map<string, Variable> globals,
 }
 
 string InterpreterDBG::matrixValuesNodes(unsigned int level, int dimsize,
-                                         map<string, string> &values,
-                                         list<int> &dims, int type,
+                                         const map<string, string> &values,
+                                         const list<int> &dims, int type,
                                          string vindex /*= "" */) {
-  list<int>::iterator lsize;
+  list<int>::const_iterator lsize;
   unsigned int idx = 0;
   for (lsize = dims.begin(); lsize != dims.end(); lsize++, idx++) {
     if (idx == level) {
@@ -279,7 +375,8 @@ string InterpreterDBG::matrixValuesNodes(unsigned int level, int dimsize,
     }
 
     if (level == (dims.size() - 1)) {
-      string val = values[vs.str()];
+      map<string, string>::const_iterator found = values.find(vs.str());
+      string val = found == values.end() ? "" : found->second;
       if (val.length() == 0) {
         switch (type) {
         case TIPO_INTEIRO:
@@ -290,8 +387,8 @@ string InterpreterDBG::matrixValuesNodes(unsigned int level, int dimsize,
           break;
         }
       }
-      s << "<var name=\"" << i << "\" primitive=\"true\" value=\"" << val
-        << "\"/>";
+      s << "<var name=\"" << i << "\" primitive=\"true\" value=\""
+        << xmlEscape(val) << "\"/>";
     } else {
 
       s << "<var name=\"" << i << "\" primitive=\"false\"><values>";

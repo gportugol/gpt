@@ -388,6 +388,7 @@ else
 	cat >"$TMP/depurador.py" <<'EOF'
 import socket
 import sys
+import xml.etree.ElementTree as ET
 
 mode = sys.argv[1]
 srv = socket.socket()
@@ -428,22 +429,37 @@ if mode == "cabecalho":
 elif mode == "corpo":
     body = b"A" * 70000
     conn.sendall(str(len(body)).encode() + b"\0" + body)
-elif mode == "passos":
+elif mode in ("passos", "xml"):
     stops = 0
+    seen = b""
+    malformed = []
     for frame in frames():
+        seen += frame
+        if mode == "xml":
+            try:
+                ET.fromstring(frame)
+            except ET.ParseError as err:
+                malformed.append("%s: %r" % (err, frame))
         if frame.startswith(b"<stackinfo>"):
             stops += 1
             send(b"step_into")
     if stops < 2:
         sys.exit("esperava ao menos duas paradas, houve %d" % stops)
+    if mode == "xml":
+        with open(sys.argv[2], "wb") as out:
+            out.write(seen)
+        if malformed:
+            sys.exit("XML malformado: " + malformed[0])
 conn.close()
 EOF
 	# run_depurador <modo> <programa> <texto esperado na saída>
 	run_depurador() {
 		local modo="$1" programa="$2" esperado="$3"
-		coproc SRV { python3 "$TMP/depurador.py" "$modo" 2>"$TMP/depurador.$modo.err"; }
+		local entrada=/dev/null
+		[ -f "$TMP/depurador.$modo.entrada" ] && entrada="$TMP/depurador.$modo.entrada"
+		coproc SRV { python3 "$TMP/depurador.py" "$modo" "$TMP/depurador.$modo.xml" 2>"$TMP/depurador.$modo.err"; }
 		read -r PORTA <&"${SRV[0]}"
-		SAIDA=$($TIMEOUT "$GPT" -i -H 127.0.0.1 -P "$PORTA" "$programa" 2>&1 </dev/null)
+		SAIDA=$($TIMEOUT "$GPT" -i -H 127.0.0.1 -P "$PORTA" "$programa" 2>&1 <"$entrada")
 		RESULT=$?
 		wait "$SRV_PID"
 		local servidor=$?
@@ -470,6 +486,31 @@ EOF
 		fail "-H com um host que avança passo a passo"
 		cat "$TMP/depurador.passos.out"
 	fi
+
+	# A value with a quote must not close the XML attribute carrying it, and
+	# a control character or a byte that is not UTF-8 typed into leia() is not
+	# allowed in XML at all, and every message has to parse as XML.
+	printf 'x\033y\351z\357\277\276w\n' >"$TMP/depurador.xml.entrada"
+	if run_depurador xml casos/_depurador_xml.gpt "fim" >"$TMP/depurador.xml.out"; then
+		ok "-H com o programa que exercita o escape do XML"
+	else
+		fail "-H com o programa que exercita o escape do XML"
+		cat "$TMP/depurador.xml.out"
+	fi
+	# check_xml <descrição> <expressão esperada no XML> <atributo a mostrar>
+	check_xml() {
+		if grep -aq "$2" "$TMP/depurador.xml.xml"; then
+			ok "-H com $1"
+		else
+			fail "-H com $1 (esperado no XML: $2)"
+			grep -a -o "<var name=\"$3\"[^>]*>" "$TMP/depurador.xml.xml" | tail -1
+		fi
+	}
+	check_xml "aspas no valor de uma variável" 'name="s"[^>]*value="a&quot; &lt;b&gt;"' s
+	check_xml "caractere de controle e bytes inválidos no valor de uma variável" 'name="t"[^>]*value="x�y�z�w"' t
+	check_xml "UTF-8 válido no valor de uma variável" 'name="v"[^>]*value="ação"' v
+	check_xml "e comercial e tabulação no valor de uma variável" 'name="u"[^>]*value="a&amp;b&#9;c"' u
+	check_xml "aspas num elemento de matriz" '<var name="m"[^>]*><values><var name="0" primitive="true" value="&quot;"/>' m
 fi
 echo ""
 
