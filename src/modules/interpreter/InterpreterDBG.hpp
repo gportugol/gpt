@@ -64,6 +64,7 @@ private:
   int receiveCmd(bool nonBlocking = false);
 
   string receiveIncomingData(bool nonBlocking = false);
+  void dropConnection(const string &why);
 
   void processBreakpointCMD(string &cmd);
   void addBreakpoint(string &cmd);
