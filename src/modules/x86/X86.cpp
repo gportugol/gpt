@@ -160,11 +160,20 @@ void X86::init(const string &name) {
 #include <asm_elf.h>
 #endif
 
+#ifdef WIN32
   _bss << "section .bss\n"
           "    mem    resb  MEMORY_SIZE\n\n";
-
-  _data << "section .data\n"
-           "              data_no equ $\n"
+  _data << "section .data\n";
+#else
+  // align=4 puts .bss at the end of .data rounded up to 4 bytes, where the
+  // ELF header's p_memsz expects it. The page alignment keeps the writable
+  // data off the code's page. The PE template sets its own section
+  // attributes, so this stays ELF only.
+  _bss << "section .bss align=4\n"
+          "    mem    resb  MEMORY_SIZE\n\n";
+  _data << "section .data align=4096\n";
+#endif
+  _data << "              data_no equ $\n"
            "    mem_ptr         dd 0\n"
            "    aux             dd 0\n"
            "    aux2            dd 0\n"
@@ -337,6 +346,10 @@ string X86::source() {
 
   //.data footer
   writeDATA("datasize   equ     $ - data_no");
+#ifndef WIN32
+  // Last in .bss, so bsssize also counts what writeBSS() appends.
+  _bss << "    bsssize equ $ - $$\n";
+#endif
 
   str << _head.str() << _bss.str() << _data.str();
 
