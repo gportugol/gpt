@@ -309,6 +309,146 @@ fi
 echo ""
 
 echo "========================================"
+echo "Conexão com o depurador"
+echo "========================================"
+# gpt resolves the host given with -H through getaddrinfo and tries every
+# address it returns. The server below answers each stop with step_into.
+if [ $ON_WINDOWS -eq 1 ] || ! command -v python3 &>/dev/null; then
+	echo "⚠ conexão com o depurador: pulado (sem python3 ou no Windows)"
+else
+	cat >"$TMP/conexao.py" <<'EOF'
+import socket
+import sys
+
+family = socket.AF_INET6 if sys.argv[1] == "6" else socket.AF_INET
+srv = socket.socket(family)
+try:
+    srv.bind(("::1" if family == socket.AF_INET6 else "127.0.0.1", 0))
+except OSError:
+    print(0, flush=True)
+    sys.exit(0)
+srv.listen(1)
+srv.settimeout(30)
+print(srv.getsockname()[1], flush=True)
+conn, _ = srv.accept()
+conn.settimeout(30)
+data = b""
+stops = 0
+while True:
+    chunk = conn.recv(4096)
+    if not chunk:
+        break
+    data += chunk
+    while True:
+        header = data.find(b"\0")
+        if header < 0:
+            break
+        size = int(data[:header])
+        if len(data) < header + 1 + size + 1:
+            break
+        if data[header + 1:header + 1 + size].startswith(b"<stackinfo>"):
+            stops += 1
+            cmd = b"step_into"
+            conn.sendall(str(len(cmd) + 1).encode() + b"\0" + cmd + b"\0")
+        data = data[header + 2 + size:]
+sys.exit(0 if stops >= 2 else "esperava ao menos duas paradas, houve %d" % stops)
+EOF
+	cat >"$TMP/conexao_laco.gpt" <<'EOF'
+algoritmo conexao_laco;
+variáveis
+  i : inteiro;
+fim-variáveis
+início
+  i := 0;
+  enquanto i < 2000 faça
+    imprima("linha ", i);
+    i := i + 1;
+  fim-enquanto
+fim
+EOF
+	# conecta_depurador <família> <host> <programa> <texto esperado>
+	# Prints "pulado" when the loopback family is not available.
+	conecta_depurador() {
+		local familia="$1" host="$2" programa="$3" esperado="$4" servidor_pid
+		coproc SRV { python3 "$TMP/conexao.py" "$familia" 2>"$TMP/conexao.err"; }
+		servidor_pid=$SRV_PID
+		read -r PORTA <&"${SRV[0]}"
+		if [ "$PORTA" = "0" ]; then
+			wait "$servidor_pid"
+			echo pulado
+			return 0
+		fi
+		SAIDA=$($TIMEOUT "$GPT" -i -H "$host" -P "$PORTA" "$programa" 2>&1 </dev/null)
+		RESULT=$?
+		wait "$servidor_pid"
+		local servidor=$?
+		if [ $RESULT -eq 0 ] && [ $servidor -eq 0 ] && grep -q "$esperado" <<<"$SAIDA" &&
+			! grep -q "comando desconhecido" <<<"$SAIDA"; then
+			return 0
+		fi
+		echo "código $RESULT, servidor $servidor (esperado: 0, 0 e a saída do programa)"
+		echo "$SAIDA"
+		cat "$TMP/conexao.err"
+		return 1
+	}
+	for caso in "4 localhost IPv4" "4 127.0.0.1 IPv4" "6 ::1 IPv6"; do
+		read -r familia host nome <<<"$caso"
+		RESULTADO=$(conecta_depurador "$familia" "$host" casos/control.gpt "depois: 5")
+		RC=$?
+		if [ "$RESULTADO" = "pulado" ]; then
+			echo "⚠ -H $host: pulado (sem $nome em loopback)"
+		elif [ $RC -eq 0 ]; then
+			ok "-H $host com um servidor $nome"
+		else
+			fail "-H $host com um servidor $nome"
+			echo "$RESULTADO"
+		fi
+	done
+
+	SAIDA=$($TIMEOUT "$GPT" -i -H nome-que-nao-existe.invalid -P 5000 casos/olamundo.gpt 2>&1 </dev/null)
+	RESULT=$?
+	if [ $RESULT -eq 0 ] && grep -q "não foi possível resolver o depurador em nome-que-nao-existe.invalid:5000" <<<"$SAIDA" &&
+		grep -q "Mundo" <<<"$SAIDA"; then
+		ok "-H com um host que não resolve"
+	else
+		fail "-H com um host que não resolve: código $RESULT (esperado: 0, o aviso e a saída do programa)"
+		echo "$SAIDA"
+	fi
+
+	PORTA=$(python3 -c 'import socket; s = socket.socket(); s.bind(("127.0.0.1", 0)); print(s.getsockname()[1])')
+	SAIDA=$($TIMEOUT "$GPT" -i -H 127.0.0.1 -P "$PORTA" casos/olamundo.gpt 2>&1 </dev/null)
+	RESULT=$?
+	if [ $RESULT -eq 0 ] && grep -q "não foi possível conectar ao depurador em 127.0.0.1:$PORTA" <<<"$SAIDA" &&
+		grep -q "Mundo" <<<"$SAIDA"; then
+		ok "-H para uma porta sem servidor"
+	else
+		fail "-H para uma porta sem servidor: código $RESULT (esperado: 0, o aviso e a saída do programa)"
+		echo "$SAIDA"
+	fi
+
+	# A closed stdout must kill gpt with SIGPIPE as it does without -H, not
+	# be swallowed by a handler that only closes the debugger socket. CI
+	# runners start the job with SIGPIPE ignored and exec keeps that, so the
+	# default action is restored before gpt starts.
+	if [ "$(uname -s)" = Linux ]; then
+		coproc SRV { python3 "$TMP/conexao.py" 4 2>/dev/null; }
+		servidor_pid=$SRV_PID
+		read -r PORTA <&"${SRV[0]}"
+		python3 -c 'import os, signal, sys; signal.signal(signal.SIGPIPE, signal.SIG_DFL); os.execvp(sys.argv[1], sys.argv[1:])' \
+			$TIMEOUT "$GPT" -i -H 127.0.0.1 -P "$PORTA" "$TMP/conexao_laco.gpt" </dev/null 2>/dev/null | head -1 >/dev/null
+		RESULT=${PIPESTATUS[0]}
+		wait "$servidor_pid"
+		if [ $RESULT -eq 141 ]; then
+			ok "-H com a saída padrão fechada"
+		else
+			fail "-H com a saída padrão fechada: código $RESULT (esperado: 141, SIGPIPE)"
+		fi
+	fi
+fi
+echo ""
+
+
+echo "========================================"
 echo "Recusas (código de saída 1)"
 echo "========================================"
 # The refusal checks grep ASCII-only fragments of gpt's diagnostics: on
