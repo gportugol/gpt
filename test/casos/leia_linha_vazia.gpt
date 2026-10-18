@@ -1,0 +1,13 @@
+algoritmo leia_linha_vazia;
+variáveis
+  s : literal;
+fim-variáveis
+início
+  s := leia();
+  imprima(s);
+  s := leia();
+  imprima(s);
+  s := leia();
+  imprima(s);
+  imprima("fim");
+fim

@@ -1,0 +1,9 @@
+algoritmo leia_linha_longa;
+variáveis
+  s, t : literal;
+fim-variáveis
+início
+  s := leia();
+  t := leia();
+  imprima(t);
+fim
