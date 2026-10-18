@@ -64,6 +64,18 @@ Shows tips in the error report.
 .BI \-o " output_file"
 Compile the source code and save the resulting binary with the name
 .I output_file.
+Without this option the binary is named after the first source file without
+its extension, in the current directory; a source file with no extension
+gives a binary with the
+.I .out
+extension
+.RI ( .exe
+on Windows).
+On Windows, a source file with the
+.I .exe
+extension gives a binary whose name ends in
+.I .out.exe ,
+so the source is not replaced.
 The generated code is 32-bit x86, so this option only works on x86 machines;
 elsewhere, use
 .B \-t

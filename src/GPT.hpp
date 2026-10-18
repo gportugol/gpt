@@ -61,7 +61,6 @@ private:
 
   //   bool _usePipe;
   bool _printParseTree;
-  bool _useOutputFile;
   string _outputfile;
 
   RefPortugolAST _astree;

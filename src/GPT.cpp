@@ -40,6 +40,8 @@
 #include <antlr/AST.hpp>
 #include <antlr/TokenStreamSelector.hpp>
 
+#include <algorithm>
+#include <cctype>
 #include <cerrno>
 #include <climits>
 #include <cstdlib>
@@ -62,8 +64,7 @@ extern char **environ;
 
 GPT *GPT::_self = 0;
 
-GPT::GPT()
-    : /*_usePipe(false),*/ _printParseTree(false), _useOutputFile(false) {}
+GPT::GPT() : /*_usePipe(false),*/ _printParseTree(false) {}
 
 GPT::~GPT() {}
 
@@ -83,10 +84,7 @@ void GPT::printParseTree(bool value) { _printParseTree = value; }
 //   _usePipe = value;
 // }
 
-void GPT::setOutputFile(string str) {
-  _useOutputFile = true;
-  _outputfile = str;
-}
+void GPT::setOutputFile(string str) { _outputfile = str; }
 
 // Find nasm executable - check same directory as gpt first, then PATH
 static string findNasm() {
@@ -404,6 +402,35 @@ bail:
   return success;
 }
 
+// The program must never be written over its own source. On Windows the
+// caller appends ".exe", so a source already named *.exe needs ".out" too.
+static string defaultOutputName(const string &input) {
+#ifdef WIN32
+  string::size_type dirsep = input.find_last_of("/\\:");
+#else
+  string::size_type dirsep = input.rfind('/');
+#endif
+  string name = dirsep == string::npos ? input : input.substr(dirsep + 1);
+  string::size_type dot = name.rfind('.');
+  if (dot != string::npos && dot != 0) {
+    string stem = name.substr(0, dot);
+#ifdef WIN32
+    string ext = name.substr(dot);
+    transform(ext.begin(), ext.end(), ext.begin(),
+              [](unsigned char c) { return static_cast<char>(tolower(c)); });
+    if (ext == ".exe") {
+      return stem + ".out";
+    }
+#endif
+    return stem;
+  }
+#ifdef WIN32
+  return name;
+#else
+  return name + ".out";
+#endif
+}
+
 bool GPT::compile(const list<string> &ifnames, bool genBinary) {
   bool success = false;
   stringstream s;
@@ -422,14 +449,10 @@ bool GPT::compile(const list<string> &ifnames, bool genBinary) {
   }
 
   string ofname = _outputfile;
-  if (!_useOutputFile) {
-    if (!genBinary) {
-      ofname += ".asm";
-    }
+  if (ofname.empty() && genBinary) {
+    ofname = defaultOutputName(ifnames.front());
 #ifdef WIN32
-    else {
-      ofname += ".exe";
-    }
+    ofname += ".exe";
 #endif
   }
 
@@ -497,9 +520,6 @@ bool GPT::translate2C(const list<string> &ifnames) {
   }
 
   string ofname = _outputfile;
-  if (!_useOutputFile) {
-    ofname += ".c";
-  }
 
   try {
     Portugol2CWalker pt2c(_stable);
@@ -580,9 +600,6 @@ bool GPT::parse(list<pair<string, istream *>> &istream_list) {
     parser.setASTFactory(&ast_factory);
 
     parser.algoritmo();
-    if (_outputfile.empty()) {
-      _outputfile = parser.nomeAlgoritmo();
-    }
 
     if (GPTDisplay::self()->hasError()) {
       GPTDisplay::self()->showErrors();

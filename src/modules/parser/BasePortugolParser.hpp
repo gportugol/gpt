@@ -45,8 +45,6 @@ public:
   virtual void matchNot(int t);
   virtual void match(const BitSet &b);
 
-  string nomeAlgoritmo();
-
 protected:
   static string expecting_algorithm_name;
   static string expecting_variable;
@@ -138,8 +136,6 @@ protected:
 
   //   SymbolTable symbtable;
   string currentScope; // global,f1(),...
-
-  string _name;
 };
 
 #endif

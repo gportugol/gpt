@@ -69,6 +69,17 @@ Mostra dicas no relatório de erros.
 .BI \-o " arq_saída"
 Compila o algoritmo e salva o arquivo executável com o nome
 .I arq_saída.
+Sem esta opção, o executável recebe o nome do primeiro arquivo fonte sem a
+extensão, no diretório atual; um fonte sem extensão gera um executável com a
+extensão
+.I .out
+.RI ( .exe
+no Windows).
+No Windows, um fonte com a extensão
+.I .exe
+gera um executável cujo nome termina em
+.I .out.exe ,
+para que o fonte não seja substituído.
 O código gerado é x86 de 32 bits, então esta opção só funciona em máquinas x86;
 nas demais, use
 .B \-t
