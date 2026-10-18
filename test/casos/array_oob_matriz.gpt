@@ -1,0 +1,14 @@
+algoritmo array_oob_matriz;
+variáveis
+  m : matriz[2][3] de inteiros;
+  i, j : inteiro;
+fim-variáveis
+início
+  i := 1; j := 2;
+  m[i][j] := 7;
+  imprima("antes");
+  imprima(m[1][2]);
+  j := 3;
+  m[i][j] := 1;
+  imprima("depois");
+fim

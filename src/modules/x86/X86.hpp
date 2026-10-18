@@ -112,6 +112,7 @@ public:
   void writeUnaryNot();
   void writeUnaryBitNotExpr();
   void writeLiteralExpr(const string &src);
+  void writeIndexCheck(const string &name, int line, int size);
   void writeLValueExpr(pair<pair<int, bool>, string> &);
 
   void writeCast(int e1, int e2);
@@ -132,6 +133,7 @@ private:
   stringstream _lib;
 
   map<string, X86SubProgram> _subprograms;
+  map<string, string> _nameLiterals;
 };
 
 #endif

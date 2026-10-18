@@ -196,6 +196,7 @@ lvalue returns [pair< pair<int, bool>, string> p] //pair< pair<type, using_addr>
 {
   stringstream s;
   list<int> dims;
+  list<int>::iterator dim;
   Symbol symb;
   bool isprim;
   int multiplier;
@@ -209,6 +210,7 @@ lvalue returns [pair< pair<int, bool>, string> p] //pair< pair<type, using_addr>
         p.second = id->getText();
 
         dims = symb.type.dimensions();
+        dim = dims.begin();
         c = dims.size();
 
        if(!isprim) {
@@ -226,6 +228,8 @@ lvalue returns [pair< pair<int, bool>, string> p] //pair< pair<type, using_addr>
           p.first.second = false;
           multiplier = calcMatrixOffset(c, dims);
           x86.writeTEXT("pop eax");
+          x86.writeIndexCheck(id->getText(), id->getLine(), *dim);
+          ++dim;
 
           s << "mov ebx, " << multiplier;
           x86.writeTEXT(s.str());

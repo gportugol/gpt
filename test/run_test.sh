@@ -13,6 +13,7 @@
 #                                           binary, when it differs
 #                       NAME.saida.c        same for the C translation
 #                       NAME.codigo[.nativo|.c]  exit code (default: 0)
+#                       NAME.erro[.nativo|.c]    expected stderr (optional)
 #                       NAME.pular          modes to skip ("interp", "nativo",
 #                                           "c"), or "windows" to skip the
 #                                           whole case on Windows
@@ -76,8 +77,9 @@ fail() {
 }
 
 # check <description> <stdout file> <exit code> <expected .saida> <expected .codigo>
+#       [<stderr file> <expected .erro>]
 check() {
-	local desc="$1" got="$2" rc="$3" exp="$4" exp_rc="$5"
+	local desc="$1" got="$2" rc="$3" exp="$4" exp_rc="$5" got_err="$6" exp_err="$7"
 	local want_rc=0
 	if [ -f "$exp_rc" ]; then
 		want_rc=$(tr -d '[:space:]' <"$exp_rc")
@@ -92,6 +94,15 @@ check() {
 		fail "$desc: saída diferente da esperada"
 		diff "$exp" "$got" | head -20
 		return
+	fi
+	if [ -f "$exp_err" ]; then
+		got_err=$(norm "$got_err")
+		exp_err=$(norm "$exp_err")
+		if ! cmp -s "$got_err" "$exp_err"; then
+			fail "$desc: stderr diferente do esperado"
+			diff "$exp_err" "$got_err" | head -20
+			return
+		fi
 	fi
 	ok "$desc"
 }
@@ -158,7 +169,8 @@ run_caso() {
 	if ! skip_mode "$base" "interp"; then
 		$TIMEOUT "$GPT" -i "$src" "${extra[@]}" <"$stdin" >"$TMP/$name.i.out" 2>"$TMP/$name.i.err"
 		check "$name (-i)" "$TMP/$name.i.out" $? \
-			"$(expected_for "$base" saida interp)" "$(expected_for "$base" codigo interp)"
+			"$(expected_for "$base" saida interp)" "$(expected_for "$base" codigo interp)" \
+			"$TMP/$name.i.err" "$(expected_for "$base" erro interp)"
 	fi
 
 	# binário nativo
@@ -168,7 +180,8 @@ run_caso() {
 		elif $TIMEOUT "$GPT" -o "$TMP/$name.bin" "$src" "${extra[@]}" >"$TMP/$name.o.build" 2>&1; then
 			$TIMEOUT "$TMP/$name.bin" <"$stdin" >"$TMP/$name.o.out" 2>"$TMP/$name.o.err"
 			check "$name (-o)" "$TMP/$name.o.out" $? \
-				"$(expected_for "$base" saida nativo)" "$(expected_for "$base" codigo nativo)"
+				"$(expected_for "$base" saida nativo)" "$(expected_for "$base" codigo nativo)" \
+				"$TMP/$name.o.err" "$(expected_for "$base" erro nativo)"
 		else
 			fail "$name (-o): compilação falhou"
 			head -5 "$TMP/$name.o.build"
@@ -195,7 +208,8 @@ run_caso() {
 		else
 			$TIMEOUT "$TMP/$name.cbin" <"$stdin" >"$TMP/$name.t.out" 2>"$TMP/$name.t.err"
 			check "$name (-t)" "$TMP/$name.t.out" $? \
-				"$(expected_for "$base" saida c)" "$(expected_for "$base" codigo c)"
+				"$(expected_for "$base" saida c)" "$(expected_for "$base" codigo c)" \
+				"$TMP/$name.t.err" "$(expected_for "$base" erro c)"
 		fi
 	fi
 }

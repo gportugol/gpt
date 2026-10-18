@@ -208,7 +208,7 @@ lvalue returns [LValue l]
 }
   : #(id:T_IDENTIFICADOR {l.name = id->getText();}
       (
-        e=expr {l.addMatrixIndex(e);}
+        e=expr {l.addMatrixIndex(e); interpreter.checkLValueBounds(l, id->getLine());}
       )*
     )
   ;
