@@ -375,6 +375,105 @@ fi
 echo ""
 
 echo "========================================"
+echo "Depurador"
+echo "========================================"
+# gpt connects to the host given with -H, sends "<length>\0<body>" messages
+# and reads commands framed the same way. A peer that sends a header or a
+# body larger than gpt accepts is dropped and the program runs to the end, as
+# it does when nobody answers on the port; a peer that answers each stop with
+# step_into drives the program to its normal end.
+if [ $ON_WINDOWS -eq 1 ] || ! command -v python3 &>/dev/null; then
+	echo "⚠ depurador: pulado (sem python3 ou no Windows)"
+else
+	cat >"$TMP/depurador.py" <<'EOF'
+import socket
+import sys
+
+mode = sys.argv[1]
+srv = socket.socket()
+srv.settimeout(30)
+srv.bind(("127.0.0.1", 0))
+srv.listen(1)
+print(srv.getsockname()[1], flush=True)
+conn, _ = srv.accept()
+conn.settimeout(30)
+
+
+def frames():
+    data = b""
+    while True:
+        chunk = conn.recv(4096)
+        if not chunk:
+            return
+        data += chunk
+        while True:
+            header = data.find(b"\0")
+            if header < 0:
+                break
+            size = int(data[:header])
+            if len(data) < header + 1 + size + 1:
+                break
+            yield data[header + 1:header + 1 + size]
+            data = data[header + 2 + size:]
+
+
+def send(cmd):
+    # gpt reads exactly the declared length and stops at the NUL, so the
+    # length counts the terminator.
+    conn.sendall(str(len(cmd) + 1).encode() + b"\0" + cmd + b"\0")
+
+
+if mode == "cabecalho":
+    conn.sendall(b"9" * 4000 + b"\0")
+elif mode == "corpo":
+    body = b"A" * 70000
+    conn.sendall(str(len(body)).encode() + b"\0" + body)
+elif mode == "passos":
+    stops = 0
+    for frame in frames():
+        if frame.startswith(b"<stackinfo>"):
+            stops += 1
+            send(b"step_into")
+    if stops < 2:
+        sys.exit("esperava ao menos duas paradas, houve %d" % stops)
+conn.close()
+EOF
+	# run_depurador <modo> <programa> <texto esperado na saída>
+	run_depurador() {
+		local modo="$1" programa="$2" esperado="$3"
+		coproc SRV { python3 "$TMP/depurador.py" "$modo" 2>"$TMP/depurador.$modo.err"; }
+		read -r PORTA <&"${SRV[0]}"
+		SAIDA=$($TIMEOUT "$GPT" -i -H 127.0.0.1 -P "$PORTA" "$programa" 2>&1 </dev/null)
+		RESULT=$?
+		wait "$SRV_PID"
+		local servidor=$?
+		if [ $RESULT -eq 0 ] && [ $servidor -eq 0 ] && grep -q "$esperado" <<<"$SAIDA" &&
+			! grep -q "comando desconhecido" <<<"$SAIDA"; then
+			return 0
+		fi
+		echo "código $RESULT, servidor $servidor (esperado: 0, 0 e a saída do programa sem comando desconhecido)"
+		echo "$SAIDA"
+		cat "$TMP/depurador.$modo.err"
+		return 1
+	}
+	for modo in cabecalho corpo; do
+		if run_depurador "$modo" casos/olamundo.gpt "Mundo" >"$TMP/depurador.$modo.out"; then
+			ok "-H com $modo maior que o buffer"
+		else
+			fail "-H com $modo maior que o buffer"
+			cat "$TMP/depurador.$modo.out"
+		fi
+	done
+	if run_depurador passos casos/control.gpt "depois: 5" >"$TMP/depurador.passos.out"; then
+		ok "-H com um host que avança passo a passo"
+	else
+		fail "-H com um host que avança passo a passo"
+		cat "$TMP/depurador.passos.out"
+	fi
+fi
+echo ""
+
+echo "========================================"
 echo "nasm ao lado do gpt"
 echo "========================================"
 # gpt -o runs the nasm in its own directory before the one in PATH. Copies of

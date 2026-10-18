@@ -34,6 +34,8 @@
 #endif
 
 #define PCRE2_CODE_UNIT_WIDTH 8
+#include <cerrno>
+#include <cstdlib>
 #include <pcre2.h>
 #include <unistd.h>
 
@@ -314,29 +316,33 @@ void InterpreterDBG::sendData(stringstream &s) {
   }
 }
 
+// A message is "<length in ASCII>\0<body>". The header has to fit the stack
+// buffer and the body is capped well above the longest command, so the
+// peer never decides how much memory is used. Anything malformed, a receive
+// error or a message cut short drops the socket after one diagnostic and the
+// program keeps running without the debugger, as it does when the connection
+// fails; a peer that closes between messages is dropped silently.
 string InterpreterDBG::receiveIncomingData(bool nonBlocking) {
+  const size_t maxBody = 64 * 1024;
   char buffer[1024];
-  int received = 0;
-
-  buffer[1023] = '\0';
 
   string cmd;
-  int msg_size;
 
-  // retrieve msg size!
-  int idx = 0;
+  size_t idx = 0;
   int rec;
   while (true) {
-
-#ifndef WIN32
-    if (nonBlocking) {
-      rec = recv(clientsock, &buffer[idx], sizeof(char), MSG_DONTWAIT);
-    } else {
-      rec = recv(clientsock, &buffer[idx], sizeof(char), 0);
+    if (idx >= sizeof(buffer) - 1) {
+      dropConnection("cabeçalho de mensagem maior que o buffer");
+      return cmd;
     }
 
-    if (nonBlocking && (rec == 0)) {
-      return "";
+#ifndef WIN32
+    // Only the first byte is polled: once a message has started, the rest of
+    // it is waited for, or a header split across packets would be lost.
+    int flags = (nonBlocking && idx == 0) ? MSG_DONTWAIT : 0;
+    rec = recv(clientsock, &buffer[idx], sizeof(char), flags);
+    if (rec < 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
+      return cmd;
     }
 #else
     // todo[win]: this code is there just to compile on windows, it should be
@@ -344,9 +350,13 @@ string InterpreterDBG::receiveIncomingData(bool nonBlocking) {
     rec = recv(clientsock, &buffer[idx], sizeof(char), 0);
 #endif
 
-    received += rec;
-
-    if ((rec == 0) || (rec < 1)) {
+    if (rec == 0 && idx == 0) {
+      closeSock();
+      return cmd;
+    }
+    if (rec <= 0) {
+      dropConnection(rec == 0 ? "mensagem incompleta"
+                              : "erro ao receber dados");
       return cmd;
     }
 
@@ -356,55 +366,64 @@ string InterpreterDBG::receiveIncomingData(bool nonBlocking) {
     idx++;
   }
 
-  //  cerr << "MESSAGE SIZE: " << buffer << ", received : " << received << endl;
-
-  msg_size = atoi(buffer) * sizeof(char);
-
-  received = recv(clientsock, buffer, msg_size, 0);
-  if (received < 0) {
-    cerr << PACKAGE << ": erro ao receber dados." << endl;
-    return cmd;
-  } else if ((received == 0) || (received < msg_size)) {
-    //    cerr << "insuficient! received: " << received << ", msg_size: " <<
-    //    msg_size << endl;
-    closeSock();
+  char *end;
+  long msg_size = strtol(buffer, &end, 10);
+  if (end == buffer || *end != '\0' || msg_size <= 0 ||
+      msg_size > (long)maxBody) {
+    dropConnection("tamanho de mensagem inválido");
     return cmd;
   }
 
-  //  cmd.assign(buffer, received);
-  cmd = buffer;
-  //  cerr << "MESSAGE : " << cmd << ", assigned: " << received << endl;
+  string body((size_t)msg_size, '\0');
+  size_t received = 0;
+  while (received < body.size()) {
+    rec = recv(clientsock, &body[received], body.size() - received, 0);
+    if (rec <= 0) {
+      dropConnection(rec == 0 ? "mensagem incompleta"
+                              : "erro ao receber dados");
+      return cmd;
+    }
+    received += rec;
+  }
 
-  return cmd;
+  return body.substr(0, body.find('\0'));
+}
+
+void InterpreterDBG::dropConnection(const string &why) {
+  stringstream s;
+  s << PACKAGE << ": depurador: " << why << ". Continuando sem depurador."
+    << endl;
+  GPTDisplay::self()->showError(s);
+  closeSock();
 }
 
 int InterpreterDBG::receiveCmd(bool nonBlocking) {
-  if (clientsock < 0) {
-    return CMDContinue;
+  while (true) {
+    if (clientsock < 0) {
+      return CMDContinue;
+    }
+
+    string cmd = receiveIncomingData(nonBlocking);
+
+    if (clientsock < 0) {
+      return CMDContinue;
+    } else if (cmd.empty() && nonBlocking) {
+      return CMDNull;
+    } else if (cmd == "step_into") {
+      return CMDStepInto;
+    } else if (cmd == "step_over") {
+      return CMDStepOver;
+    } else if (cmd == "step_out") {
+      return CMDStepOut;
+    } else if (cmd == "continue") {
+      return CMDContinue;
+    } else if (cmd.find("breakpoint") != string::npos) {
+      processBreakpointCMD(cmd);
+    } else {
+      cerr << PACKAGE << ": comando desconhecido: \"" << cmd << "\"" << endl;
+      return CMDStepInto;
+    }
   }
-
-  string cmd = receiveIncomingData(nonBlocking);
-
-  int ret;
-  if (cmd.empty() && nonBlocking) {
-    ret = CMDNull;
-  } else if (cmd == "step_into") {
-    ret = CMDStepInto;
-  } else if (cmd == "step_over") {
-    ret = CMDStepOver;
-  } else if (cmd == "step_out") {
-    ret = CMDStepOut;
-  } else if (cmd == "continue") {
-    ret = CMDContinue;
-  } else if (cmd.find("breakpoint") != string::npos) {
-    processBreakpointCMD(cmd);
-    ret = receiveCmd(nonBlocking);
-  } else {
-    cerr << PACKAGE << ": comando desconhecido: \"" << cmd << "\"" << endl;
-    ret = CMDStepInto;
-  }
-
-  return ret;
 }
 
 void InterpreterDBG::processBreakpointCMD(string &bpcommand) {
