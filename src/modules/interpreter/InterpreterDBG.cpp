@@ -33,11 +33,14 @@
 #include <sys/socket.h>
 #endif
 
+#include <cerrno>
+#include <cstring>
+
 #define PCRE2_CODE_UNIT_WIDTH 8
 #include <pcre2.h>
 #include <unistd.h>
 
-#ifndef WIN32
+#if !defined(WIN32) && !defined(MSG_NOSIGNAL)
 void sigPipeHandler(int) { InterpreterDBG::self()->closeSock(); }
 #endif
 
@@ -64,40 +67,54 @@ void InterpreterDBG::init(string host, int port) {
     return;
 
 #ifndef WIN32
-  struct sockaddr_in name;
+  struct addrinfo hints;
+  memset(&hints, 0, sizeof(hints));
+  hints.ai_family = AF_UNSPEC;
+  hints.ai_socktype = SOCK_STREAM;
 
-  struct hostent *hostinfo = NULL;
+  stringstream service;
+  service << port;
 
-  name.sin_family = AF_INET;
-  name.sin_port = htons(port);
-  hostinfo = gethostbyname(host.c_str());
-
-  if (hostinfo == NULL) {
-    // cerr << "client: unknow host : "  << hostname << endl;
-    return;
-  }
-
-  name.sin_addr = *(struct in_addr *)hostinfo->h_addr;
-
-  clientsock = socket(PF_INET, SOCK_STREAM, 0);
-  if (clientsock < 0) {
+  struct addrinfo *addresses = NULL;
+  int rc = getaddrinfo(host.c_str(), service.str().c_str(), &hints, &addresses);
+  if (rc != 0) {
     stringstream s;
-    s << PACKAGE << ": não foi possível criar socket\n";
+    s << PACKAGE << ": não foi possível resolver o depurador em " << host << ":"
+      << port << ": " << gai_strerror(rc) << endl;
     GPTDisplay::self()->showError(s);
     return;
   }
 
-  if (connect(clientsock, (struct sockaddr *)&name, sizeof(name)) != 0) {
-    // cerr << PACKAGE << ": unable to connect" << endl;
-    // unable to connect
-    closeSock();
-  } else {
-    if (SIG_ERR == signal(SIGPIPE, sigPipeHandler)) {
-      stringstream s;
-      s << PACKAGE << ": erro interno em InterpreterDBG::init" << endl;
-      GPTDisplay::self()->showError(s);
+  int error = 0;
+  for (struct addrinfo *ai = addresses; ai != NULL; ai = ai->ai_next) {
+    clientsock = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
+    if (clientsock < 0) {
+      error = errno;
+      continue;
     }
+    if (connect(clientsock, ai->ai_addr, ai->ai_addrlen) == 0) {
+      break;
+    }
+    error = errno;
+    closeSock();
   }
+  freeaddrinfo(addresses);
+
+  if (clientsock < 0) {
+    stringstream s;
+    s << PACKAGE << ": não foi possível conectar ao depurador em " << host
+      << ":" << port << ": " << strerror(error) << endl;
+    GPTDisplay::self()->showError(s);
+    return;
+  }
+
+#ifndef MSG_NOSIGNAL
+  if (SIG_ERR == signal(SIGPIPE, sigPipeHandler)) {
+    stringstream s;
+    s << PACKAGE << ": erro interno em InterpreterDBG::init" << endl;
+    GPTDisplay::self()->showError(s);
+  }
+#endif
 #else
   WORD wVersionRequested = MAKEWORD(1, 1);
   WSADATA wsaData;
@@ -306,11 +323,24 @@ void InterpreterDBG::sendData(stringstream &s) {
   string str = s.str();
   s.rdbuf()->str("");
   s << str.length() << '\0' << str;
-  if (send(clientsock, s.str().c_str(), sizeof(char) * (s.str().length() + 1),
-           0) < 0) { // error
-    if (clientsock > 0) {
-      // cerr << PACKAGE << ": erro ao enviar dados." << endl;
-    } // else, server closed con
+  string frame = s.str();
+  int flags = 0;
+#ifdef MSG_NOSIGNAL
+  flags = MSG_NOSIGNAL;
+#endif
+  const char *data = frame.c_str();
+  size_t left = frame.length() + 1;
+  while (left > 0) {
+    ssize_t n = send(clientsock, data, left, flags);
+    if (n < 0) {
+      if (errno == EINTR) {
+        continue;
+      }
+      closeSock();
+      return;
+    }
+    data += n;
+    left -= n;
   }
 }
 

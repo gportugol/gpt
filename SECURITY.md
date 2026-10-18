@@ -59,6 +59,11 @@ execute-o em ambiente isolado, com permissões restritas, quando não confiar em
 sua procedência. Isso também se aplica aos binários e ao código C gerados pelo
 compilador.
 
+O protocolo do depurador (`gpt -i -H <host> -P <porta>`) é TCP em texto claro
+e sem autenticação: o `gpt` conecta-se ao host informado e obedece aos comandos
+de execução que ele envia, e os valores das variáveis do programa trafegam sem
+cifra. Use `-H` apenas com `localhost` ou dentro de uma rede confiável.
+
 ## Agradecimentos
 
 Agradecemos pesquisadores de segurança e a comunidade de código aberto por
