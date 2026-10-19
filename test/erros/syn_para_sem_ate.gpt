@@ -1,0 +1,9 @@
+algoritmo syn_para_sem_ate;
+variáveis
+  x: inteiro;
+fim-variáveis
+início
+  para x de 1 10 faça
+    imprima(x);
+  fim-para
+fim

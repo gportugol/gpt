@@ -3,6 +3,21 @@
 Todas as mudanças relevantes do **GPT (GPortugol)** organizadas por release.
 Este arquivo foi consolidado a partir do ChangeLog histórico (CVS/SVN).
 
+## [Unreleased]
+
+### Alterado
+
+- Migração do ANTLR 2.7.7 para o ANTLR 4: a gramática passa a ser
+  `src/modules/parser/Portugol.g4` e o lexer/parser são gerados pela
+  ferramenta `antlr4` (Java) com o runtime C++ `libantlr4-runtime`. A
+  análise semântica, o interpretador, o gerador x86 e o tradutor para C são
+  agora classes C++ que percorrem a árvore sintática, portadas dos walkers
+  ANTLR2 originais, e produzem a mesma saída da versão 1.2.0.
+- Mensagens de erro sintático e léxico mantêm o formato
+  `arquivo:linha - Esperando X, encontrado Y` e as dicas da opção `-d`.
+- Strings aceitam qualquer caractere UTF-8; literais de caractere continuam
+  limitados ao Latin-1.
+
 ## [1.3.0] - 2026-10-16
 
 ### Adicionado
@@ -44,7 +59,7 @@ Este arquivo foi consolidado a partir do ChangeLog histórico (CVS/SVN).
 - O `HACKING.md` explica por que o Windows precisa do NASM 0.99.05 (as
   versões 2.16.01 e 3.01 rejeitam o assembly gerado) e como rodar a suíte de
   regressão.
-- Os downloads usados no build da release (ANTLR 2.7.7, JDK e NASM) são
+- Os downloads usados no build da release (ANTLR, JDK e NASM) são
   conferidos por SHA-256, e as GitHub Actions são fixadas por commit.
 - O push só dispara o CI na `master`, então um commit de pull request deixa
   de rodar duas vezes, pelo push e pelo evento `pull_request`.

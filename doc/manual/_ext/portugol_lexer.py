@@ -12,7 +12,7 @@ from pygments.token import (
     Whitespace,
 )
 
-# Keep in sync with the tokens{} section of src/modules/parser/lexer.g.
+# Keep in sync with the T_KW_ lexer rules of src/modules/parser/Portugol.g4.
 BLOCK_ENDS = ("fim-variáveis", "fim-enquanto", "fim-para", "fim-se")
 TYPES = (
     "inteiro",
