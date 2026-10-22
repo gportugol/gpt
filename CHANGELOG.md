@@ -3,6 +3,85 @@
 Todas as mudanças relevantes do **GPT (GPortugol)** organizadas por release.
 Este arquivo foi consolidado a partir do ChangeLog histórico (CVS/SVN).
 
+## [Unreleased]
+
+### Alterado
+
+- Sem `-o`, o programa compilado recebe o nome do primeiro arquivo fonte, sem
+  o diretório e a extensão, e não mais o identificador de
+  `algoritmo <nome>;`. Esse identificador deixava o fonte escolher qual
+  arquivo do diretório atual seria substituído: `algoritmo Makefile;`
+  transformava o `Makefile` num executável. Um fonte sem extensão gera
+  `<nome>.out` (`.exe` no Windows), e no Windows um fonte `*.exe` gera
+  `<nome>.out.exe`. Quem dependia do nome antigo precisa passar `-o`.
+- O depurador (`-H`) resolve o host com `getaddrinfo`, então aceita IPv6 e
+  hosts com vários endereços, e avisa em stderr quando o host não resolve ou
+  não aceita a conexão. Antes o programa rodava sem depurador, em silêncio.
+  O `SECURITY.md` descreve o protocolo, que é TCP sem autenticação, e
+  recomenda usar `-H` só em localhost ou numa rede confiável.
+- A versão `latest` do manual no Read the Docs é gerada a partir da `master`
+  e mostra mudanças que ainda não saíram numa release. Antes ela respondia
+  404. A raiz do site continua apontando para a `stable`.
+
+### Corrigido
+
+- `gpt -v` e `gpt -h` saíam com código 1, o que quebrava scripts que
+  conferem a versão. Agora saem com 0, e `gpt` sem argumentos continua saindo
+  com 1.
+- O `bin/gpt` do pacote Linux da release vinha sem permissão de execução, e
+  era preciso rodar `chmod +x` depois de extrair.
+- Divisão e módulo por zero, inteiros ou reais, encerram o programa nos três
+  modos com a mesma mensagem, a linha do operador e código de saída 1. Antes
+  o interpretador morria com SIGFPE no `%`, e o executável nativo e a
+  tradução para C morriam com SIGFPE na divisão inteira e dividiam reais por
+  zero sem aviso. A tradução para C também morria em `INT_MIN / -1`.
+- No executável nativo, a divisão e o módulo de números negativos davam
+  resultados errados (`-7 / 2` dava 2147483644 e `-7 % 3` dava 0). No
+  interpretador, `-x` com `x = 1234567` imprimia `-1` e `-2147483648` saía
+  como `-2`.
+- Uma recursão sem fim derrubava o interpretador com falha de segmentação.
+  Agora ele mede a pilha usada e para com
+  `Pilha de execução esgotada (recursão muito profunda)` e a linha da
+  chamada. O executável nativo e a tradução para C ainda terminam com falha
+  de segmentação.
+- O `leia()` do executável nativo lia de uma vez até 1024 bytes. De um pipe
+  ou arquivo, o primeiro `leia()` recebia várias linhas e os seguintes não
+  recebiam nada. No fim da entrada o valor ficava sem terminador, uma linha
+  sem quebra perdia o último caractere, e um programa que lia cerca de mil
+  linhas esgotava a memória. No Windows, o executável nativo não lia entrada
+  redirecionada. Agora cada `leia()` lê exatamente uma linha nos dois
+  sistemas, e uma linha maior que 1023 bytes é cortada.
+- Uma linha vazia ou o fim da entrada fazem `leia()` de literal devolver o
+  literal nulo nos três modos, como o interpretador já fazia. Antes a
+  tradução para C devolvia `""` para a linha vazia e terminava com erro no
+  fim da entrada.
+- Na tradução para C, `leia()` de literal removia o último caractere de uma
+  linha sem quebra (`abc` virava `ab`) e, numa linha que começava com o
+  byte NUL, escrevia um byte antes do buffer.
+- `gpt -i -H ... | head -1` terminava com código 0 em vez de morrer com
+  SIGPIPE, como acontece sem `-H`.
+
+### Segurança
+
+- O executável nativo e a tradução para C não conferiam os índices de
+  matriz. Um índice lido com `leia()` permitia escolher onde uma escrita de 4
+  bytes caía na memória do programa. Agora os três modos conferem cada
+  índice e encerram com a mensagem do interpretador e código de saída 1.
+- O ELF gerado não tinha `PT_GNU_STACK`, e os dados começavam na mesma
+  página do código. Por isso código, dados, a área de memória do runtime e a
+  pilha eram mapeados com permissão de leitura, escrita e execução. Agora o
+  código é mapeado só para leitura e execução, e os dados, a área de memória
+  e a pilha só para leitura e escrita.
+- O depurador lia as mensagens do host num buffer de 1024 bytes na pilha sem
+  nenhum limite, e um cabeçalho ou um tamanho declarado maiores estouravam a
+  pilha. O cabeçalho agora precisa caber no buffer, e o corpo é limitado a
+  64 KiB. Uma mensagem malformada encerra a conexão com o depurador, e o
+  programa continua rodando.
+- O XML enviado ao depurador levava nomes e valores de variáveis sem escape.
+  Um valor com aspas, vindo de um literal ou de `leia()`, injetava marcação
+  no documento que o cliente lê. Agora o texto é escapado, e o que o XML não
+  permite, como bytes que não são UTF-8 válido, vira U+FFFD.
+
 ## [1.3.0] - 2026-10-16
 
 ### Adicionado
