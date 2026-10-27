@@ -21,7 +21,8 @@ Este arquivo foi consolidado a partir do ChangeLog histórico (CVS/SVN).
   recomenda usar `-H` só em localhost ou numa rede confiável.
 - A versão `latest` do manual no Read the Docs é gerada a partir da `master`
   e mostra mudanças que ainda não saíram numa release. Antes ela respondia
-  404. A raiz do site continua apontando para a `stable`.
+  404. Ela é a versão padrão, aberta pela raiz do site, e o manual da última
+  release continua em `stable`.
 
 ### Corrigido
 
