@@ -70,17 +70,19 @@ jobs:
 
   upload-source-dist:
     runs-on: ubuntu-latest
+    container:
+      image: debian:trixie
     permissions:
       contents: write
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
       - name: Install Build Dependencies
         run: |
-          sudo apt update
-          sudo apt install -y build-essential autoconf automake libtool \
-            pkg-config libantlr-dev libpcre2-dev nasm
+          apt-get update
+          apt-get install -y build-essential autoconf automake libtool \
+            pkg-config antlr4 libantlr4-runtime-dev libpcre2-dev nasm git gh
+
+      - name: Checkout Repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Build source tarball
         run: |

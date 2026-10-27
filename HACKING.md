@@ -12,8 +12,8 @@ Dependências:
 - automake
 - libtool
 - pkg-config
-- antlr (ANTLR 2.x, fornece o `runantlr`)
-- libantlr-dev (ANTLR 2.x)
+- antlr4 (ferramenta ANTLR 4.x; precisa de um runtime Java)
+- libantlr4-runtime-dev (runtime C++ do ANTLR 4.x)
 - libpcre2-dev
 - nasm
 - wget
@@ -34,8 +34,32 @@ Debian/Ubuntu, usando os pacotes:
 ```shell
 sudo apt install -y \
   build-essential autoconf automake libtool pkg-config \
-  antlr libantlr-dev libpcre2-dev nasm
+  antlr4 libantlr4-runtime-dev libpcre2-dev nasm
 ```
+
+O pacote `antlr4` instala a ferramenta (que roda em Java) e o
+`libantlr4-runtime-dev` instala o runtime C++. O runtime precisa ser 4.9 ou
+mais novo e a ferramenta da mesma versão 4.x do runtime (com o runtime 4.9, a
+ferramenta 4.7.2 das distribuições também serve), porque o lexer e o parser
+gerados por uma versão não funcionam com o runtime de outra; o `configure`
+recusa outras combinações. Os pacotes do Debian 12 (4.7.2 e 4.9), do Ubuntu
+22.04 (4.7.2 e 4.9) e do Debian 13 (4.9.2 e 4.9, usado no CI) funcionam. O
+Ubuntu 24.04 traz a ferramenta 4.9.2 com o runtime 4.10, e o build falha;
+nele, não instale o pacote `antlr4`: mantenha o runtime da distribuição e rode
+a ferramenta a partir do jar da mesma versão, como no Windows:
+
+```shell
+sudo apt install -y default-jre-headless
+sudo wget -O /usr/local/lib/antlr4-complete.jar \
+  https://www.antlr.org/download/antlr-4.10-complete.jar
+printf '#!/bin/sh\nexec java -jar /usr/local/lib/antlr4-complete.jar "$@"\n' |
+  sudo tee /usr/local/bin/antlr4 >/dev/null
+sudo chmod +x /usr/local/bin/antlr4
+```
+
+Troque `4.10` pela versão que `dpkg -s libantlr4-runtime-dev` mostrar. Se o
+script ficar fora do `PATH`, informe-o ao `configure` pela variável
+`ANTLR4_CMD`.
 
 ### 2. Configurar e compilar no Debian/Ubuntu
 
@@ -95,83 +119,32 @@ pacman -S --noconfirm \
   autoconf automake libtool make \
   mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-gcc-libs \
   mingw-w64-ucrt-x86_64-pcre2 pkg-config \
-  tar unzip wget
+  mingw-w64-ucrt-x86_64-antlr4-runtime-cpp \
+  unzip wget
 ```
 
-### 3. Instalar Java (necessário para ANTLR 2.x)
+O pacote `mingw-w64-ucrt-x86_64-antlr4-runtime-cpp` fornece o runtime C++ do
+ANTLR4.
+
+### 3. Instalar Java (necessário para a ferramenta ANTLR4)
+
+A ferramenta `antlr4`, que gera o lexer e o parser durante o build, roda em
+Java. Instale um JDK (por exemplo, o [Temurin 21](https://adoptium.net)) e
+garanta que `java` esteja no `PATH` do terminal MSYS2.
+
+### 4. Instalar a ferramenta ANTLR4
+
+Baixe o jar da mesma versão do runtime instalado pelo `pacman` (verifique com
+`pacman -Qi mingw-w64-ucrt-x86_64-antlr4-runtime-cpp`) e crie o script
+`antlr4` que o `configure` procura no `PATH`:
 
 ```shell
-wget https://download.java.net/java/GA/jdk25.0.1/2fbf10d8c78e40bd87641c434705079d/8/GPL/openjdk-25.0.1_windows-x64_bin.zip
-unzip openjdk-25.0.1_windows-x64_bin.zip
-export PATH=$PATH:$(pwd)/jdk-25.0.1/bin
-```
-
-### 4. Compilar ANTLR 2.7.7 no Windows (com patches aplicados)
-
-O ANTLR 2 é muito antigo e não compila corretamente no MinGW-w64 sem correções.
-Precisamos aplicar dois patches usando o `sed`.
-
-Se o ANTLR já foi instalado a partir do terminal MinGW 64-bit, refaça este
-passo inteiro no UCRT64, a partir de uma extração nova do tarball: o
-`/usr/local` é compartilhado entre os ambientes do MSYS2, e a `libantlr.a`
-antiga foi compilada contra a MSVCRT.
-
-#### Baixar e extrair
-
-```shell
-wget http://www.antlr2.org/download/antlr-2.7.7.tar.gz
-tar xvfz antlr-2.7.7.tar.gz
-cd antlr-2.7.7
-```
-
-#### Patch 1 — incluir \_stricmp no Windows
-
-Insere no topo de `CharScanner.hpp`:
-
-```shell
-sed -i \
-  '1i \
-  #ifdef _WIN32\n\
-  #include <string.h>\n\
-  #define strcasecmp _stricmp\n\
-  #endif' \
-  lib/cpp/antlr/CharScanner.hpp
-```
-
-#### Patch 2 — substituir binary_function obsoleto
-
-```shell
-sed -i \
-  's/struct CharScannerLiteralsLess : public binary_function<string, string, bool>/\
-  struct CharScannerLiteralsLess { \
-    bool operator()(const std::string& x, const std::string& y) const { \
-      return strcasecmp(x.c_str(), y.c_str()) < 0; \
-    } \
-  };/g' \
-  lib/cpp/antlr/CharScanner.hpp
-```
-
-Esses patches corrigem:
-
-- Incompatibilidade com `binary_function` removido no C++17
-- Ausência de `strcasecmp` no Windows
-
-#### Compilar o ANTLR com flags estáticas
-
-```shell
-export CXXFLAGS="-O2 -std=gnu++14 -static -static-libgcc -static-libstdc++"
-export LDFLAGS="-static -static-libgcc -static-libstdc++"
-
-autoreconf -fi
-./configure --prefix=/usr/local
-make -j$(nproc)
-make install
-```
-
-Criar o alias usado pelo GPT:
-
-```shell
-ln -s /usr/local/bin/antlr /usr/local/bin/runantlr || true
+mkdir -p /usr/local/lib /usr/local/bin
+wget -O /usr/local/lib/antlr4-complete.jar \
+  https://www.antlr.org/download/antlr-4.13.2-complete.jar
+printf '#!/bin/bash\njava -jar /usr/local/lib/antlr4-complete.jar "$@"\n' \
+  > /usr/local/bin/antlr4
+chmod +x /usr/local/bin/antlr4
 ```
 
 ### 5. Instalar o NASM
@@ -191,7 +164,6 @@ NASM 2.16 nem pelo 3.01. O `gpt` procura o `nasm` no mesmo diretório do
 ### 6. Compilar o GPT no Windows
 
 ```shell
-export CXXFLAGS="-O2 -std=gnu++14 -static -static-libgcc -static-libstdc++"
 export LDFLAGS="-static -static-libgcc -static-libstdc++"
 
 autoreconf -i
