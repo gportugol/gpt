@@ -231,10 +231,12 @@ request, conforme [.readthedocs.yaml](.readthedocs.yaml). Sem a integração do
 projeto no RTD com o GitHub, push e tag novos não disparam build, e ele precisa
 ser iniciado no painel.
 
-O projeto no Read the Docs deve usar o idioma Portuguese (Brazil) e ter `stable`
-como versão padrão. O RTD passa o idioma do projeto ao Sphinx, sobrepondo o
-`language` do `conf.py`; com outro idioma, a interface, a busca e o PDF saem
-nesse idioma.
+O projeto no Read the Docs deve usar o idioma Portuguese (Brazil) e ter `latest`
+como versão padrão: a raiz <https://gportugol.readthedocs.io/>, usada nos links
+do README, redireciona para `/pt-br/latest/`, que pode trazer mudanças ainda
+não lançadas, e o manual da última release fica em `stable`. O RTD passa
+o idioma do projeto ao Sphinx, sobrepondo o `language` do `conf.py`; com outro
+idioma, a interface, a busca e o PDF saem nesse idioma.
 
 ### Instalar dependências
 
