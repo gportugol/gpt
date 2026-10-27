@@ -5,6 +5,28 @@ Notícias e destaques das versões do **GPT (GPortugol)**.
 Este arquivo apresenta um resumo das principais mudanças de cada versão, com
 foco em funcionalidades e correções relevantes para os usuários.
 
+## 1.4.0 - 2026-10-26
+
+- O executável nativo e a tradução para C conferem os índices de matriz e
+  encerram com a mensagem do interpretador quando um índice sai dos limites.
+- O ELF gerado deixa de mapear código, dados e pilha com permissão de
+  escrita e execução ao mesmo tempo.
+- Sem `-o`, o executável recebe o nome do arquivo fonte, sem o diretório e a
+  extensão, e não mais o identificador de `algoritmo <nome>;`, que permitia
+  a um fonte substituir outro arquivo do diretório atual.
+- Divisão e módulo por zero encerram o programa nos três modos com uma
+  mensagem, a linha do operador e código de saída 1, e o executável nativo
+  passa a dividir números negativos corretamente.
+- Uma recursão sem fim deixa de derrubar o interpretador com falha de
+  segmentação e termina com uma mensagem de pilha esgotada.
+- Cada `leia()` do executável nativo lê exatamente uma linha, também de um
+  pipe ou arquivo, e no Windows ele passa a ler entrada redirecionada.
+- No depurador (`-H`), as mensagens do host têm tamanho limitado, o XML
+  enviado é escapado, endereços IPv6 são aceitos e uma falha de conexão é
+  avisada.
+- `gpt -v` e `gpt -h` saem com código 0, e o `bin/gpt` do pacote Linux vem
+  com permissão de execução.
+
 ## 1.3.0 - 2026-10-16
 
 - Manual convertido para Markdown com Sphinx, revisado e publicado no Read

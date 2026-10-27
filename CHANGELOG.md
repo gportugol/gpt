@@ -3,7 +3,7 @@
 Todas as mudanças relevantes do **GPT (GPortugol)** organizadas por release.
 Este arquivo foi consolidado a partir do ChangeLog histórico (CVS/SVN).
 
-## [Unreleased]
+## [1.4.0] - 2026-10-26
 
 ### Alterado
 
