@@ -90,6 +90,38 @@ public:
   string createLabel(bool local, string tmpl);
 
   void writeExit();
+  void writeMainExit();
+  void writeMainReturn();
+  void writeFuncReturn(int expecting_type, int etype, bool hasRetExpr);
+  void writeFuncEnd();
+
+  void writeComment(const string &);
+  void writeLabel(const string &);
+  void writeJump(const string &);
+  void writeJumpIfFalse(const string &);
+
+  void writeDiscardResult();
+  void writePushResult();
+  void writePushIndex();
+  void writeLValueBegin(bool isprim);
+  void writeLValueIndex(const string &name, int line, int size, int multiplier);
+  void writeLValueEnd(bool isprim);
+
+  void writeImprimaTag(int etype);
+  void writeImprimaCall(int args);
+  void writeCallArg(int etype, int ptype);
+  void writeLeiaCall(const string &fname);
+  void writeCall(const string &fname, int args);
+
+  void writeParaDe();
+  void writeParaDeAttr(int de_type, int expecting_type,
+                       pair<pair<int, bool>, string> &);
+  void writeParaAte(int ate_type, int lvtype);
+  void writeParaEntry(const string &lvname, bool decreasing,
+                      const string &lbpara, const string &lbfim);
+  void writeParaNext(const string &lvname, bool hasPasso, bool decreasing,
+                     const string &step, const string &lbpara,
+                     const string &lbfim);
 
   void writeAttribution(int e1, int e2, pair<pair<int, bool>, string> &);
   void writeOuExpr();
@@ -111,7 +143,7 @@ public:
   void writeUnaryNeg(int etype);
   void writeUnaryNot();
   void writeUnaryBitNotExpr();
-  void writeLiteralExpr(const string &src);
+  void writeLiteralExpr(int type, const string &src);
   void writeIndexCheck(const string &name, int line, int size);
   void writeLValueExpr(pair<pair<int, bool>, string> &);
 

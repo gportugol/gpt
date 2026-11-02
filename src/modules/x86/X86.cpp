@@ -213,6 +213,186 @@ void X86::writeExit() {
   writeTEXT(s.str());
 }
 
+void X86::writeMainExit() {
+  writeTEXT("mov ecx, 0");
+  writeExit();
+}
+
+void X86::writeMainReturn() {
+  writeTEXT("pop ecx");
+  writeExit();
+}
+
+void X86::writeFuncReturn(int expecting_type, int etype, bool hasRetExpr) {
+  if (expecting_type != TIPO_NULO) {
+    writeTEXT("pop eax");
+  }
+  if (expecting_type == TIPO_LITERAL) {
+    writeTEXT("addarg eax");
+    writeTEXT("call clone_literal");
+    writeTEXT("clargs 1");
+  } else if (hasRetExpr) {
+    writeCast(etype, expecting_type);
+  }
+  writeTEXT("return");
+}
+
+void X86::writeFuncEnd() { writeTEXT("return"); }
+
+void X86::writeComment(const string &text) { writeTEXT("; " + text); }
+
+void X86::writeLabel(const string &label) { writeTEXT(label + ":"); }
+
+void X86::writeJump(const string &label) { writeTEXT("jmp " + label); }
+
+void X86::writeJumpIfFalse(const string &label) {
+  writeTEXT("pop eax");
+  writeTEXT("cmp eax, 0");
+  writeTEXT("je near " + label);
+}
+
+void X86::writeDiscardResult() { writeTEXT("pop eax"); }
+
+void X86::writePushResult() { writeTEXT("push eax"); }
+
+void X86::writePushIndex() { writeTEXT("push ecx"); }
+
+void X86::writeLValueBegin(bool isprim) {
+  if (!isprim) {
+    writeTEXT("push 0");
+  }
+}
+
+void X86::writeLValueIndex(const string &name, int line, int size,
+                           int multiplier) {
+  stringstream s;
+  writeTEXT("pop eax");
+  writeIndexCheck(name, line, size);
+  s << "mov ebx, " << multiplier;
+  writeTEXT(s.str());
+  writeTEXT("imul ebx");
+  writeTEXT("pop ebx");
+  writeTEXT("add eax, ebx");
+  writeTEXT("push eax");
+}
+
+void X86::writeLValueEnd(bool isprim) {
+  writeTEXT(isprim ? "mov ecx, 0" : "pop ecx");
+}
+
+void X86::writeImprimaTag(int etype) {
+  switch (etype) {
+  case TIPO_INTEIRO:
+    writeTEXT("addarg 'i'");
+    break;
+  case TIPO_REAL:
+    writeTEXT("addarg 'r'");
+    break;
+  case TIPO_CARACTERE:
+    writeTEXT("addarg 'c'");
+    break;
+  case TIPO_LITERAL:
+    writeTEXT("addarg 's'");
+    break;
+  case TIPO_LOGICO:
+    writeTEXT("addarg 'l'");
+    break;
+  }
+}
+
+void X86::writeImprimaCall(int args) {
+  stringstream s;
+  s << "addarg " << args;
+  writeTEXT(s.str());
+  writeTEXT("call imprima");
+  s.str("");
+  s << "clargs " << ((args * 2) + 1);
+  writeTEXT(s.str());
+  writeTEXT("print_lf");
+}
+
+void X86::writeCallArg(int etype, int ptype) {
+  writeTEXT("pop eax");
+  writeCast(etype, ptype);
+  writeTEXT("addarg eax");
+}
+
+void X86::writeLeiaCall(const string &fname) { writeTEXT("call " + fname); }
+
+void X86::writeCall(const string &fname, int args) {
+  writeTEXT("call " + X86::makeID(fname));
+  if (args) {
+    stringstream s;
+    s << "clargs " << args;
+    writeTEXT(s.str());
+  }
+}
+
+void X86::writeParaDe() {
+  writeTEXT("push ecx");
+  writeTEXT("; para: de:");
+}
+
+void X86::writeParaDeAttr(int de_type, int expecting_type,
+                          pair<pair<int, bool>, string> &lv) {
+  writeTEXT("; para: de attr:");
+  writeAttribution(de_type, expecting_type, lv);
+  writeTEXT("push ecx");
+  writeTEXT("; para: ate:");
+}
+
+void X86::writeParaAte(int ate_type, int lvtype) {
+  writeTEXT("pop eax");
+  writeCast(ate_type, lvtype);
+  writeTEXT("push eax");
+}
+
+// The loop variable's slot index sits at [esp+4] and the final value at
+// [esp] while the body runs.
+void X86::writeParaEntry(const string &lvname, bool decreasing,
+                         const string &lbpara, const string &lbfim) {
+  writeTEXT("mov ecx, dword [esp+4]");
+  writeTEXT("lea edx, [" + X86::makeID(lvname) + "]");
+  writeTEXT("mov eax, dword [edx + ecx * SIZEOF_DWORD]");
+  writeTEXT("mov ebx, dword [esp]");
+  writeTEXT("cmp eax, ebx");
+  writeTEXT(decreasing ? "jl " + lbfim : "jg near " + lbfim);
+  writeTEXT(lbpara + ":");
+}
+
+void X86::writeParaNext(const string &lvname, bool hasPasso, bool decreasing,
+                        const string &step, const string &lbpara,
+                        const string &lbfim) {
+  writeTEXT("mov ecx, dword [esp+4]");
+  writeTEXT("lea edx, [" + X86::makeID(lvname) + "]");
+  writeTEXT("mov eax, dword [edx + ecx * SIZEOF_DWORD]");
+  if (!hasPasso) {
+    writeTEXT("inc eax");
+  } else if (decreasing) {
+    writeTEXT("sub eax, " + step);
+  } else {
+    writeTEXT("add eax, " + step);
+  }
+  writeTEXT("mov ebx, dword [esp]");
+  writeTEXT("cmp eax, ebx");
+  writeTEXT((hasPasso && decreasing) ? "jl near " + lbfim : "jg near " + lbfim);
+  writeTEXT("lea edx, [" + X86::makeID(lvname) + "]");
+  writeTEXT("mov ecx, dword [esp+4]");
+  writeTEXT("lea edx, [edx + ecx * SIZEOF_DWORD]");
+  writeTEXT("mov dword [edx], eax");
+  writeTEXT("jmp " + lbpara);
+  writeTEXT(lbfim + ":");
+
+  writeTEXT("mov ebx, dword [esp]");
+  writeTEXT("lea edx, [" + X86::makeID(lvname) + "]");
+  writeTEXT("mov ecx, dword [esp+4]");
+  writeTEXT("lea edx, [edx + ecx * SIZEOF_DWORD]");
+  writeTEXT("mov dword [edx], ebx");
+  writeTEXT("pop eax");
+  writeTEXT("pop ecx");
+  writeTEXT("; fimpara");
+}
+
 void X86::declarePrimitive(int decl_type, const string &name, int type) {
   stringstream s;
   if (decl_type == VAR_GLOBAL) {
@@ -984,11 +1164,7 @@ void X86::writeUnaryBitNotExpr() {
   writeTEXT("push eax");
 }
 
-void X86::writeLiteralExpr(const string &src) {
-  stringstream s;
-  s << "push " << src;
-  writeTEXT(s.str());
-}
+void X86::writeLiteralExpr(int, const string &src) { writeTEXT("push " + src); }
 
 // The message names only the subscript that failed, so for a matrix with
 // several dimensions it shows "m[7]" where the interpreter shows "m[1][7]".
