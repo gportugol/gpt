@@ -23,7 +23,6 @@
 #include "PortugolErrorStrategy.hpp"
 #include "SemanticAnalyzer.hpp"
 
-#include <sstream>
 #include <stdlib.h>
 
 using namespace std;
@@ -205,8 +204,7 @@ void X86Generator::declaracao(PortugolParser::Tipo_declContext *tipo,
 
 void X86Generator::principal(PortugolParser::Stm_blockContext *ctx) {
   stmBlock(ctx);
-  x86.writeTEXT("mov ecx, 0");
-  x86.writeExit();
+  x86.writeMainExit();
 }
 
 void X86Generator::stmBlock(PortugolParser::Stm_blockContext *ctx) {
@@ -225,7 +223,7 @@ void X86Generator::stm(PortugolParser::StmContext *ctx) {
   } else if (auto s =
                  dynamic_cast<PortugolParser::StmChamadaFuncContext *>(ctx)) {
     fcall(s->fcall(), TIPO_ALL);
-    x86.writeTEXT("pop eax");
+    x86.writeDiscardResult();
   } else if (auto s = dynamic_cast<PortugolParser::StmRetornoContext *>(ctx)) {
     stmRet(s->stm_ret());
   } else if (auto s =
@@ -245,7 +243,7 @@ void X86Generator::stmAttr(PortugolParser::Stm_attrContext *ctx) {
 
   Symbol symb = stable.getSymbol(x86.currentScope(), lv.second, true);
   int expecting_type = symb.type.primitiveType();
-  x86.writeTEXT("push ecx");
+  x86.writePushIndex();
 
   int etype = expr(ctx->expr(), expecting_type);
 
@@ -253,7 +251,6 @@ void X86Generator::stmAttr(PortugolParser::Stm_attrContext *ctx) {
 }
 
 X86Generator::LValue X86Generator::lvalue(PortugolParser::LvalueContext *ctx) {
-  stringstream s;
   LValue p;
 
   antlr4::Token *id = ctx->T_IDENTIFICADOR()->getSymbol();
@@ -268,44 +265,26 @@ X86Generator::LValue X86Generator::lvalue(PortugolParser::LvalueContext *ctx) {
   int c = dims.size();
   int line = GPTDisplay::self()->sourceLine((int)id->getLine());
 
-  if (!isprim) {
-    p.first.second = true;
-    x86.writeTEXT("push 0");
-  } else {
-    p.first.second = false;
-  }
+  p.first.second = !isprim;
+  x86.writeLValueBegin(isprim);
 
   for (auto index : ctx->array_sub()->expr()) {
     expr(index, TIPO_INTEIRO); // index expr type
 
     p.first.second = false;
     int multiplier = calcMatrixOffset(c, dims);
-    x86.writeTEXT("pop eax");
-    x86.writeIndexCheck(name, line, *dim);
+    x86.writeLValueIndex(name, line, *dim, multiplier);
     ++dim;
-
-    s << "mov ebx, " << multiplier;
-    x86.writeTEXT(s.str());
-    x86.writeTEXT("imul ebx");
-    x86.writeTEXT("pop ebx");
-    x86.writeTEXT("add eax, ebx");
-    x86.writeTEXT("push eax");
-    s.str("");
     c--;
   }
 
-  if (symb.type.isPrimitive()) {
-    x86.writeTEXT("mov ecx, 0");
-  } else {
-    x86.writeTEXT("pop ecx");
-  }
+  x86.writeLValueEnd(isprim);
 
   return p;
 }
 
 int X86Generator::fcall(PortugolParser::FcallContext *ctx, int expct_type) {
   int count = 0;
-  stringstream s;
   string fname;
   int args = 0;
   int type;
@@ -327,51 +306,23 @@ int X86Generator::fcall(PortugolParser::FcallContext *ctx, int expct_type) {
   for (auto arg : ctx->fargs()->expr()) {
     int etype = expr(arg, ptype);
     if (fname == "imprima") {
-      switch (etype) {
-      case TIPO_INTEIRO:
-        x86.writeTEXT("addarg 'i'");
-        break;
-      case TIPO_REAL:
-        x86.writeTEXT("addarg 'r'");
-        break;
-      case TIPO_CARACTERE:
-        x86.writeTEXT("addarg 'c'");
-        break;
-      case TIPO_LITERAL:
-        x86.writeTEXT("addarg 's'");
-        break;
-      case TIPO_LOGICO:
-        x86.writeTEXT("addarg 'l'");
-        break;
-      }
+      x86.writeImprimaTag(etype);
     } else {
-      x86.writeTEXT("pop eax");
-      x86.writeCast(etype, ptype);
-      x86.writeTEXT("addarg eax");
+      x86.writeCallArg(etype, ptype);
       ptype = f.param.paramType(count++);
     }
     args++;
   }
 
   if (fname == "imprima") {
-    s << "addarg " << args;
-    x86.writeTEXT(s.str());
-    x86.writeTEXT("call imprima");
-    s.str("");
-    s << "clargs " << ((args * 2) + 1);
-    x86.writeTEXT(s.str());
-    x86.writeTEXT("print_lf"); //\n
+    x86.writeImprimaCall(args);
   } else if (f.lexeme == "leia") {
-    x86.writeTEXT(string("call ") + fname);
+    x86.writeLeiaCall(fname);
   } else {
-    x86.writeTEXT(string("call ") + X86::makeID(fname));
-    if (args) {
-      s << "clargs " << args;
-      x86.writeTEXT(s.str());
-    }
+    x86.writeCall(fname, args);
   }
 
-  x86.writeTEXT("push eax");
+  x86.writePushResult();
 
   return type;
 }
@@ -395,26 +346,13 @@ void X86Generator::stmRet(PortugolParser::Stm_retContext *ctx) {
   }
 
   if (isGlobalEscope) {
-    x86.writeTEXT("pop ecx");
-    x86.writeExit();
+    x86.writeMainReturn();
   } else {
-    if (expecting_type != TIPO_NULO) {
-      x86.writeTEXT("pop eax");
-    }
-    if (expecting_type == TIPO_LITERAL) {
-      x86.writeTEXT("addarg eax");
-      x86.writeTEXT("call clone_literal");
-      x86.writeTEXT("clargs 1");
-    } else if (hasRetExpr) {
-      x86.writeCast(etype, expecting_type);
-    }
-
-    x86.writeTEXT("return");
+    x86.writeFuncReturn(expecting_type, etype, hasRetExpr);
   }
 }
 
 void X86Generator::stmSe(PortugolParser::Stm_seContext *ctx) {
-  stringstream s;
   string lbnext, lbfim;
 
   lbnext = x86.createLabel(true, "next_se");
@@ -422,103 +360,65 @@ void X86Generator::stmSe(PortugolParser::Stm_seContext *ctx) {
 
   bool hasElse = false;
 
-  x86.writeTEXT("; se: expressao");
+  x86.writeComment("se: expressao");
 
   expr(ctx->expr(), TIPO_LOGICO);
 
-  x86.writeTEXT("; se: resultado");
-  x86.writeTEXT("pop eax");
-  x86.writeTEXT("cmp eax, 0");
-  s << "je near " << lbnext;
-  x86.writeTEXT(s.str());
-
-  x86.writeTEXT("; se: verdadeiro:");
+  x86.writeComment("se: resultado");
+  x86.writeJumpIfFalse(lbnext);
+  x86.writeComment("se: verdadeiro:");
 
   stmList(ctx->stm_list());
 
   if (ctx->senao_part()) {
     hasElse = true;
-
-    s.str("");
-    s << "jmp " << lbfim;
-    x86.writeTEXT(s.str());
-
-    x86.writeTEXT("; se: falso:");
-
-    s.str("");
-    s << lbnext << ":";
-    x86.writeTEXT(s.str());
+    x86.writeJump(lbfim);
+    x86.writeComment("se: falso:");
+    x86.writeLabel(lbnext);
 
     stmList(ctx->senao_part()->stm_list());
   }
 
-  x86.writeTEXT("; se: fim:");
-
-  s.str("");
-  if (hasElse) {
-    s << lbfim << ":";
-  } else {
-    s << lbnext << ":";
-  }
-  x86.writeTEXT(s.str());
+  x86.writeComment("se: fim:");
+  x86.writeLabel(hasElse ? lbfim : lbnext);
 }
 
 void X86Generator::stmEnquanto(PortugolParser::Stm_enquantoContext *ctx) {
-  stringstream s;
   string lbenq = x86.createLabel(true, "enquanto");
   string lbfim = x86.createLabel(true, "fim_enquanto");
 
-  s << lbenq << ":";
-  x86.writeTEXT(s.str());
-  s.str("");
-
-  x86.writeTEXT("; while: expressao");
+  x86.writeLabel(lbenq);
+  x86.writeComment("while: expressao");
 
   expr(ctx->expr(), TIPO_LOGICO);
 
-  x86.writeTEXT("; while: resultado");
-  x86.writeTEXT("pop eax");
-  x86.writeTEXT("cmp eax, 0");
-  s << "je near " << lbfim;
-  x86.writeTEXT(s.str());
+  x86.writeComment("while: resultado");
+  x86.writeJumpIfFalse(lbfim);
 
   stmList(ctx->stm_list());
 
-  s.str("");
-  s << "jmp " << lbenq;
-  x86.writeTEXT(s.str());
-
-  s.str("");
-  s << lbfim << ":";
-  x86.writeTEXT(s.str());
+  x86.writeJump(lbenq);
+  x86.writeLabel(lbfim);
 }
 
 void X86Generator::stmRepita(PortugolParser::Stm_repitaContext *ctx) {
-  stringstream s;
   string lbrep = x86.createLabel(true, "repita");
   string lbfim = x86.createLabel(true, "ate");
 
-  s << lbrep << ":";
-  x86.writeTEXT(s.str());
-  s.str("");
-
-  x86.writeTEXT("; repita");
+  x86.writeLabel(lbrep);
+  x86.writeComment("repita");
 
   stmList(ctx->stm_list());
 
-  x86.writeTEXT("; until expressao");
+  x86.writeComment("until expressao");
 
   expr(ctx->expr(), TIPO_LOGICO);
 
-  x86.writeTEXT("; until resultado");
-  x86.writeTEXT("pop eax");
-  x86.writeTEXT("cmp eax, 0");
-  s << "je near " << lbrep;
-  x86.writeTEXT(s.str());
+  x86.writeComment("until resultado");
+  x86.writeJumpIfFalse(lbrep);
 }
 
 void X86Generator::stmPara(PortugolParser::Stm_paraContext *ctx) {
-  stringstream s;
   LValue lv;
   pair<int, string> ps;
   int de_type, ate_type;
@@ -526,116 +426,32 @@ void X86Generator::stmPara(PortugolParser::Stm_paraContext *ctx) {
   string lbpara = x86.createLabel(true, "para");
   string lbfim = x86.createLabel(true, "fim_para");
 
-  x86.writeTEXT("; para: lvalue:");
+  x86.writeComment("para: lvalue:");
 
   lv = lvalue(ctx->lvalue());
 
   Symbol symb = stable.getSymbol(x86.currentScope(), lv.second, true);
   int expecting_type = symb.type.primitiveType();
-  x86.writeTEXT("push ecx"); // lvalue's offset to be used later
-  x86.writeTEXT("; para: de:");
+  x86.writeParaDe();
 
   de_type = expr(ctx->inicio, TIPO_INTEIRO);
 
-  x86.writeTEXT("; para: de attr:");
-  x86.writeAttribution(de_type, expecting_type, lv);
-  x86.writeTEXT("push ecx");
-  x86.writeTEXT("; para: ate:");
+  x86.writeParaDeAttr(de_type, expecting_type, lv);
 
   ate_type = expr(ctx->fim, TIPO_INTEIRO);
 
-  x86.writeTEXT("pop eax");
-  x86.writeCast(ate_type, lv.first.first);
-  x86.writeTEXT("push eax"); // top stack tem "ate"
+  x86.writeParaAte(ate_type, lv.first.first);
 
   if (ctx->passo()) {
     ps = passo(ctx->passo());
     hasPasso = true;
   }
 
-  // nao entrar se condicao falsa
-  x86.writeTEXT("mov ecx, dword [esp+4]");
-  s.str("");
-  s << "lea edx, [" << X86::makeID(lv.second) << "]";
-  x86.writeTEXT(s.str());
-  x86.writeTEXT("mov eax, dword [edx + ecx * SIZEOF_DWORD]");
-
-  x86.writeTEXT("mov ebx, dword [esp]");
-  x86.writeTEXT("cmp eax, ebx");
-
-  s.str("");
-  if (hasPasso && ps.first) {
-    s << "jl " << lbfim;
-  } else {
-    s << "jg near " << lbfim;
-  }
-  x86.writeTEXT(s.str());
-
-  s.str("");
-  s << lbpara << ":";
-  x86.writeTEXT(s.str());
+  x86.writeParaEntry(lv.second, hasPasso && ps.first, lbpara, lbfim);
 
   stmList(ctx->stm_list());
 
-  // calcular passo [eax]
-  x86.writeTEXT("mov ecx, dword [esp+4]");
-  s.str("");
-  s << "lea edx, [" << X86::makeID(lv.second) << "]";
-  x86.writeTEXT(s.str());
-  x86.writeTEXT("mov eax, dword [edx + ecx * SIZEOF_DWORD]");
-
-  s.str("");
-  if (!hasPasso) {
-    x86.writeTEXT("inc eax");
-  } else {
-    if (ps.first) { // dec
-      s << "sub eax, " << ps.second;
-    } else { // cresc
-      s << "add eax, " << ps.second;
-    }
-  }
-  x86.writeTEXT(s.str());
-
-  // desviar controle
-  x86.writeTEXT("mov ebx, dword [esp]");
-  x86.writeTEXT("cmp eax, ebx");
-
-  s.str("");
-  if (hasPasso && ps.first) {
-    s << "jl near " << lbfim;
-  } else {
-    s << "jg near " << lbfim;
-  }
-  x86.writeTEXT(s.str());
-
-  s.str("");
-  s << "lea edx, [" << X86::makeID(lv.second) << "]";
-  x86.writeTEXT(s.str());
-  x86.writeTEXT("mov ecx, dword [esp+4]");
-  x86.writeTEXT("lea edx, [edx + ecx * SIZEOF_DWORD]");
-  x86.writeTEXT("mov dword [edx], eax");
-
-  s.str("");
-  s << "jmp " << lbpara;
-  x86.writeTEXT(s.str());
-
-  s.str("");
-  s << lbfim << ":";
-  x86.writeTEXT(s.str());
-
-  // lvalue = ate value
-  x86.writeTEXT("mov ebx, dword [esp]");
-  s.str("");
-  s << "lea edx, [" << X86::makeID(lv.second) << "]";
-  x86.writeTEXT(s.str());
-  x86.writeTEXT("mov ecx, dword [esp+4]");
-  x86.writeTEXT("lea edx, [edx + ecx * SIZEOF_DWORD]");
-  x86.writeTEXT("mov dword [edx], ebx");
-
-  // pop ate, pop lvalue offset
-  x86.writeTEXT("pop eax");
-  x86.writeTEXT("pop ecx");
-  x86.writeTEXT("; fimpara");
+  x86.writeParaNext(lv.second, hasPasso, ps.first, ps.second, lbpara, lbfim);
 }
 
 pair<int, string> X86Generator::passo(PortugolParser::PassoContext *ctx) {
@@ -740,7 +556,7 @@ int X86Generator::element(PortugolParser::Expr_elementoContext *ctx,
     return lv.first.first;
   } else if (auto e = dynamic_cast<PortugolParser::ElemLiteralContext *>(ctx)) {
     pair<int, string> lit = literal(e->literal());
-    x86.writeLiteralExpr(lit.second);
+    x86.writeLiteralExpr(lit.first, lit.second);
     return lit.first;
   } else if (auto e = dynamic_cast<PortugolParser::ElemFcallContext *>(ctx)) {
     return fcall(e->fcall(), expecting_type);
@@ -796,5 +612,5 @@ void X86Generator::funcDecls(PortugolParser::Func_declsContext *ctx) {
 
   stmBlock(ctx->stm_block());
 
-  x86.writeTEXT("return");
+  x86.writeFuncEnd();
 }
