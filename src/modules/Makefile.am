@@ -1,6 +1,6 @@
 AM_CPPFLAGS = -I$(top_srcdir) -I$(top_srcdir)/src/parser -Iparser $(ANTLR4_INC) $(all_includes)
 
-SUBDIRS = parser c_translator interpreter x86
+SUBDIRS = parser c_translator interpreter x86 arm64
 
 headers = GPTDisplay.hpp NativeBackend.hpp Symbol.hpp SymbolTable.hpp
 sources = GPTDisplay.cpp NativeBackend.cpp Symbol.cpp SymbolTable.cpp
@@ -19,4 +19,5 @@ libgportugol_la_SOURCES = $(sources)
 libgportugol_la_LIBADD = $(top_builddir)/src/modules/parser/libparser.la \
                          $(top_builddir)/src/modules/interpreter/libinterpreter.la \
                          $(top_builddir)/src/modules/c_translator/libctranslator.la \
-												 $(top_builddir)/src/modules/x86/libx86.la
+												 $(top_builddir)/src/modules/x86/libx86.la \
+                         $(top_builddir)/src/modules/arm64/libarm64.la

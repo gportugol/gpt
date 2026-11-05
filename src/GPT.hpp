@@ -45,6 +45,7 @@ public:
   void reportDicas(bool value);
   void printParseTree(bool value);
   void setOutputFile(string str);
+  bool setArch(const string &arch);
 
   void showHelp();
   void showVersion();
@@ -59,6 +60,8 @@ private:
   static GPT *_self;
 
   bool writeTmpFile(const string &content, string &path);
+  bool assembleArm64(const string &ofname, const string &asmfile,
+                     string &error);
 
   bool parse(list<pair<string, istream *>> &);
 
@@ -67,6 +70,7 @@ private:
 
   bool _printParseTree;
   string _outputfile;
+  string _arch;
 
   // The parse tree points into these, so they live as long as it does.
   std::unique_ptr<antlr4::ANTLRInputStream> _inputStream;

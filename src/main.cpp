@@ -78,15 +78,16 @@ static int init(int argc, char **argv) {
   int count_cmds = 0;
 
   /*
-    Opcoes:  o: <output>,  t: <output>,  s: <output>, H: <host>,  P: <port>,
+    Opcoes:  o: <output>,  t: <output>,  s: <output>, a: <arch>, H: <host>,
+             P: <port>,
     h[help] v[ersion],  i[nterpret],  p[ipe],  d[ica]
   */
 
 #ifndef DEBUG
-  while ((c = getopt(argc, argv, "o:t:s:H:P:idvh")) != -1) {
+  while ((c = getopt(argc, argv, "o:t:s:a:H:P:idvh")) != -1) {
     switch (c) {
 #else
-  while ((c = getopt(argc, argv, "o:t:s:H:P:idvhD")) != -1) {
+  while ((c = getopt(argc, argv, "o:t:s:a:H:P:idvhD")) != -1) {
     switch (c) {
     case 'D':
       _flags |= FLAG_PRINT_AST;
@@ -111,6 +112,14 @@ static int init(int argc, char **argv) {
       cmd = CMD_GPT_2_ASM;
       if (optarg) {
         _asmsource = optarg;
+      }
+      break;
+    case 'a':
+      if (!GPT::self()->setArch(optarg)) {
+        s << PACKAGE << ": arquitetura inválida: \"" << optarg
+          << "\" (use x86-64 ou arm64)" << endl;
+        GPTDisplay::self()->showError(s);
+        goto bail;
       }
       break;
     case 'H':
@@ -139,7 +148,8 @@ static int init(int argc, char **argv) {
     case 'h':
       return CMD_SHOW_HELP;
     case '?':
-      if ((optopt == 'o') || (optopt == 't') || (optopt == 's')) {
+      if ((optopt == 'o') || (optopt == 't') || (optopt == 's') ||
+          (optopt == 'a')) {
         s << PACKAGE << ": faltando argumento para opção -" << (char)optopt
           << endl;
       } else {

@@ -12,6 +12,7 @@ AM_CPPFLAGS = \
 	-I$(top_srcdir)/src/modules/interpreter \
 	-I$(top_srcdir)/src/modules/parser \
 	-I$(top_srcdir)/src/modules/x86 \
+	-I$(top_srcdir)/src/modules/arm64 \
 	-I$(top_builddir)/src/modules/parser \
 	-I$(top_builddir)/src/modules/c_translator \
 	-I$(top_builddir)/src/modules/interpreter \

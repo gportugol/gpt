@@ -41,6 +41,7 @@
 #include <sys/wait.h>
 #endif
 
+#include "Arm64.hpp"
 #include "GPTDisplay.hpp"
 #include "Interpreter.hpp"
 #include "Portugol2CTranslator.hpp"
@@ -64,11 +65,11 @@
 extern char **environ;
 #endif
 
-// The native backend emits x86-64 assembly and NASM turns it into a flat
-// binary, so -o only yields something runnable when gpt itself runs on
-// x86-64.
+// Without -a the native backend is the one of the machine running gpt.
 #if defined(__x86_64__) || defined(_M_X64)
-#define GPT_HOST_X86 1
+#define GPT_HOST_ARCH "x86-64"
+#elif defined(__aarch64__) || defined(_M_ARM64)
+#define GPT_HOST_ARCH "arm64"
 #endif
 
 using namespace antlr4;
@@ -99,6 +100,17 @@ void GPT::reportDicas(bool value) { GPTDisplay::self()->showTips(value); }
 void GPT::printParseTree(bool value) { _printParseTree = value; }
 
 void GPT::setOutputFile(string str) { _outputfile = str; }
+
+bool GPT::setArch(const string &arch) {
+  if (arch == "x86-64" || arch == "x86_64" || arch == "amd64") {
+    _arch = "x86-64";
+  } else if (arch == "arm64" || arch == "aarch64") {
+    _arch = "arm64";
+  } else {
+    return false;
+  }
+  return true;
+}
 
 // Find nasm executable - check same directory as gpt first, then PATH
 static string findNasm() {
@@ -136,17 +148,15 @@ static string findNasm() {
 #endif
 }
 
-// The arguments reach nasm as they are, without a shell: the output name
-// comes from the command line and may hold any character.
-static bool runNasm(const string &ofname, const string &asmfile) {
-  string nasm = findNasm();
-  const char *argv[] = {nasm.c_str(),   "-O1",           "-fbin", "-o",
-                        ofname.c_str(), asmfile.c_str(), NULL};
+// The arguments reach the program as they are, without a shell: the output
+// name comes from the command line and may hold any character.
+static bool runProgram(const char *const argv[]) {
 #ifdef WIN32
-  // CreateProcess hands nasm a single command line, which its C runtime
-  // splits back into argv: quote each argument the way that split expects.
+  // CreateProcess hands the program a single command line, which its C
+  // runtime splits back into argv: quote each argument the way that split
+  // expects.
   string cmdline;
-  for (const char **arg = argv; *arg; ++arg) {
+  for (const char *const *arg = argv; *arg; ++arg) {
     string a(*arg);
     if (arg != argv) {
       cmdline += ' ';
@@ -210,6 +220,32 @@ static bool runNasm(const string &ofname, const string &asmfile) {
   }
   return WIFEXITED(status) && WEXITSTATUS(status) == 0;
 #endif
+}
+
+static bool runNasm(const string &ofname, const string &asmfile) {
+  string nasm = findNasm();
+  const char *argv[] = {nasm.c_str(),   "-O1",           "-fbin", "-o",
+                        ofname.c_str(), asmfile.c_str(), NULL};
+  return runProgram(argv);
+}
+
+// binutils names its cross tools after the target, so on another host the
+// arm64 assembler is aarch64-linux-gnu-as.
+static string arm64Tool(const string &tool) {
+#if defined(__aarch64__)
+  return tool;
+#else
+  return "aarch64-linux-gnu-" + tool;
+#endif
+}
+
+// ld writes the ELF headers and lays out the segments, aligned for the
+// 4, 16 and 64 KiB pages that arm64 kernels use.
+static bool runArm64Linker(const string &ld, const string &ofname,
+                           const string &objfile) {
+  const char *argv[] = {ld.c_str(),     "-static",       "-e", "start", "-o",
+                        ofname.c_str(), objfile.c_str(), NULL};
+  return runProgram(argv);
 }
 
 #ifndef WIN32
@@ -286,6 +322,33 @@ bool GPT::writeTmpFile(const string &content, string &path) {
 #endif
 }
 
+// as writes the object file and ld lays out the executable; the object is
+// removed either way.
+bool GPT::assembleArm64(const string &ofname, const string &asmfile,
+                        string &error) {
+  string as = arm64Tool("as");
+  string ld = arm64Tool("ld");
+  string objfile;
+  if (!writeTmpFile("", objfile)) {
+    if (!objfile.empty()) {
+      unlink(objfile.c_str());
+    }
+    error = "erro ao processar arquivo temporário";
+    return false;
+  }
+  const char *asArgs[] = {as.c_str(), "-o", objfile.c_str(), asmfile.c_str(),
+                          NULL};
+  bool ok = runProgram(asArgs);
+  if (!ok) {
+    error = "não foi possível montar o programa com o " + as + " (binutils).";
+  } else if (!runArm64Linker(ld, ofname, objfile)) {
+    ok = false;
+    error = "não foi possível ligar o programa com o " + ld + " (binutils).";
+  }
+  unlink(objfile.c_str());
+  return ok;
+}
+
 void GPT::showHelp() {
   stringstream s;
   s << "Modo de uso: " << PACKAGE
@@ -293,10 +356,11 @@ void GPT::showHelp() {
        "Opções:\n"
        "   -v            mostra versão do programa\n"
        "   -h            mostra esse texto\n"
-       "   -o <arquivo>  compila e salva programa como <arquivo> (só em "
-       "x86-64)\n"
+       "   -o <arquivo>  compila e salva programa como <arquivo>\n"
        "   -t <arquivo>  salva o código em linguagem C como <arquivo>\n"
        "   -s <arquivo>  salva o código em linguagem Assembly como <arquivo>\n"
+       "   -a <arq>      arquitetura do código de -o e -s: x86-64 ou arm64\n"
+       "                 (padrão: a da máquina)\n"
        "   -i            interpreta o algoritmo\n"
        "   -d            exibe dicas no relatório de erros\n\n"
        "   Maiores informações no manual.\n";
@@ -438,14 +502,23 @@ static string defaultOutputName(const string &input) {
 bool GPT::compile(const list<string> &ifnames, bool genBinary) {
   stringstream s;
 
-#ifndef GPT_HOST_X86
-  if (genBinary) {
-    s << PACKAGE << ": a geração de executável só funciona em máquinas x86-64. "
-      << "Use -t para traduzir o algoritmo para C." << endl;
-    GPTDisplay::self()->showError(s);
-    return false;
+  string arch = _arch;
+#ifdef GPT_HOST_ARCH
+  if (arch.empty()) {
+    arch = GPT_HOST_ARCH;
   }
 #endif
+  if (arch.empty()) {
+    if (genBinary) {
+      s << PACKAGE
+        << ": a geração de executável só funciona em máquinas x86-64 e "
+           "arm64. Use -t para traduzir o algoritmo para C."
+        << endl;
+      GPTDisplay::self()->showError(s);
+      return false;
+    }
+    arch = "x86-64";
+  }
 
   if (!prologue(ifnames)) {
     return false;
@@ -457,12 +530,16 @@ bool GPT::compile(const list<string> &ifnames, bool genBinary) {
   if (ofname.empty() && genBinary) {
     ofname = defaultOutputName(ifnames.front());
 #ifdef WIN32
-    ofname += ".exe";
+    if (arch == "x86-64") {
+      ofname += ".exe";
+    }
 #endif
   }
 
   try {
-    X86 backend(_stable);
+    X86 x86(_stable);
+    Arm64 arm64(_stable);
+    NativeBackend &backend = (arch == "arm64") ? (NativeBackend &)arm64 : x86;
     X86Generator generator(_stable, backend);
     string asmCode = generator.generate(
         static_cast<PortugolParser::AlgoritmoContext *>(_parseTree));
@@ -477,11 +554,12 @@ bool GPT::compile(const list<string> &ifnames, bool genBinary) {
         return false;
       }
 
-      bool assembled = runNasm(ofname, asmfile);
+      string error = "não foi possível montar o programa com o nasm.";
+      bool assembled = (arch == "arm64") ? assembleArm64(ofname, asmfile, error)
+                                         : runNasm(ofname, asmfile);
       unlink(asmfile.c_str());
       if (!assembled) {
-        s << PACKAGE << ": não foi possível montar o programa com o nasm."
-          << endl;
+        s << PACKAGE << ": " << error << endl;
         GPTDisplay::self()->showError(s);
         return false;
       }
