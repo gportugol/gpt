@@ -338,6 +338,7 @@ AC_CONFIG_FILES([Makefile
         src/modules/interpreter/Makefile
         src/modules/c_translator/Makefile
         src/modules/x86/Makefile
+        src/modules/arm64/Makefile
       ])
 AC_OUTPUT
 
