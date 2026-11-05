@@ -31,6 +31,10 @@
 #                                           the characters in the message)
 #
 # Files whose name starts with "_" are helpers and are not run.
+#
+# The native mode builds for the machine running the tests. GPT_TEST_ARCH
+# (x86-64 or arm64) builds for another one instead, and GPT_TEST_RUNNER is
+# the command that runs what it builds, for example qemu-aarch64.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 GPT="$SCRIPT_DIR/../src/gpt"
@@ -55,12 +59,30 @@ case "$ARCH" in
 x86_64 | amd64) HOST_ARCH=x86-64 ;;
 aarch64 | arm64) HOST_ARCH=arm64 ;;
 esac
-CAN_EXEC_X86=0
-case "$ARCH" in
-x86_64 | amd64)
-	CAN_EXEC_X86=1
+NATIVE_ARCH="$HOST_ARCH"
+GPT_A=()
+RUNNER=()
+if [ -n "$GPT_TEST_ARCH" ]; then
+	NATIVE_ARCH="$GPT_TEST_ARCH"
+	GPT_A=(-a "$GPT_TEST_ARCH")
+	read -r -a RUNNER <<<"$GPT_TEST_RUNNER"
+fi
+CAN_EXEC_NATIVE=0
+[ -n "$NATIVE_ARCH" ] && CAN_EXEC_NATIVE=1
+
+# The program gpt -o starts first: nasm, or the binutils assembler, named
+# after the target when it is not the machine's own.
+case "$NATIVE_ARCH" in
+x86-64) ASSEMBLER=nasm ;;
+arm64)
+	ASSEMBLER=as
+	[ "$ARCH" != aarch64 ] && [ "$ARCH" != arm64 ] && ASSEMBLER=aarch64-linux-gnu-as
 	;;
 esac
+HAVE_ASSEMBLER=0
+if [ -n "$ASSEMBLER" ] && command -v "$ASSEMBLER" &>/dev/null; then
+	HAVE_ASSEMBLER=1
+fi
 
 ON_WINDOWS=0
 case "$(uname -o 2>/dev/null)" in
@@ -195,13 +217,13 @@ run_caso() {
 
 	# binário nativo
 	if ! skip_mode "$base" "nativo"; then
-		if [ $CAN_EXEC_X86 -eq 0 ]; then
+		if [ $CAN_EXEC_NATIVE -eq 0 ]; then
 			echo "⚠ $name (-o): pulado (gpt recusa -o na arquitetura $ARCH)"
-		elif $TIMEOUT "$GPT" -o "$TMP/$name.bin" "$src" "${extra[@]}" >"$TMP/$name.o.build" 2>&1; then
-			$TIMEOUT "$TMP/$name.bin" <"$stdin" >"$TMP/$name.o.out" 2>"$TMP/$name.o.err"
+		elif $TIMEOUT "$GPT" "${GPT_A[@]}" -o "$TMP/$name.bin" "$src" "${extra[@]}" >"$TMP/$name.o.build" 2>&1; then
+			$TIMEOUT "${RUNNER[@]}" "$TMP/$name.bin" <"$stdin" >"$TMP/$name.o.out" 2>"$TMP/$name.o.err"
 			check "$name (-o)" "$TMP/$name.o.out" $? \
-				"$(expected_for "$base" saida nativo "$HOST_ARCH")" "$(expected_for "$base" codigo nativo "$HOST_ARCH")" \
-				"$TMP/$name.o.err" "$(expected_for "$base" erro nativo "$HOST_ARCH")"
+				"$(expected_for "$base" saida nativo "$NATIVE_ARCH")" "$(expected_for "$base" codigo nativo "$NATIVE_ARCH")" \
+				"$TMP/$name.o.err" "$(expected_for "$base" erro nativo "$NATIVE_ARCH")"
 		else
 			fail "$name (-o): compilação falhou"
 			head -5 "$TMP/$name.o.build"
@@ -240,17 +262,19 @@ echo "========================================"
 cd "$SCRIPT_DIR" || exit 1
 run_caso "$SCRIPT_DIR/tester.gpt" "$SCRIPT_DIR/tester"
 
-if $TIMEOUT "$GPT" -s "$TMP/tester.asm" tester.gpt >/dev/null 2>&1 && [ -f "$TMP/tester.asm" ]; then
+if $TIMEOUT "$GPT" "${GPT_A[@]}" -s "$TMP/tester.asm" tester.gpt >/dev/null 2>&1 && [ -f "$TMP/tester.asm" ]; then
 	ok "tester.gpt (-s): geração de assembly"
-	if command -v nasm &>/dev/null; then
-		if nasm -O1 -fbin -o "$TMP/tester_asm_bin" "$TMP/tester.asm" >"$TMP/tester.nasm" 2>&1; then
-			ok "tester.gpt (-s): montagem com NASM"
-		else
-			fail "tester.gpt (-s): montagem com NASM falhou"
-			head -5 "$TMP/tester.nasm"
-		fi
+	if [ $HAVE_ASSEMBLER -eq 0 ]; then
+		echo "⚠ tester.gpt (-s): montagem pulada (${ASSEMBLER:-montador} não encontrado)"
+	elif if [ "$ASSEMBLER" = nasm ]; then
+		nasm -O1 -fbin -o "$TMP/tester_asm_bin" "$TMP/tester.asm"
 	else
-		echo "⚠ tester.gpt (-s): montagem pulada (NASM não encontrado)"
+		"$ASSEMBLER" -o "$TMP/tester_asm.o" "$TMP/tester.asm"
+	fi >"$TMP/tester.nasm" 2>&1; then
+		ok "tester.gpt (-s): montagem com $ASSEMBLER"
+	else
+		fail "tester.gpt (-s): montagem com $ASSEMBLER falhou"
+		head -5 "$TMP/tester.nasm"
 	fi
 else
 	fail "tester.gpt (-s): geração de assembly"
@@ -483,24 +507,25 @@ echo "Recusas (código de saída 1)"
 echo "========================================"
 # The refusal checks grep ASCII-only fragments of gpt's diagnostics: on
 # Windows, gpt converts stderr to the OEM code page before writing it.
-if [ $CAN_EXEC_X86 -eq 1 ]; then
-	# Hiding nasm by emptying PATH also hides the MinGW DLLs that gpt.exe
-	# loads from /ucrt64/bin, where HACKING.md installs nasm, so a failing
-	# nasm goes first in PATH instead. gpt starts nasm without a shell, and on
-	# Windows CreateProcess only looks for nasm.exe, so there it is a program.
+if [ $CAN_EXEC_NATIVE -eq 1 ]; then
+	# Hiding the assembler by emptying PATH also hides the MinGW DLLs that
+	# gpt.exe loads from /ucrt64/bin, where HACKING.md installs nasm, so a
+	# failing one goes first in PATH instead. gpt starts it without a shell,
+	# and on Windows CreateProcess only looks for nasm.exe, so there it is a
+	# program.
 	mkdir -p "$TMP/nasm_falso"
-	printf '#!/bin/sh\nexit 1\n' >"$TMP/nasm_falso/nasm"
-	chmod +x "$TMP/nasm_falso/nasm"
+	printf '#!/bin/sh\nexit 1\n' >"$TMP/nasm_falso/$ASSEMBLER"
+	chmod +x "$TMP/nasm_falso/$ASSEMBLER"
 	if [ $ON_WINDOWS -eq 1 ]; then
 		printf 'int main(void) { return 1; }\n' >"$TMP/nasm_falso.c"
 		gcc -o "$TMP/nasm_falso/nasm.exe" "$TMP/nasm_falso.c"
 	fi
-	ERRO=$(PATH="$TMP/nasm_falso:$PATH" $TIMEOUT "$GPT" -o "$TMP/recusa.bin" tester.gpt 2>&1 >/dev/null)
+	ERRO=$(PATH="$TMP/nasm_falso:$PATH" $TIMEOUT "$GPT" "${GPT_A[@]}" -o "$TMP/recusa.bin" tester.gpt 2>&1 >/dev/null)
 	RESULT=$?
-	if [ $RESULT -eq 1 ] && grep -q "montar o programa com o nasm" <<<"$ERRO"; then
-		ok "-o com o nasm falhando"
+	if [ $RESULT -eq 1 ] && grep -q "montar o programa com o $ASSEMBLER" <<<"$ERRO"; then
+		ok "-o com o $ASSEMBLER falhando"
 	else
-		fail "-o com o nasm falhando: código $RESULT (esperado: 1 e o diagnóstico do gpt)"
+		fail "-o com o $ASSEMBLER falhando: código $RESULT (esperado: 1 e o diagnóstico do gpt)"
 		echo "$ERRO"
 	fi
 else
@@ -512,6 +537,15 @@ else
 		fail "-o na arquitetura $ARCH: código $RESULT (esperado: 1 e o diagnóstico do gpt)"
 		echo "$ERRO"
 	fi
+fi
+
+ERRO=$($TIMEOUT "$GPT" -a sparc -s "$TMP/recusa.s" tester.gpt 2>&1 >/dev/null)
+RESULT=$?
+if [ $RESULT -eq 1 ] && grep -qF '"sparc" (use x86-64 ou arm64)' <<<"$ERRO"; then
+	ok "-a com uma arquitetura desconhecida"
+else
+	fail "-a com uma arquitetura desconhecida: código $RESULT (esperado: 1 e o diagnóstico do gpt)"
+	echo "$ERRO"
 fi
 
 cat >"$TMP/erro_sintaxe.gpt" <<'EOF'
@@ -696,7 +730,7 @@ echo "========================================"
 # gpt and of the real nasm go to a directory with a space in its name and the
 # failing nasm stays first in PATH, so only the copy next to gpt can work.
 NASM_REAL=$(command -v nasm)
-if [ $CAN_EXEC_X86 -eq 0 ] || [ -z "$NASM_REAL" ]; then
+if [ "$NATIVE_ARCH" != x86-64 ] || [ -z "$NASM_REAL" ]; then
 	echo "⚠ -o com o nasm ao lado do gpt: pulado (sem x86 ou sem NASM)"
 else
 	EXE=""
@@ -720,16 +754,17 @@ echo ""
 echo "========================================"
 echo "Nome de saída com caracteres especiais"
 echo "========================================"
-# The name given to -o reaches nasm and chmod as it is, never through a shell:
-# nothing in it may run, and the program must be written under that name.
-if [ $CAN_EXEC_X86 -eq 0 ] || [ -z "$NASM_REAL" ]; then
-	echo "⚠ -o com caracteres especiais: pulado (sem x86 ou sem NASM)"
+# The name given to -o reaches the assembler, the linker and chmod as it is,
+# never through a shell: nothing in it may run, and the program must be
+# written under that name.
+if [ $CAN_EXEC_NATIVE -eq 0 ] || [ $HAVE_ASSEMBLER -eq 0 ]; then
+	echo "⚠ -o com caracteres especiais: pulado (sem backend nativo ou sem ${ASSEMBLER:-montador})"
 else
 	cp casos/olamundo.gpt "$TMP/especial.gpt"
 	for nome in 'saida$(touch marcador)' 'saida`touch marcador`' \
 		'saida; touch marcador' 'saida com espaco' 'saida%OS%'; do
 		rm -f "$TMP/marcador"
-		ERRO=$(cd "$TMP" && $TIMEOUT "$GPT" -o "$nome" especial.gpt 2>&1 >/dev/null)
+		ERRO=$(cd "$TMP" && $TIMEOUT "$GPT" "${GPT_A[@]}" -o "$nome" especial.gpt 2>&1 >/dev/null)
 		RESULT=$?
 		if [ $RESULT -eq 0 ] && [ -f "$TMP/$nome" ] && [ ! -e "$TMP/marcador" ]; then
 			ok "-o \"$nome\""
@@ -750,17 +785,17 @@ else
 	fi
 	cp casos/olamundo.gpt "$TMP/semext"
 	rm -f "$TMP/especial$EXE" "$TMP/$SEMEXT" "$TMP/olamundo$EXE"
-	ERRO=$(cd "$TMP" && $TIMEOUT "$GPT" especial.gpt 2>&1 >/dev/null)
+	ERRO=$(cd "$TMP" && $TIMEOUT "$GPT" "${GPT_A[@]}" especial.gpt 2>&1 >/dev/null)
 	RESULT=$?
-	if [ $RESULT -eq 0 ] && [ ! -e "$TMP/olamundo$EXE" ] && "$TMP/especial$EXE" | grep -q "Mundo"; then
+	if [ $RESULT -eq 0 ] && [ ! -e "$TMP/olamundo$EXE" ] && "${RUNNER[@]}" "$TMP/especial$EXE" | grep -q "Mundo"; then
 		ok "sem -o: programa com o nome do arquivo fonte"
 	else
 		fail "sem -o: código $RESULT (esperado: 0 e o programa em especial$EXE)"
 		echo "$ERRO"
 	fi
-	ERRO=$(cd "$TMP" && $TIMEOUT "$GPT" semext 2>&1 >/dev/null)
+	ERRO=$(cd "$TMP" && $TIMEOUT "$GPT" "${GPT_A[@]}" semext 2>&1 >/dev/null)
 	RESULT=$?
-	if [ $RESULT -eq 0 ] && cmp -s "$TMP/semext" casos/olamundo.gpt && "$TMP/$SEMEXT" | grep -q "Mundo"; then
+	if [ $RESULT -eq 0 ] && cmp -s "$TMP/semext" casos/olamundo.gpt && "${RUNNER[@]}" "$TMP/$SEMEXT" | grep -q "Mundo"; then
 		ok "sem -o: fonte sem extensão continua intacto"
 	else
 		fail "sem -o com fonte sem extensão: código $RESULT (esperado: 0, o fonte intacto e o programa em $SEMEXT)"
@@ -770,9 +805,9 @@ else
 	if [ $ON_WINDOWS -eq 0 ]; then
 		cp casos/olamundo.gpt "$TMP/aula\\prog.gpt"
 		rm -f "$TMP/prog" "$TMP/aula\\prog"
-		ERRO=$(cd "$TMP" && $TIMEOUT "$GPT" 'aula\prog.gpt' 2>&1 >/dev/null)
+		ERRO=$(cd "$TMP" && $TIMEOUT "$GPT" "${GPT_A[@]}" 'aula\prog.gpt' 2>&1 >/dev/null)
 		RESULT=$?
-		if [ $RESULT -eq 0 ] && [ ! -e "$TMP/prog" ] && "$TMP/aula\\prog" | grep -q "Mundo"; then
+		if [ $RESULT -eq 0 ] && [ ! -e "$TMP/prog" ] && "${RUNNER[@]}" "$TMP/aula\\prog" | grep -q "Mundo"; then
 			ok "sem -o: barra invertida no nome do fonte"
 		else
 			fail "sem -o com barra invertida: código $RESULT (esperado: 0 e o programa em aula\\prog)"
@@ -814,10 +849,11 @@ echo "========================================"
 echo "Segmentos do executável"
 echo "========================================"
 # The generated ELF must declare a non-executable stack and keep the code
-# and the writable data in separate segments on separate pages.
-if [ $CAN_EXEC_X86 -eq 0 ] || [ $ON_WINDOWS -eq 1 ] || [ -z "$NASM_REAL" ] || ! command -v readelf &>/dev/null; then
-	echo "⚠ segmentos do executável: pulado (sem x86, no Windows, sem NASM ou sem readelf)"
-elif ! $TIMEOUT "$GPT" -o "$TMP/segmentos.bin" casos/olamundo.gpt >"$TMP/segmentos.build" 2>&1; then
+# and the writable data in separate segments on separate pages, of 4 KiB on
+# x86-64 and of up to 64 KiB on arm64, whose kernels may use larger pages.
+if [ $CAN_EXEC_NATIVE -eq 0 ] || [ $ON_WINDOWS -eq 1 ] || [ $HAVE_ASSEMBLER -eq 0 ] || ! command -v readelf &>/dev/null; then
+	echo "⚠ segmentos do executável: pulado (sem backend nativo, no Windows, sem ${ASSEMBLER:-montador} ou sem readelf)"
+elif ! $TIMEOUT "$GPT" "${GPT_A[@]}" -o "$TMP/segmentos.bin" casos/olamundo.gpt >"$TMP/segmentos.build" 2>&1; then
 	fail "segmentos do executável: compilação falhou"
 	head -5 "$TMP/segmentos.build"
 else
@@ -828,7 +864,12 @@ else
 		fail "PT_GNU_STACK sem execução: cabeçalho ausente ou executável"
 		echo "$SEGS"
 	fi
-	if grep -qE '^\s*LOAD\s.*\sR E\s' <<<"$SEGS" && grep -qE '^\s*LOAD\s+0x[0-9a-f]+ 0x[0-9a-f]+000 .*\sRW\s' <<<"$SEGS"; then
+	PAGINA=4096
+	[ "$NATIVE_ARCH" = arm64 ] && PAGINA=65536
+	read -r _ _ CODIGO _ _ CODIGO_TAM _ <<<"$(grep -E '^\s*LOAD\s.*\sR E\s' <<<"$SEGS")"
+	read -r _ _ DADOS _ <<<"$(grep -E '^\s*LOAD\s.*\sRW\s' <<<"$SEGS")"
+	if [ -n "$CODIGO" ] && [ -n "$DADOS" ] &&
+		[ $(((CODIGO + CODIGO_TAM - 1) / PAGINA)) -lt $((DADOS / PAGINA)) ]; then
 		ok "código R E e dados RW em páginas distintas"
 	else
 		fail "código R E e dados RW em páginas distintas"
