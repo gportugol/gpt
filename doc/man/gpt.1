@@ -29,6 +29,9 @@ gpt \- compiler, interpreter and translator for the G-Portugol programming langu
 ] [
 .BI \-ots
 output_file
+] [
+.BI \-a
+arch
 ] file1 file2 ...
 
 .SH DESCRIPTION
@@ -77,16 +80,27 @@ extension gives a binary whose name ends in
 .I .out.exe ,
 so the source is not replaced.
 The generated code is x86-64 (an ELF64 executable on GNU/Linux, a PE32+
-executable on Windows), so this option only works on x86-64 machines;
-elsewhere, use
+executable on Windows) or arm64 (an ELF64 executable on GNU/Linux), as chosen
+with
+.BR \-a ;
+on a machine that is neither, use
 .B \-t
 and compile the C code with the system compiler.
-On Windows and GNU/Linux,
+For x86-64, on Windows and GNU/Linux,
 .BR nasm (1)
 is looked up first in the directory of
 .I gpt
 and then in
 .BR PATH .
+For arm64,
+.BR as (1)
+and
+.BR ld (1)
+from binutils build the executable; on a machine that is not arm64 they are
+the cross tools
+.B aarch64-linux-gnu-as
+and
+.BR aarch64-linux-gnu-ld .
 .br
 .ns
 .TP
@@ -102,8 +116,24 @@ Compiles the source code to assembly source. Saves the resulting code as
 .I output_file.
 .br
 .ns
+.TP
+.BI \-a " arch"
+Selects the architecture of the code written by
+.B \-o
+and
+.BR \-s :
+.B x86-64
+(NASM syntax) or
+.B arm64
+(GNU assembler syntax for AArch64).
+The default is the architecture of the machine running
+.IR gpt .
+.br
+.ns
 .SH SEE ALSO
-.BR nasm (1)
+.BR nasm (1),
+.BR as (1),
+.BR ld (1)
 
 .SH ADDITIONAL INFORMATION
 

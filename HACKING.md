@@ -15,7 +15,8 @@ Dependências:
 - antlr4 (ferramenta ANTLR 4.x; precisa de um runtime Java)
 - libantlr4-runtime-dev (runtime C++ do ANTLR 4.x)
 - libpcre2-dev
-- nasm
+- nasm (para gerar executáveis x86-64; em arm64 o `gpt -o` usa o `as` e o
+  `ld` do binutils, que vêm com o `build-essential`)
 - wget
 
 ## Baixar o fonte
@@ -85,6 +86,15 @@ erro com `test/erros/`:
 
 ```shell
 bash test/run_test.sh
+```
+
+Numa máquina x86-64, o backend arm64 pode ser testado com o binutils cruzado e
+o QEMU, como faz o CI. O QEMU não acusa o `sp` desalinhado que o hardware
+rejeita, então só o job no runner arm64 prova o alinhamento da pilha:
+
+```shell
+sudo apt install -y binutils-aarch64-linux-gnu qemu-user
+GPT_TEST_ARCH=arm64 GPT_TEST_RUNNER=qemu-aarch64 bash test/run_test.sh
 ```
 
 #### Interpretador no Debian/Ubuntu
