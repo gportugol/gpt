@@ -114,6 +114,11 @@ jobs:
           name: gpt-linux
           path: release/linux
 
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: gpt-linux-arm64
+          path: release/linux-arm64
+
       - name: Repack Windows zip
         run: |
           cd release
@@ -132,9 +137,19 @@ jobs:
           tar -czf "gpt-linux-x86_64.tar.gz" "gpt-${TAG}"
           rm -rf "gpt-${TAG}"
 
+      - name: Repack Linux arm64 tar.gz
+        run: |
+          cd release
+          TAG=${{ github.event.release.tag_name }}
+          mv linux-arm64 "gpt-${TAG}"
+          chmod +x "gpt-${TAG}/bin/gpt"
+          tar -czf "gpt-linux-aarch64.tar.gz" "gpt-${TAG}"
+          rm -rf "gpt-${TAG}"
+
       - name: Upload to GitHub Release
         uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         with:
           files: |
             release/gpt-win-x86_64.zip
             release/gpt-linux-x86_64.tar.gz
+            release/gpt-linux-aarch64.tar.gz
