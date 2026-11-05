@@ -30,6 +30,9 @@ gpt \- compilador, interpretador e tradutor da linguagem G-Portugol
 ] [
 .BI \-ots
 arq_saida
+] [
+.BI \-a
+arquitetura
 ] arquivo1 arquivo2 ...
 
 .SH DESCRIÇÃO
@@ -80,16 +83,27 @@ No Windows, um fonte com a extensão
 gera um executável cujo nome termina em
 .I .out.exe ,
 para que o fonte não seja substituído.
-O código gerado é x86-64 (um executável ELF64 no GNU/Linux, PE32+ no Windows),
-então esta opção só funciona em máquinas x86-64; nas demais, use
+O código gerado é x86-64 (um executável ELF64 no GNU/Linux, PE32+ no Windows)
+ou arm64 (um executável ELF64 no GNU/Linux), conforme a opção
+.BR \-a ;
+numa máquina que não é nenhuma das duas, use
 .B \-t
 e compile o código C com o compilador do sistema.
-No Windows e no GNU/Linux, o
+Para x86-64, no Windows e no GNU/Linux, o
 .BR nasm (1)
 é procurado primeiro no diretório do
 .I gpt
 e depois no
 .BR PATH .
+Para arm64, o
+.BR as (1)
+e o
+.BR ld (1)
+do binutils montam o executável; numa máquina que não é arm64, eles são as
+ferramentas cruzadas
+.B aarch64-linux-gnu-as
+e
+.BR aarch64-linux-gnu-ld .
 .br
 .ns
 .TP
@@ -105,8 +119,24 @@ Compila o algoritmo mas não cria código executável. Salva o arquivo com códi
 .I arq_saída.
 .br
 .ns
+.TP
+.BI \-a " arquitetura"
+Escolhe a arquitetura do código gerado por
+.B \-o
+e
+.BR \-s :
+.B x86-64
+(sintaxe do NASM) ou
+.B arm64
+(sintaxe do GNU as para AArch64).
+O padrão é a arquitetura da máquina que executa o
+.IR gpt .
+.br
+.ns
 .SH VEJA TAMBÉM
-.BR nasm (1)
+.BR nasm (1),
+.BR as (1),
+.BR ld (1)
 
 .SH INFORMAÇÕES ADICIONAIS
 

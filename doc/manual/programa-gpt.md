@@ -11,8 +11,8 @@ principais estão:
 - traduzir algoritmos para outras linguagens;
 - executar algoritmos.
 
-Na versão atual é possível compilar algoritmos para sistemas Windows e Unices
-que suportam o formato ELF e o assembler NASM. Também, há suporte apenas para a
+Na versão atual é possível compilar algoritmos para Windows e GNU/Linux em
+x86-64 e para GNU/Linux em arm64 (AArch64). Também, há suporte apenas para a
 tradução de algoritmos para a linguagem C. O resultado é um código em C 100%
 equivalente ao algoritmo.
 
@@ -38,9 +38,11 @@ Modo de uso: gpt [opções] algoritmos...
 Opções:
    -v            mostra versão do programa
    -h            mostra esse texto
-   -o <arquivo>  compila e salva programa como <arquivo> (só em x86-64)
+   -o <arquivo>  compila e salva programa como <arquivo>
    -t <arquivo>  salva o código em linguagem C como <arquivo>
    -s <arquivo>  salva o código em linguagem Assembly como <arquivo>
+   -a <arq>      arquitetura do código de -o e -s: x86-64 ou arm64
+                 (padrão: a da máquina)
    -i            interpreta o algoritmo
    -d            exibe dicas no relatório de erros
 
@@ -62,9 +64,9 @@ As opções são comentadas a seguir.
   `olamundo.exe` no Windows); um fonte sem extensão gera um executável com a
   extensão `.out` (`.exe` no Windows), como `programa.out`. No Windows, um
   fonte com extensão `.exe` gera um executável cujo nome termina em `.out.exe`,
-  para que o fonte não seja substituído. O código gerado é x86-64, então essa
-  opção só funciona em máquinas x86-64; nas demais, use a opção `-t` e compile
-  o código C com o compilador do sistema.
+  para que o fonte não seja substituído. O código gerado é x86-64 ou arm64,
+  conforme a opção `-a`; numa máquina que não é nenhuma das duas, use a opção
+  `-t` e compile o código C com o compilador do sistema.
 
 `-t <arquivo>`
 : Traduz o algoritmo para C e salva o código fonte com o nome de `<arquivo>`.
@@ -72,6 +74,13 @@ As opções são comentadas a seguir.
 `-s <arquivo>`
 : Compila o algoritmo mas não cria código executável. Salva o código em
   assembly com o nome de `<arquivo>`.
+
+`-a <arq>`
+: Escolhe a arquitetura do código gerado por `-o` e `-s`: `x86-64` (Assembly
+  na sintaxe do NASM) ou `arm64` (Assembly para AArch64 na sintaxe do GNU as).
+  Sem essa opção, vale a arquitetura da máquina que executa o `gpt`. Assim é
+  possível comparar o mesmo algoritmo nas duas arquiteturas com
+  `gpt -a x86-64 -s` e `gpt -a arm64 -s` em qualquer máquina.
 
 `-i`
 : Executa o algoritmo diretamente, sem compilar ou criar arquivos. Opção
@@ -109,26 +118,44 @@ abordagem seria interromper a análise assim que um erro fosse encontrado.
 ### Compilação e geração de código executável
 
 O programa GPT é capaz de gerar código executável para a arquitetura x86-64 em
-dois formatos: ELF64 (*Executable and Linkable Format*) no GNU/Linux e PE32+
-(*Portable Executable*) no Microsoft Windows. Após o processo de análise, o
-compilador gera código em Assembly para, então, usar o NASM (Netwide Assembler)
-como *backend* para montar e criar um executável válido. O cabeçalho do
-executável faz parte do próprio Assembly gerado, por isso não existe etapa de
-linkagem nem dependência de bibliotecas: no GNU/Linux o programa conversa com o
-núcleo por `syscall` e no Windows importa apenas `kernel32.dll`. A fase de
-otimização de código não foi implementada.
+dois formatos, ELF64 (*Executable and Linkable Format*) no GNU/Linux e PE32+
+(*Portable Executable*) no Microsoft Windows, e para a arquitetura arm64
+(AArch64) em ELF64 no GNU/Linux. Após o processo de análise, o compilador gera
+código em Assembly e o entrega a um montador. No x86-64, o montador é o NASM
+(Netwide Assembler) e o cabeçalho do executável faz parte do próprio Assembly
+gerado, por isso não existe etapa de linkagem nem dependência de bibliotecas: no
+GNU/Linux o programa conversa com o núcleo por `syscall` e no Windows importa
+apenas `kernel32.dll`. No arm64, descrito adiante, o executável é montado e
+ligado pelo `as` e pelo `ld` do binutils. A fase de otimização de código não foi
+implementada.
 
 Os valores `inteiro`, `caractere` e `lógico` ocupam 32 bits, como no
 interpretador e na tradução para C, e `real` é um `double` de 64 bits operado
-com SSE2. Cada variável, parâmetro e elemento de matriz ocupa uma posição de
-8 bytes na pilha ou na seção de dados.
+com SSE2 no x86-64 e com os registradores de ponto flutuante no arm64. Cada
+variável, parâmetro e elemento de matriz ocupa uma posição de 8 bytes na pilha
+ou na seção de dados.
 
-Para usar esse recurso, é necessário que o NASM (versão 2.x ou mais nova, com
-suporte a x86-64) esteja instalado no sistema. Ele pode ser encontrado em
+No x86-64, é necessário que o NASM (versão 2.x ou mais nova, com suporte a
+x86-64) esteja instalado no sistema. Ele pode ser encontrado em
 <https://www.nasm.us/>. No Windows e no GNU/Linux, o GPT procura o `nasm`
 primeiro no diretório do próprio executável e depois nos diretórios do `PATH`.
-O executável gerado só roda em máquinas x86-64; em outras arquiteturas, use a
-opção `-t` e compile o código C com o compilador do sistema.
+
+Em arm64, como num Raspberry Pi com sistema de 64 bits, o GPT gera Assembly
+para o GNU as e usa o `as` e o `ld` do binutils (que acompanha o compilador C
+das distribuições, como o pacote `build-essential` no Debian/Ubuntu) para
+montar e ligar o executável. Aqui o cabeçalho ELF é escrito pelo `ld`, que
+alinha os segmentos para núcleos com páginas de 4, 16 ou 64 KiB. Os tipos têm
+os mesmos tamanhos do x86-64, mas cada valor empilhado ocupa 16 bytes, porque
+o Linux exige que o registrador `sp` esteja alinhado a 16 bytes quando é usado
+para acessar a memória.
+Numa máquina x86-64, `gpt -a arm64 -o` usa as ferramentas cruzadas
+`aarch64-linux-gnu-as` e `aarch64-linux-gnu-ld` (pacote
+`binutils-aarch64-linux-gnu` no Debian/Ubuntu), e o executável pode ser
+testado com o `qemu-aarch64`.
+
+O executável gerado só roda na arquitetura para a qual foi gerado; em outras
+arquiteturas, use a opção `-t` e compile o código C com o compilador do
+sistema.
 
 ### Tradução para a linguagem C
 
