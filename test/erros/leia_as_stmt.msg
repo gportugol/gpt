@@ -1,1 +1,1 @@
-Erro interno: tipo nao suportado (x86::translateFuncLeia).
+Erro interno: tipo nao suportado (NativeBackend::translateFuncLeia).

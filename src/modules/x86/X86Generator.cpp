@@ -31,7 +31,8 @@ using namespace std;
 using antlr4::ParserRuleContext;
 using antlr4::tree::TerminalNode;
 
-X86Generator::X86Generator(SymbolTable &st) : stable(st), x86(st) {}
+X86Generator::X86Generator(SymbolTable &st, NativeBackend &backend)
+    : stable(st), x86(backend) {}
 
 string X86Generator::generate(PortugolParser::AlgoritmoContext *tree) {
   algoritmo(tree);
@@ -166,7 +167,7 @@ void X86Generator::algoritmo(PortugolParser::AlgoritmoContext *ctx) {
   x86.init(ctx->declaracao_algoritmo()->T_IDENTIFICADOR()->getText());
 
   if (ctx->var_decl_block()) {
-    variaveis(ctx->var_decl_block()->var_decl(), X86::VAR_GLOBAL);
+    variaveis(ctx->var_decl_block()->var_decl(), NativeBackend::VAR_GLOBAL);
   }
 
   principal(ctx->stm_block());
@@ -604,12 +605,12 @@ void X86Generator::funcDecls(PortugolParser::Func_declsContext *ctx) {
 
   for (auto param : ctx->fparams()->fparam()) {
     vector<TerminalNode *> ids(1, param->T_IDENTIFICADOR());
-    declaracao(param->tipo_decl(), ids, X86::VAR_PARAM);
+    declaracao(param->tipo_decl(), ids, NativeBackend::VAR_PARAM);
   }
 
   if (auto vars = dynamic_cast<PortugolParser::FvarDeclComVarsContext *>(
           ctx->fvar_decl())) {
-    variaveis(vars->var_decl(), X86::VAR_LOCAL);
+    variaveis(vars->var_decl(), NativeBackend::VAR_LOCAL);
   }
 
   stmBlock(ctx->stm_block());

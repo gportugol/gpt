@@ -23,6 +23,7 @@
 #ifndef X86_HPP
 #define X86_HPP
 
+#include "NativeBackend.hpp"
 #include "SymbolTable.hpp"
 #include <list>
 #include <map>
@@ -64,10 +65,8 @@ private:
   stringstream _txt;  // body
 };
 
-class X86 {
+class X86 : public NativeBackend {
 public:
-  enum { VAR_GLOBAL, VAR_PARAM, VAR_LOCAL };
-
   static string EntryPoint;
   static string makeID(const string &);
 
@@ -88,7 +87,6 @@ public:
   void declareMatrix(int decl_type, int type, string name, list<string> dims);
 
   string addGlobalLiteral(string str);
-  string translateFuncLeia(int type);
   string createLabel(bool local, string tmpl);
 
   void writeExit();
@@ -151,9 +149,6 @@ public:
 
   void writeCast(int e1, int e2);
   void writeSignExtend(int type);
-
-  string toChar(const string &);
-  string toReal(const string &);
 
 private:
   string toNasmString(string str);
