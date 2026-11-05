@@ -12,6 +12,7 @@ função arredonda(num: real) : real
   trunc : inteiro;
 início
   trunc := num + 0.5;
+  retorne trunc;
 fim
 
 função absoluto(num: real) : real
