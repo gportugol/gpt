@@ -23,9 +23,9 @@
 #ifndef X86GENERATOR_HPP
 #define X86GENERATOR_HPP
 
+#include "NativeBackend.hpp"
 #include "PortugolParser.h"
 #include "SymbolTable.hpp"
-#include "X86.hpp"
 
 #include <list>
 #include <string>
@@ -36,14 +36,14 @@
  * x86 code generator over the ANTLR4 parse tree.
  *
  * Port of the ANTLR2 X86Walker (x86.g): each method mirrors a walker
- * production and calls the X86 helper exactly as the walker did, so the
- * generated assembly is the same. The evaluated type of expression nodes
- * (PortugolAST::getEvalType in ANTLR2) comes from the SymbolTable annotations
- * of SemanticAnalyzer, through SemanticAnalyzer::chainEvalType().
+ * production and calls the NativeBackend exactly as the walker called X86,
+ * so the generated assembly is the same. The evaluated type of expression
+ * nodes (PortugolAST::getEvalType in ANTLR2) comes from the SymbolTable
+ * annotations of SemanticAnalyzer, through SemanticAnalyzer::chainEvalType().
  */
 class X86Generator {
 public:
-  X86Generator(SymbolTable &st);
+  X86Generator(SymbolTable &st, NativeBackend &backend);
 
   std::string generate(PortugolParser::AlgoritmoContext *tree);
 
@@ -100,7 +100,7 @@ private:
   static int calcMatrixOffset(int c, std::list<int> &dims);
 
   SymbolTable &stable;
-  X86 x86;
+  NativeBackend &x86;
 };
 
 #endif // X86GENERATOR_HPP

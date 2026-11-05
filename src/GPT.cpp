@@ -46,6 +46,7 @@
 #include "Portugol2CTranslator.hpp"
 #include "PortugolErrorStrategy.hpp"
 #include "SemanticAnalyzer.hpp"
+#include "X86.hpp"
 #include "X86Generator.hpp"
 
 #include <algorithm>
@@ -461,7 +462,8 @@ bool GPT::compile(const list<string> &ifnames, bool genBinary) {
   }
 
   try {
-    X86Generator generator(_stable);
+    X86 backend(_stable);
+    X86Generator generator(_stable, backend);
     string asmCode = generator.generate(
         static_cast<PortugolParser::AlgoritmoContext *>(_parseTree));
 

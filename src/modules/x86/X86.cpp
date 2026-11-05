@@ -489,25 +489,6 @@ string X86::addGlobalLiteral(string str) {
   return lb;
 }
 
-string X86::translateFuncLeia(int type) {
-  switch (type) {
-  case TIPO_REAL:
-    return "leia_real";
-  case TIPO_LITERAL:
-    return "leia_literal";
-  case TIPO_CARACTERE:
-    return "leia_caractere";
-  case TIPO_LOGICO:
-    return "leia_logico";
-  case TIPO_INTEIRO:
-    return "leia_inteiro";
-  default:
-    GPTDisplay::self()->showError(
-        "Erro interno: tipo nao suportado (x86::translateFuncLeia).");
-    exit(1);
-  }
-}
-
 string X86::createLabel(bool local, string tmpl) {
   static int c = 0;
   stringstream s;
@@ -947,46 +928,4 @@ void X86::writeLValueExpr(pair<pair<int, bool>, string> &lv) {
   } else { // not using matrix (ie. mat[1] or x), push the value of var/index
     writeTEXT("push qword [rdx]");
   }
-}
-
-string X86::toChar(const string &str) {
-  stringstream s;
-  if (str.length() == 0) {
-    return "0";
-  } else if (str[0] != '\\') {
-    s << (int)(unsigned char)str[0];
-    return s.str();
-  } else {
-    string ret;
-    switch (str[1]) {
-    case '0':
-      ret = "0";
-      break;
-    case 'n':
-      ret = "10";
-      break;
-    case 'r':
-      ret = "13";
-      break;
-    case 't':
-      ret = "9";
-      break;
-    default:
-      s << (int)(unsigned char)str[1];
-      ret = s.str();
-    }
-    return ret;
-  }
-}
-
-// The literal as the 64 bits of its double, in hexadecimal.
-string X86::toReal(const string &str) {
-  double value = atof(str.c_str());
-  unsigned long long bits;
-  memcpy(&bits, &value, sizeof bits);
-
-  stringstream s;
-  s << "0x" << hex << bits;
-
-  return s.str();
 }
