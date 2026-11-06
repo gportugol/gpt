@@ -413,8 +413,11 @@ de exemplo `x := leia()`.
 
 Nota: números reais são arredondados, se necessário, e exibidos no formato .xx
 (com duas casas decimais). Portanto, o número `250.0` ou `250` seria impresso
-como `250.00` e `1.449` seria impresso como `1.45`. Se o parâmetro for uma
-variável, seu valor não será modificado.
+como `250.00` e `1.449` seria impresso como `1.45`. Os infinitos aparecem como
+`inf` e `-inf`, e um resultado indefinido, como `inf - inf`, aparece como `nan`,
+sempre sem sinal, porque o sinal que o processador dá a ele muda de uma
+arquitetura para outra. Se o parâmetro for uma variável, seu valor não será
+modificado.
 
 ```{table} Conversões implícitas da função "leia"
 :name: tb-leia-casts

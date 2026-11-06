@@ -47,6 +47,7 @@ void Portugol2CTranslator::init(const string &name) {
   s << "/* algoritmo " << name << " */\n\n";
   s << "#define _GNU_SOURCE\n"; // nescessario para evitar gcc:warning em
                                 // getline()
+  s << "#include <math.h>\n";
   s << "#include <stdio.h>\n";
   s << "#include <string.h>\n";
   s << "#include <stdarg.h>\n";
@@ -199,7 +200,11 @@ void Portugol2CTranslator::init(const string &name) {
        "         break;\n"
        "       case 'f':\n"
        "         f = va_arg(args, double);\n"
-       "         printf(\"%.2f\", f);\n"
+       "         if(isnan(f)) {\n"
+       "           printf(\"nan\");\n"
+       "         } else {\n"
+       "           printf(\"%.2f\", f);\n"
+       "         }\n"
        "         break;\n"
        "       case 'c':\n"
        "         c = va_arg(args, int);\n"

@@ -12,9 +12,6 @@
 #                       NAME.saida.nativo   expected stdout of the native
 #                                           binary, when it differs
 #                       NAME.saida.c        same for the C translation
-#                       NAME.saida.arm64    expected stdout of what runs on
-#                                           arm64, when it differs (first
-#                                           choice; .codigo and .erro too)
 #                       NAME.codigo[.nativo|.c]  exit code (default: 0)
 #                       NAME.erro[.nativo|.c]    expected stderr (optional)
 #                       NAME.pular          modes to skip ("interp", "nativo",
@@ -156,14 +153,10 @@ norm() {
 	fi
 }
 
-# expected file specific to the mode, when there is one. The one named after
-# the architecture the mode runs on comes first: arm64 floating point makes
-# NaN without the sign bit that x86-64 sets, and printf shows that sign.
+# expected file specific to the mode, when there is one
 expected_for() {
-	local base="$1" ext="$2" mode="$3" arch="$4"
-	if [ -n "$arch" ] && [ -f "$base.$ext.$arch" ]; then
-		echo "$base.$ext.$arch"
-	elif [ -f "$base.$ext.$mode" ]; then
+	local base="$1" ext="$2" mode="$3"
+	if [ -f "$base.$ext.$mode" ]; then
 		echo "$base.$ext.$mode"
 	else
 		echo "$base.$ext"
@@ -211,8 +204,8 @@ run_caso() {
 	if ! skip_mode "$base" "interp"; then
 		$TIMEOUT "$GPT" -i "$src" "${extra[@]}" <"$stdin" >"$TMP/$name.i.out" 2>"$TMP/$name.i.err"
 		check "$name (-i)" "$TMP/$name.i.out" $? \
-			"$(expected_for "$base" saida interp "$HOST_ARCH")" "$(expected_for "$base" codigo interp "$HOST_ARCH")" \
-			"$TMP/$name.i.err" "$(expected_for "$base" erro interp "$HOST_ARCH")"
+			"$(expected_for "$base" saida interp)" "$(expected_for "$base" codigo interp)" \
+			"$TMP/$name.i.err" "$(expected_for "$base" erro interp)"
 	fi
 
 	# binário nativo
@@ -222,8 +215,8 @@ run_caso() {
 		elif $TIMEOUT "$GPT" "${GPT_A[@]}" -o "$TMP/$name.bin" "$src" "${extra[@]}" >"$TMP/$name.o.build" 2>&1; then
 			$TIMEOUT "${RUNNER[@]}" "$TMP/$name.bin" <"$stdin" >"$TMP/$name.o.out" 2>"$TMP/$name.o.err"
 			check "$name (-o)" "$TMP/$name.o.out" $? \
-				"$(expected_for "$base" saida nativo "$NATIVE_ARCH")" "$(expected_for "$base" codigo nativo "$NATIVE_ARCH")" \
-				"$TMP/$name.o.err" "$(expected_for "$base" erro nativo "$NATIVE_ARCH")"
+				"$(expected_for "$base" saida nativo)" "$(expected_for "$base" codigo nativo)" \
+				"$TMP/$name.o.err" "$(expected_for "$base" erro nativo)"
 		else
 			fail "$name (-o): compilação falhou"
 			head -5 "$TMP/$name.o.build"
@@ -250,8 +243,8 @@ run_caso() {
 		else
 			$TIMEOUT "$TMP/$name.cbin" <"$stdin" >"$TMP/$name.t.out" 2>"$TMP/$name.t.err"
 			check "$name (-t)" "$TMP/$name.t.out" $? \
-				"$(expected_for "$base" saida c "$HOST_ARCH")" "$(expected_for "$base" codigo c "$HOST_ARCH")" \
-				"$TMP/$name.t.err" "$(expected_for "$base" erro c "$HOST_ARCH")"
+				"$(expected_for "$base" saida c)" "$(expected_for "$base" codigo c)" \
+				"$TMP/$name.t.err" "$(expected_for "$base" erro c)"
 		fi
 	fi
 }
