@@ -738,9 +738,21 @@ else
 	[ -f "$NASM_REAL.exe" ] && NASM_REAL="$NASM_REAL.exe"
 	IRMAO="$TMP/nasm irmao"
 	mkdir -p "$IRMAO"
-	cp "$GPT$EXE" "$IRMAO/gpt$EXE"
+	# Under --enable-install-devel src/gpt is libtool's wrapper script, which
+	# only works from src/: the program is src/.libs/gpt and finds the
+	# uninstalled libgportugol through LD_LIBRARY_PATH.
+	GPT_PROG="$GPT$EXE"
+	GPT_LIBS=""
+	if [ "$(head -c 2 "$GPT")" = "#!" ]; then
+		GPT_PROG="$SCRIPT_DIR/../src/.libs/gpt"
+		GPT_LIBS="$SCRIPT_DIR/../src/modules/.libs"
+	fi
+	cp "$GPT_PROG" "$IRMAO/gpt$EXE"
 	cp "$NASM_REAL" "$IRMAO/nasm$EXE"
-	ERRO=$(PATH="$TMP/nasm_falso:$PATH" $TIMEOUT "$IRMAO/gpt$EXE" -o "$IRMAO/olamundo$EXE" casos/olamundo.gpt 2>&1 >/dev/null)
+	ERRO=$(
+		[ -n "$GPT_LIBS" ] && export LD_LIBRARY_PATH="$GPT_LIBS${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+		PATH="$TMP/nasm_falso:$PATH" $TIMEOUT "$IRMAO/gpt$EXE" -o "$IRMAO/olamundo$EXE" casos/olamundo.gpt 2>&1 >/dev/null
+	)
 	RESULT=$?
 	if [ $RESULT -eq 0 ] && "$IRMAO/olamundo$EXE" | grep -q "Mundo"; then
 		ok "-o com o nasm ao lado do gpt, num diretório com espaço"
