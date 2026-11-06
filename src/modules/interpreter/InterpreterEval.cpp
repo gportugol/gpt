@@ -26,6 +26,8 @@
 #endif
 #include "GPTDisplay.hpp"
 
+#include <cmath>
+
 #ifdef WIN32
 // The headers WIN32_LEAN_AND_MEAN leaves out declare a global byte, ambiguous
 // with std::byte under the using namespace std of the headers above.
@@ -935,9 +937,17 @@ void InterpreterEval::executeImprima(list<ExprValue> &args) {
     case TIPO_INTEIRO:
       cout << (int)atoi((*it).value.c_str());
       break;
-    case TIPO_REAL:
-      cout << (float)atof((*it).value.c_str());
+    case TIPO_REAL: {
+      float real = (float)atof((*it).value.c_str());
+      // The sign of a NaN depends on the processor: x86 sets it on
+      // inf - inf, ARM, POWER and the others clear it.
+      if (std::isnan(real)) {
+        cout << "nan";
+      } else {
+        cout << real;
+      }
       break;
+    }
     case TIPO_CARACTERE:
       cout << (char)atoi((*it).value.c_str());
       break;
