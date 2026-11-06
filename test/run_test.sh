@@ -57,6 +57,13 @@ ARCH=$(uname -m)
 HOST_ARCH=""
 case "$ARCH" in
 x86_64 | amd64) HOST_ARCH=x86-64 ;;
+i?86)
+	# Same check as gpt: an i386 chroot on an amd64 kernel says i686 only
+	# under the linux32 personality, and a 32-bit kernel says it without one.
+	PERSONA=0
+	read -r PERSONA 2>/dev/null </proc/self/personality
+	[ $((16#$PERSONA & 0xff)) -eq 8 ] && HOST_ARCH=x86-64
+	;;
 aarch64 | arm64) HOST_ARCH=arm64 ;;
 esac
 NATIVE_ARCH="$HOST_ARCH"

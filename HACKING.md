@@ -97,6 +97,11 @@ sudo apt install -y binutils-aarch64-linux-gnu qemu-user
 GPT_TEST_ARCH=arm64 GPT_TEST_RUNNER=qemu-aarch64 bash test/run_test.sh
 ```
 
+O CI também compila e testa o gpt num container `debian:trixie` `linux/386`,
+o userland do pacote i386 do Debian sobre um kernel amd64: uma vez com o
+`uname -m` dizendo `x86_64` e outra sob `setarch i686`, a persona `linux32`
+que o sbuild usa. Nos dois casos o `gpt -o` gera x86-64.
+
 #### Interpretador no Debian/Ubuntu
 
 ```shell

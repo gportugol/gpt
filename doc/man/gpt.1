@@ -127,7 +127,12 @@ and
 .B arm64
 (GNU assembler syntax for AArch64).
 The default is the architecture of the machine running
-.IR gpt .
+.IR gpt ;
+a 32-bit x86
+.I gpt
+on GNU/Linux uses
+.B x86-64
+when the kernel is 64-bit.
 .br
 .ns
 .SH SEE ALSO
