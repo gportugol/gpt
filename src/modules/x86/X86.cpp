@@ -155,9 +155,12 @@ void X86::init(const string &name) {
 #endif
 
 #ifdef WIN32
+  // The PE template declares the sections and their alignment up front.
   _bss << "section .bss\n"
+          "bss_start:\n"
           "    mem    resb  MEMORY_SIZE\n\n";
-  _data << "section .data\n";
+  _data << "section .data\n"
+           "data_start:\n";
 #else
   // align=8 puts .bss at the end of .data rounded up to 8 bytes, where the
   // ELF header's p_memsz expects it. The page alignment keeps the writable
@@ -532,6 +535,9 @@ string X86::source() {
   //.text header
   str << "section .text" << endl;
   str << "start_no equ $" << endl;
+#ifdef WIN32
+  str << "text_start:" << endl;
+#endif
 
   for (map<string, X86SubProgram>::iterator it = _subprograms.begin();
        it != _subprograms.end(); ++it) {

@@ -67,6 +67,7 @@ jobs:
             make
             mingw-w64-ucrt-x86_64-gcc
             mingw-w64-ucrt-x86_64-gcc-libs
+            mingw-w64-ucrt-x86_64-nasm
             mingw-w64-ucrt-x86_64-pcre2
             mingw-w64-ucrt-x86_64-antlr4-runtime-cpp
             pkg-config
@@ -127,14 +128,6 @@ jobs:
           ./configure --prefix=/usr/local
           make -j$(nproc)
           make install
-
-      - shell: msys2 {0}
-        name: Install NASM
-        run: |
-          wget https://www.nasm.us/pub/nasm/releasebuilds/0.99.05/nasm-0.99.05-win32.zip
-          echo "cc9d5e2890e230f51db617e414b9a5e6e107d1cd3a80d19018c8a53bde277408  nasm-0.99.05-win32.zip" | sha256sum -c -
-          unzip nasm-0.99.05-win32.zip
-          cp nasm.exe /ucrt64/bin/
 
       - shell: msys2 {0}
         name: Run Tests

@@ -14,9 +14,9 @@
   Biblioteca de expressões regulares.
   <http://www.pcre.org/>
 
-- NASM - The Netwide Assembler (testado com v0.89.39):
+- NASM - The Netwide Assembler (2.x ou mais novo, com suporte a x86-64):
   Assembler usado para compilação.
-  <http://sourceforge.net/projects/nasm>
+  <https://www.nasm.us/>
 
 A instalação destes componentes está além do escopo deste documento.
 

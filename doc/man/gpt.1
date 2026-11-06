@@ -76,7 +76,8 @@ On Windows, a source file with the
 extension gives a binary whose name ends in
 .I .out.exe ,
 so the source is not replaced.
-The generated code is 32-bit x86, so this option only works on x86 machines;
+The generated code is x86-64 (an ELF64 executable on GNU/Linux, a PE32+
+executable on Windows), so this option only works on x86-64 machines;
 elsewhere, use
 .B \-t
 and compile the C code with the system compiler.

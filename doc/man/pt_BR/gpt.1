@@ -80,8 +80,8 @@ No Windows, um fonte com a extensão
 gera um executável cujo nome termina em
 .I .out.exe ,
 para que o fonte não seja substituído.
-O código gerado é x86 de 32 bits, então esta opção só funciona em máquinas x86;
-nas demais, use
+O código gerado é x86-64 (um executável ELF64 no GNU/Linux, PE32+ no Windows),
+então esta opção só funciona em máquinas x86-64; nas demais, use
 .B \-t
 e compile o código C com o compilador do sistema.
 No Windows e no GNU/Linux, o

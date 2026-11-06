@@ -231,9 +231,7 @@ run_caso "$SCRIPT_DIR/tester.gpt" "$SCRIPT_DIR/tester"
 if $TIMEOUT "$GPT" -s "$TMP/tester.asm" tester.gpt >/dev/null 2>&1 && [ -f "$TMP/tester.asm" ]; then
 	ok "tester.gpt (-s): geração de assembly"
 	if command -v nasm &>/dev/null; then
-		NASM_FORMAT=bin
-		[ $ON_WINDOWS -eq 1 ] && NASM_FORMAT=win32
-		if nasm -O1 -f $NASM_FORMAT -o "$TMP/tester_asm_bin" "$TMP/tester.asm" >"$TMP/tester.nasm" 2>&1; then
+		if nasm -O1 -fbin -o "$TMP/tester_asm_bin" "$TMP/tester.asm" >"$TMP/tester.nasm" 2>&1; then
 			ok "tester.gpt (-s): montagem com NASM"
 		else
 			fail "tester.gpt (-s): montagem com NASM falhou"
