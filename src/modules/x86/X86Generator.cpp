@@ -1,6 +1,8 @@
 /***************************************************************************
  *   Copyright (C) 2003-2006 by Thiago Silva                               *
  *   thiago.silva@kdemal.net                                               *
+ *   Copyright (C) 2026 by Marcelo Jorge Vieira                            *
+ *   metal@alucinados.com                                                  *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
