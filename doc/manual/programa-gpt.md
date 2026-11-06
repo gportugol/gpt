@@ -38,7 +38,7 @@ Modo de uso: gpt [opções] algoritmos...
 Opções:
    -v            mostra versão do programa
    -h            mostra esse texto
-   -o <arquivo>  compila e salva programa como <arquivo> (só em x86)
+   -o <arquivo>  compila e salva programa como <arquivo> (só em x86-64)
    -t <arquivo>  salva o código em linguagem C como <arquivo>
    -s <arquivo>  salva o código em linguagem Assembly como <arquivo>
    -i            interpreta o algoritmo
@@ -62,8 +62,8 @@ As opções são comentadas a seguir.
   `olamundo.exe` no Windows); um fonte sem extensão gera um executável com a
   extensão `.out` (`.exe` no Windows), como `programa.out`. No Windows, um
   fonte com extensão `.exe` gera um executável cujo nome termina em `.out.exe`,
-  para que o fonte não seja substituído. O código gerado é x86 de 32 bits, então
-  essa opção só funciona em máquinas x86; nas demais, use a opção `-t` e compile
+  para que o fonte não seja substituído. O código gerado é x86-64, então essa
+  opção só funciona em máquinas x86-64; nas demais, use a opção `-t` e compile
   o código C com o compilador do sistema.
 
 `-t <arquivo>`
@@ -108,19 +108,27 @@ abordagem seria interromper a análise assim que um erro fosse encontrado.
 
 ### Compilação e geração de código executável
 
-O programa GPT é capaz de gerar código executável para arquiteturas compatíveis
-com x86 e em dois formatos: ELF (*Executable and Linkable Format*) e PE
-(*Portable Executable*). Sistemas Unix, em geral, suportam o formato ELF, e o
-formato PE é conhecido nos sistemas Microsoft Windows. Após o processo de
-análise, o compilador gera código em Assembly para, então, usar o NASM (Netwide
-Assembler) como *backend* para montar e criar um executável válido.
-Consequentemente, não existe etapa de linkagem. A fase de otimização de código
-também não foi implementada.
+O programa GPT é capaz de gerar código executável para a arquitetura x86-64 em
+dois formatos: ELF64 (*Executable and Linkable Format*) no GNU/Linux e PE32+
+(*Portable Executable*) no Microsoft Windows. Após o processo de análise, o
+compilador gera código em Assembly para, então, usar o NASM (Netwide Assembler)
+como *backend* para montar e criar um executável válido. O cabeçalho do
+executável faz parte do próprio Assembly gerado, por isso não existe etapa de
+linkagem nem dependência de bibliotecas: no GNU/Linux o programa conversa com o
+núcleo por `syscall` e no Windows importa apenas `kernel32.dll`. A fase de
+otimização de código não foi implementada.
 
-Para usar esse recurso, é necessário que o NASM esteja instalado no sistema. Ele
-pode ser encontrado em <https://www.nasm.us/>. No Windows e no GNU/Linux, o GPT
-procura o `nasm` primeiro no diretório do próprio executável e depois nos
-diretórios do `PATH`.
+Os valores `inteiro`, `caractere` e `lógico` ocupam 32 bits, como no
+interpretador e na tradução para C, e `real` é um `double` de 64 bits operado
+com SSE2. Cada variável, parâmetro e elemento de matriz ocupa uma posição de
+8 bytes na pilha ou na seção de dados.
+
+Para usar esse recurso, é necessário que o NASM (versão 2.x ou mais nova, com
+suporte a x86-64) esteja instalado no sistema. Ele pode ser encontrado em
+<https://www.nasm.us/>. No Windows e no GNU/Linux, o GPT procura o `nasm`
+primeiro no diretório do próprio executável e depois nos diretórios do `PATH`.
+O executável gerado só roda em máquinas x86-64; em outras arquiteturas, use a
+opção `-t` e compile o código C com o compilador do sistema.
 
 ### Tradução para a linguagem C
 
