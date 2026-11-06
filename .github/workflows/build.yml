@@ -86,6 +86,42 @@ jobs:
           name: gpt-linux-arm64
           path: dist/*
 
+  build-linux-i386:
+    if: ${{ inputs.target == 'linux' || inputs.target == 'all' }}
+    # Docker 29.4.2 on the ubuntu-26.04 image denies socketcall(2), which
+    # i386 glibc uses for its sockets, so an i386 container has no network
+    # there: https://github.com/actions/runner-images/issues/14790
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # In a job container, actions/checkout runs the runner's amd64 node,
+      # which an i386 image cannot load, so the steps start their own.
+      - name: Start i386 Container
+        run: >-
+          docker run -d --name i386 --platform linux/386
+          -v "$PWD:/w" -w /w debian:trixie sleep infinity
+
+      - name: Install Build Dependencies
+        run: |
+          docker exec i386 apt-get update
+          docker exec i386 apt-get install -y build-essential autoconf \
+            automake libtool pkg-config antlr4 libantlr4-runtime-dev \
+            libpcre2-dev nasm
+
+      - name: Build GPT Project
+        run: >-
+          docker exec i386 bash -c 'autoreconf -i &&
+          ./configure --prefix=/usr/local CXXFLAGS="-Wall -Wextra -Werror" &&
+          make -j$(nproc)'
+
+      - name: Run Tests with uname x86_64
+        run: docker exec i386 bash test/run_test.sh
+
+      - name: Run Tests under linux32 as in sbuild
+        run: docker exec i386 setarch i686 bash test/run_test.sh
+
   build-windows:
     if: ${{ inputs.target == 'windows' || inputs.target == 'all' }}
     runs-on: windows-latest

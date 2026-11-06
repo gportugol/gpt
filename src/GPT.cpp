@@ -72,6 +72,24 @@ extern char **environ;
 #define GPT_HOST_ARCH "arm64"
 #endif
 
+#if defined(__i386__) && defined(__linux__)
+#include <sys/personality.h>
+#include <sys/utsname.h>
+
+// Debian dropped the i386 kernel in release 13, so its i386 userland runs on
+// an amd64 kernel, which also executes the ELF64 files of the x86-64 backend.
+// There uname says x86_64, or i686 under the linux32 personality that build
+// chroots use; a 32-bit kernel says i686 with the default personality.
+static bool runsOnAmd64Kernel() {
+  struct utsname u;
+  if (uname(&u) == 0 && string(u.machine) == "x86_64") {
+    return true;
+  }
+  int persona = personality(0xffffffff);
+  return persona != -1 && (persona & PER_MASK) == PER_LINUX32;
+}
+#endif
+
 using namespace antlr4;
 
 GPT *GPT::_self = 0;
@@ -506,6 +524,10 @@ bool GPT::compile(const list<string> &ifnames, bool genBinary) {
 #ifdef GPT_HOST_ARCH
   if (arch.empty()) {
     arch = GPT_HOST_ARCH;
+  }
+#elif defined(__i386__) && defined(__linux__)
+  if (arch.empty() && runsOnAmd64Kernel()) {
+    arch = "x86-64";
   }
 #endif
   if (arch.empty()) {

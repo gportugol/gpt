@@ -78,8 +78,9 @@ As opções são comentadas a seguir.
 `-a <arq>`
 : Escolhe a arquitetura do código gerado por `-o` e `-s`: `x86-64` (Assembly
   na sintaxe do NASM) ou `arm64` (Assembly para AArch64 na sintaxe do GNU as).
-  Sem essa opção, vale a arquitetura da máquina que executa o `gpt`. Assim é
-  possível comparar o mesmo algoritmo nas duas arquiteturas com
+  Sem essa opção, vale a arquitetura da máquina que executa o `gpt`; um `gpt`
+  x86 de 32 bits no GNU/Linux usa `x86-64` quando o kernel é de 64 bits. Com a
+  opção, é possível comparar o mesmo algoritmo nas duas arquiteturas com
   `gpt -a x86-64 -s` e `gpt -a arm64 -s` em qualquer máquina.
 
 `-i`
