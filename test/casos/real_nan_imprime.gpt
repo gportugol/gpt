@@ -1,0 +1,14 @@
+algoritmo real_nan_imprime;
+variáveis
+  x, y : real;
+  i : inteiro;
+fim-variáveis
+início
+  x := 1.0;
+  para i de 1 até 400 faça
+    x := x * 10.0;
+  fim-para
+  y := x - x;
+  imprima(y, " ", -y, " ", x, " ", -x);
+  imprima(y * 0.0, " ", x * 0.0, " ", y + 1.0);
+fim

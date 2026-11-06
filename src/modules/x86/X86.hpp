@@ -1,6 +1,8 @@
 /***************************************************************************
  *   Copyright (C) 2003-2006 by Thiago Silva                               *
  *   thiago.silva@kdemal.net                                               *
+ *   Copyright (C) 2026 by Marcelo Jorge Vieira                            *
+ *   metal@alucinados.com                                                  *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -49,7 +51,7 @@ private:
   void writeMatrixInitCode(const string &varname, int size);
   void writeMatrixCopyCode(const string &param, int type, int msize);
 
-  const int SizeofDWord;
+  const int SizeofSlot;
   int _param_offset;
   int _local_offset;
   string _name;
@@ -148,12 +150,17 @@ public:
   void writeLValueExpr(pair<pair<int, bool>, string> &);
 
   void writeCast(int e1, int e2);
+  void writeSignExtend(int type);
 
   string toChar(const string &);
   string toReal(const string &);
 
 private:
   string toNasmString(string str);
+  void writeLoadReals(int e1, int e2);
+  void writeOrderExpr(int e1, int e2, const string &intSet,
+                      const string &realSet, bool swapReals);
+  void writeRealArith(int e1, int e2, const string &op);
   void writeDivisorCheck(int line, bool realDivisor);
   void writeSignedDivide(int line, bool remainder);
 

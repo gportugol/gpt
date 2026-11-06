@@ -1,0 +1,38 @@
+algoritmo recursao_params;
+variáveis
+  total : real;
+fim-variáveis
+início
+  total := soma_mista(5, 1.5, "abc", verdadeiro, 'x', 100);
+  imprima(total);
+  imprima(profundidade(0, 0, 0, 0, 0, 0, 0, 0));
+fim
+
+função soma_mista(n : inteiro, r : real, s : literal, b : lógico, c : caractere, base : inteiro) : real
+  parcial : real;
+  texto : literal;
+  conta : inteiro;
+  marca : caractere;
+início
+  parcial := r * n;
+  texto := s;
+  conta := base + n;
+  marca := c;
+  imprima(n, " ", parcial, " ", texto, " ", b, " ", marca, " ", conta);
+  se n = 0 então
+    retorne parcial;
+  fim-se
+  retorne parcial + soma_mista(n - 1, r, texto, não b, marca + 1, conta);
+fim
+
+função profundidade(a : inteiro, b : inteiro, c : inteiro, d : inteiro, p5 : inteiro, f : inteiro, g : inteiro, h : inteiro) : inteiro
+  l1, l2, l3 : inteiro;
+início
+  l1 := a + b + c + d;
+  l2 := p5 + f + g + h;
+  l3 := l1 + l2;
+  se a >= 50 então
+    retorne l3;
+  fim-se
+  retorne profundidade(a + 1, b + 2, c + 3, d + 4, p5 + 5, f + 6, g + 7, h + 8);
+fim

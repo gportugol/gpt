@@ -49,7 +49,7 @@ trap 'rm -rf "$TMP"' EXIT
 ARCH=$(uname -m)
 CAN_EXEC_X86=0
 case "$ARCH" in
-i?86 | x86_64 | amd64)
+x86_64 | amd64)
 	CAN_EXEC_X86=1
 	;;
 esac
