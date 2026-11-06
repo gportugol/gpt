@@ -21,3 +21,14 @@ libgportugol_la_LIBADD = $(top_builddir)/src/modules/parser/libparser.la \
                          $(top_builddir)/src/modules/c_translator/libctranslator.la \
 												 $(top_builddir)/src/modules/x86/libx86.la \
                          $(top_builddir)/src/modules/arm64/libarm64.la
+
+if INSTALL_DEVEL
+# The installed library is used outside gpt (GPTEditor), so it names the
+# runtimes it calls and carries a SONAME. Bump -version-info whenever the
+# installed headers change incompatibly: .so.0 was the ANTLR 2 API.
+libgportugol_la_LDFLAGS = -version-info 1:0:0
+libgportugol_la_LIBADD += $(ANTLR4_LIB)
+if BUILD_DEBUGGER
+libgportugol_la_LIBADD += $(PCRE_LIB)
+endif
+endif
