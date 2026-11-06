@@ -3,9 +3,23 @@
 
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING .ISS SCRIPT FILES!
 
+; A versao vem da linha de comando no CI:
+;     iscc /DAppVersion=1.2.0 setup.iss
+; O valor abaixo e so o fallback de quem compila na mao.
+#ifndef AppVersion
+  #define AppVersion "1.2.0"
+#endif
+
+; De onde sai o gpt.exe. O padrao e o layout que o job build-windows
+; produz (`make install DESTDIR=release` e `mv release/usr/local/* dist/`).
+; Quem constroi na mao passa /DBinDir=..\..\src
+#ifndef BinDir
+  #define BinDir "..\..\dist\bin"
+#endif
+
 [Setup]
 AppName=G-Portugol
-AppVerName=G-Portugol versão 1.0.1
+AppVerName=G-Portugol versão {#AppVersion}
 AppPublisherURL=https://gportugol.github.io
 AppCopyright=Copyright (C) 2003-2008 Thiago Silva
 LicenseFile=..\..\COPYING
@@ -22,7 +36,7 @@ Name: notepadfiles; Description: &Configurações para o editor Notepad++ (ATENÇÃO
 
 
 [Files]
-Source: "..\..\build\src\gpt.exe"; DestDir: "{app}\bin"
+Source: "{#BinDir}\gpt.exe"; DestDir: "{app}\bin"
 ;Source: "bin\pcrecpp.dll"; DestDir: "{app}\bin"
 ;Source: "bin\pcre.dll"; DestDir: "{app}\bin"
 Source: "bin\nasm.exe"; DestDir: "{app}\bin"
