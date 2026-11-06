@@ -1,26 +1,47 @@
+/***************************************************************************
+ *   Copyright (C) 2026 by Marcelo Jorge Vieira                            *
+ *   metal@alucinados.com                                                  *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, write to the                         *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ ***************************************************************************/
+
 /* Common definitions */
 
 _head << "\n"
          "%macro  begin 1\n"
-         "    push    ebp \n"
-         "    mov     ebp,esp\n"
+         "    push    rbp\n"
+         "    mov     rbp,rsp\n"
          "  %if %1\n"
-         "    sub     esp,%1\n"
+         "    sub     rsp,%1\n"
          "  %endif\n"
          "%endmacro\n"
          "\n"
          "%macro return 0\n"
-         "    mov esp, ebp\n"
-         "    pop ebp  \n"
+         "    mov rsp, rbp\n"
+         "    pop rbp\n"
          "    ret\n"
          "%endmacro\n"
          "\n"
+         "; Every argument takes one 8-byte slot on the stack.\n"
          "%macro addarg 1\n"
          "    push %1\n"
          "%endmacro\n"
          "\n"
          "%macro clargs 1\n"
-         "    add esp, 4 * %1\n"
+         "    add rsp, 8 * %1\n"
          "%endmacro\n"
          "\n"
          "%macro print_lf 0\n"
@@ -29,7 +50,7 @@ _head << "\n"
          "  clargs 1\n"
          "%endmacro\n"
          "\n"
-         "%define SIZEOF_DWORD 4\n"
+         "%define SIZEOF_SLOT  8\n"
          "%define MEMORY_SIZE  1048576\n"
          "%define BUFFER_SIZE  1024\n"
          "\n";

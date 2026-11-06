@@ -1,0 +1,35 @@
+algoritmo real_extremos;
+variáveis
+  r, s : real;
+  i : inteiro;
+fim-variáveis
+início
+  r := 1234567890.75; imprima(r);
+  r := -1234567890.75; imprima(r);
+  r := 0.004; imprima(r);
+  r := -0.004; imprima(r);
+  r := 0.005; imprima(r);
+  r := 0.015; imprima(r);
+  r := 0.125; imprima(r);
+  r := 0.375; imprima(r);
+  r := 0.505; imprima(r);
+  r := 2.5; imprima(r * 4, " ", r / 4, " ", r - 5, " ", 5 - r);
+  r := 1.0 / 3.0; imprima(r, " ", r * 3);
+  r := 100; s := 3; imprima(r / s, " ", r / 7);
+  i := -2147483647; r := i; imprima(r, " ", r - 1);
+  i := 2147483647; r := i; imprima(r, " ", r + 1);
+  r := -7.9; i := r; imprima(i);
+  r := 7.9; i := r; imprima(i);
+  r := -0.9; i := r; imprima(i);
+  imprima(2.5 > 2, " ", 2.5 >= 3, " ", 2 < 2.5, " ", 3 <= 2.5, " ", 2.0 = 2, " ", 2.0 <> 2);
+  imprima(-1.5 < -1, " ", -1.5 > -2, " ", -1.5 = -1.5, " ", -1.5 <> -1.5);
+  r := -0.0; imprima(r = 0, " ", r);
+  r := 10000000000.0; imprima(r);
+  r := 3.14159265358979 * 1000000; imprima(r);
+  r := 1.0; s := 0;
+  repita
+    r := r * 2; s := s + 1;
+  até r > 1000000000000.0;
+  imprima(s, " ", r);
+  imprima(9007199254740992.0, " ", 1000000000000000.0 + 0.5);
+fim

@@ -1,6 +1,8 @@
 /***************************************************************************
  *   Copyright (C) 2003-2006 by Thiago Silva                               *
  *   thiago.silva@kdemal.net                                               *
+ *   Copyright (C) 2026 by Marcelo Jorge Vieira                            *
+ *   metal@alucinados.com                                                  *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -22,16 +24,18 @@
 #include "GPTDisplay.hpp"
 #include "config.h"
 
+#include <limits.h>
 #include <stdlib.h>
+#include <string.h>
 
 X86SubProgram::X86SubProgram()
-    : SizeofDWord(sizeof(int)), // 4
-      _param_offset(8),         // starts at +8
-      _local_offset(4) {        // starts at -4
+    : SizeofSlot(8),
+      _param_offset(16), // return address and saved rbp come first
+      _local_offset(8) { // starts at -8
 }
 
 X86SubProgram::X86SubProgram(const X86SubProgram &other)
-    : SizeofDWord(sizeof(int)), _param_offset(other._param_offset),
+    : SizeofSlot(8), _param_offset(other._param_offset),
       _local_offset(other._local_offset), _name(other._name),
       _params(other._params), _locals(other._locals) {
 
@@ -46,7 +50,7 @@ void X86SubProgram::writeTEXT(const string &str) { _txt << str << endl; }
 
 void X86SubProgram::init(const string &name, int totalParams) {
   _name = name;
-  _param_offset = 4 + (totalParams * SizeofDWord);
+  _param_offset = 8 + (totalParams * SizeofSlot);
 }
 
 string X86SubProgram::name() { return _name; }
@@ -54,68 +58,58 @@ string X86SubProgram::name() { return _name; }
 void X86SubProgram::declareLocal(const string &local_var, int msize,
                                  bool minit) {
   if (msize == 0) {
-    _head << "%define " << X86::makeID(local_var) << " ebp-" << _local_offset
+    _head << "%define " << X86::makeID(local_var) << " rbp-" << _local_offset
           << endl;
     _end << "%undef " << X86::makeID(local_var) << endl;
     if (minit) {
-      _init << "mov dword [" << X86::makeID(local_var) << "], 0" << endl;
+      _init << "mov qword [" << X86::makeID(local_var) << "], 0" << endl;
     }
 
-    _local_offset += SizeofDWord;
+    _local_offset += SizeofSlot;
   } else {
-    _head << "%define " << X86::makeID(local_var) << " ebp-"
-          << (_local_offset + (msize * SizeofDWord) - SizeofDWord) << endl;
+    _head << "%define " << X86::makeID(local_var) << " rbp-"
+          << (_local_offset + (msize * SizeofSlot) - SizeofSlot) << endl;
     _end << "%undef " << X86::makeID(local_var) << endl;
     if (minit) {
       writeMatrixInitCode(local_var, msize);
     }
-    _local_offset += (msize * SizeofDWord);
+    _local_offset += (msize * SizeofSlot);
   }
 }
 
 void X86SubProgram::declareParam(const string &param, int type, int msize) {
 
   if (msize == 0) {
-    _head << "%define " << X86::makeID(param) << " ebp+" << _param_offset
+    _head << "%define " << X86::makeID(param) << " rbp+" << _param_offset
           << endl;
     _end << "%undef " << X86::makeID(param) << endl;
   } else {
-    _head << "%define _p_" << X86::makeID(param) << " ebp+" << _param_offset
+    _head << "%define _p_" << X86::makeID(param) << " rbp+" << _param_offset
           << endl;
     _end << "%undef _p_" << X86::makeID(param) << endl;
     declareLocal(param, msize, false);
     writeMatrixCopyCode(param, type, msize);
   }
-  _param_offset -= SizeofDWord;
+  _param_offset -= SizeofSlot;
 }
 
 void X86SubProgram::writeMatrixCopyCode(const string &param, int type,
                                         int msize) {
-  _init << "lea eax, [" << X86::makeID(param) << "]" << endl;
-  _init << "addarg dword [_p_" << X86::makeID(param) << "]" << endl;
-  _init << "addarg eax" << endl;
+  _init << "lea rax, [" << X86::makeID(param) << "]" << endl;
+  _init << "addarg qword [_p_" << X86::makeID(param) << "]" << endl;
+  _init << "addarg rax" << endl;
   _init << "addarg " << (type == TIPO_LITERAL) << endl;
-  _init << "addarg " << (msize * SizeofDWord) << endl;
+  _init << "addarg " << (msize * SizeofSlot) << endl;
   _init << "call matrix_cpy" << endl;
   _init << "clargs 4" << endl;
 }
 
 void X86SubProgram::writeMatrixInitCode(const string &varname, int size) {
-  _init << "lea ebx, [" << X86::makeID(varname) << "]" << endl;
-  _init << "addarg ebx" << endl;
-  _init << "addarg " << size << " * SIZEOF_DWORD" << endl;
+  _init << "lea rbx, [" << X86::makeID(varname) << "]" << endl;
+  _init << "addarg rbx" << endl;
+  _init << "addarg " << size << " * SIZEOF_SLOT" << endl;
   _init << "call matrix_init" << endl;
   _init << "clargs 2" << endl;
-
-  //     _init << "addarg " << size << " * SIZEOF_DWORD" << endl;
-  //     _init << "call __malloc" << endl;
-  //     _init << "clargs 1" << endl;
-  //     _init << "lea ebx, [" << varname << "]" << endl;
-  //     _init << "mov dword [ebx], eax" << endl;
-  //     _init << "addarg dword [ebx]" << endl;
-  //     _init << "addarg " << size << " * SIZEOF_DWORD" << endl;
-  //     _init << "call matrix_init__" << endl;
-  //     _init << "clargs 2" << endl;
 }
 
 string X86SubProgram::source() {
@@ -129,8 +123,7 @@ string X86SubProgram::source() {
   s << _head.str();
 
   if (name() != X86::EntryPoint) {
-    s << "begin " << (_local_offset - SizeofDWord)
-      << endl; // locals starts at -4
+    s << "begin " << (_local_offset - SizeofSlot) << endl;
   }
 
   s << _init.str();
@@ -166,21 +159,21 @@ void X86::init(const string &name) {
           "    mem    resb  MEMORY_SIZE\n\n";
   _data << "section .data\n";
 #else
-  // align=4 puts .bss at the end of .data rounded up to 4 bytes, where the
+  // align=8 puts .bss at the end of .data rounded up to 8 bytes, where the
   // ELF header's p_memsz expects it. The page alignment keeps the writable
   // data off the code's page. The PE template sets its own section
   // attributes, so this stays ELF only.
-  _bss << "section .bss align=4\n"
+  _bss << "section .bss align=8\n"
           "    mem    resb  MEMORY_SIZE\n\n";
   _data << "section .data align=4096\n";
 #endif
   _data << "              data_no equ $\n"
-           "    mem_ptr         dd 0\n"
-           "    aux             dd 0\n"
-           "    aux2            dd 0\n"
+           "    mem_ptr         dq 0\n"
            "    str_true        db 'verdadeiro',0\n"
            "    str_false       db 'falso',0\n"
            "    str_null        db '(nulo)',0\n"
+           "    str_empty       db 0\n"
+           "    str_zero        db '0',0\n"
            "    str_no_mem_left db 'Não foi possível alocar memória.',0\n\n";
 
   createScope(SymbolTable::GlobalScope);
@@ -192,7 +185,6 @@ void X86::writeDATA(const string &str) { _data << str << endl; }
 
 void X86::writeTEXT(const string &str) {
   _subprograms[_currentScope].writeTEXT(str);
-  ;
 }
 
 void X86::createScope(const string &scope) {
@@ -207,11 +199,7 @@ void X86::createScope(const string &scope) {
 
 string X86::currentScope() { return _currentScope; }
 
-void X86::writeExit() {
-  stringstream s;
-  s << "exit ecx";
-  writeTEXT(s.str());
-}
+void X86::writeExit() { writeTEXT("exit ecx"); }
 
 void X86::writeMainExit() {
   writeTEXT("mov ecx, 0");
@@ -219,16 +207,16 @@ void X86::writeMainExit() {
 }
 
 void X86::writeMainReturn() {
-  writeTEXT("pop ecx");
+  writeTEXT("pop rcx");
   writeExit();
 }
 
 void X86::writeFuncReturn(int expecting_type, int etype, bool hasRetExpr) {
   if (expecting_type != TIPO_NULO) {
-    writeTEXT("pop eax");
+    writeTEXT("pop rax");
   }
   if (expecting_type == TIPO_LITERAL) {
-    writeTEXT("addarg eax");
+    writeTEXT("addarg rax");
     writeTEXT("call clone_literal");
     writeTEXT("clargs 1");
   } else if (hasRetExpr) {
@@ -246,16 +234,16 @@ void X86::writeLabel(const string &label) { writeTEXT(label + ":"); }
 void X86::writeJump(const string &label) { writeTEXT("jmp " + label); }
 
 void X86::writeJumpIfFalse(const string &label) {
-  writeTEXT("pop eax");
+  writeTEXT("pop rax");
   writeTEXT("cmp eax, 0");
   writeTEXT("je near " + label);
 }
 
-void X86::writeDiscardResult() { writeTEXT("pop eax"); }
+void X86::writeDiscardResult() { writeTEXT("pop rax"); }
 
-void X86::writePushResult() { writeTEXT("push eax"); }
+void X86::writePushResult() { writeTEXT("push rax"); }
 
-void X86::writePushIndex() { writeTEXT("push ecx"); }
+void X86::writePushIndex() { writeTEXT("push rcx"); }
 
 void X86::writeLValueBegin(bool isprim) {
   if (!isprim) {
@@ -266,18 +254,18 @@ void X86::writeLValueBegin(bool isprim) {
 void X86::writeLValueIndex(const string &name, int line, int size,
                            int multiplier) {
   stringstream s;
-  writeTEXT("pop eax");
+  writeTEXT("pop rax");
   writeIndexCheck(name, line, size);
   s << "mov ebx, " << multiplier;
   writeTEXT(s.str());
   writeTEXT("imul ebx");
-  writeTEXT("pop ebx");
+  writeTEXT("pop rbx");
   writeTEXT("add eax, ebx");
-  writeTEXT("push eax");
+  writeTEXT("push rax");
 }
 
 void X86::writeLValueEnd(bool isprim) {
-  writeTEXT(isprim ? "mov ecx, 0" : "pop ecx");
+  writeTEXT(isprim ? "mov ecx, 0" : "pop rcx");
 }
 
 void X86::writeImprimaTag(int etype) {
@@ -312,9 +300,9 @@ void X86::writeImprimaCall(int args) {
 }
 
 void X86::writeCallArg(int etype, int ptype) {
-  writeTEXT("pop eax");
+  writeTEXT("pop rax");
   writeCast(etype, ptype);
-  writeTEXT("addarg eax");
+  writeTEXT("addarg rax");
 }
 
 void X86::writeLeiaCall(const string &fname) { writeTEXT("call " + fname); }
@@ -329,7 +317,7 @@ void X86::writeCall(const string &fname, int args) {
 }
 
 void X86::writeParaDe() {
-  writeTEXT("push ecx");
+  writeTEXT("push rcx");
   writeTEXT("; para: de:");
 }
 
@@ -337,24 +325,24 @@ void X86::writeParaDeAttr(int de_type, int expecting_type,
                           pair<pair<int, bool>, string> &lv) {
   writeTEXT("; para: de attr:");
   writeAttribution(de_type, expecting_type, lv);
-  writeTEXT("push ecx");
+  writeTEXT("push rcx");
   writeTEXT("; para: ate:");
 }
 
 void X86::writeParaAte(int ate_type, int lvtype) {
-  writeTEXT("pop eax");
+  writeTEXT("pop rax");
   writeCast(ate_type, lvtype);
-  writeTEXT("push eax");
+  writeTEXT("push rax");
 }
 
-// The loop variable's slot index sits at [esp+4] and the final value at
-// [esp] while the body runs.
+// The loop variable's slot index sits at [rsp+8] and the final value at
+// [rsp] while the body runs.
 void X86::writeParaEntry(const string &lvname, bool decreasing,
                          const string &lbpara, const string &lbfim) {
-  writeTEXT("mov ecx, dword [esp+4]");
-  writeTEXT("lea edx, [" + X86::makeID(lvname) + "]");
-  writeTEXT("mov eax, dword [edx + ecx * SIZEOF_DWORD]");
-  writeTEXT("mov ebx, dword [esp]");
+  writeTEXT("mov rcx, [rsp+8]");
+  writeTEXT("lea rdx, [" + X86::makeID(lvname) + "]");
+  writeTEXT("mov eax, dword [rdx + rcx * SIZEOF_SLOT]");
+  writeTEXT("mov ebx, dword [rsp]");
   writeTEXT("cmp eax, ebx");
   writeTEXT(decreasing ? "jl " + lbfim : "jg near " + lbfim);
   writeTEXT(lbpara + ":");
@@ -363,9 +351,9 @@ void X86::writeParaEntry(const string &lvname, bool decreasing,
 void X86::writeParaNext(const string &lvname, bool hasPasso, bool decreasing,
                         const string &step, const string &lbpara,
                         const string &lbfim) {
-  writeTEXT("mov ecx, dword [esp+4]");
-  writeTEXT("lea edx, [" + X86::makeID(lvname) + "]");
-  writeTEXT("mov eax, dword [edx + ecx * SIZEOF_DWORD]");
+  writeTEXT("mov rcx, [rsp+8]");
+  writeTEXT("lea rdx, [" + X86::makeID(lvname) + "]");
+  writeTEXT("mov eax, dword [rdx + rcx * SIZEOF_SLOT]");
   if (!hasPasso) {
     writeTEXT("inc eax");
   } else if (decreasing) {
@@ -373,37 +361,38 @@ void X86::writeParaNext(const string &lvname, bool hasPasso, bool decreasing,
   } else {
     writeTEXT("add eax, " + step);
   }
-  writeTEXT("mov ebx, dword [esp]");
+  writeTEXT("mov ebx, dword [rsp]");
   writeTEXT("cmp eax, ebx");
   writeTEXT((hasPasso && decreasing) ? "jl near " + lbfim : "jg near " + lbfim);
-  writeTEXT("lea edx, [" + X86::makeID(lvname) + "]");
-  writeTEXT("mov ecx, dword [esp+4]");
-  writeTEXT("lea edx, [edx + ecx * SIZEOF_DWORD]");
-  writeTEXT("mov dword [edx], eax");
+  writeTEXT("lea rdx, [" + X86::makeID(lvname) + "]");
+  writeTEXT("mov rcx, [rsp+8]");
+  writeTEXT("lea rdx, [rdx + rcx * SIZEOF_SLOT]");
+  writeTEXT("movsxd rax, eax");
+  writeTEXT("mov [rdx], rax");
   writeTEXT("jmp " + lbpara);
   writeTEXT(lbfim + ":");
 
-  writeTEXT("mov ebx, dword [esp]");
-  writeTEXT("lea edx, [" + X86::makeID(lvname) + "]");
-  writeTEXT("mov ecx, dword [esp+4]");
-  writeTEXT("lea edx, [edx + ecx * SIZEOF_DWORD]");
-  writeTEXT("mov dword [edx], ebx");
-  writeTEXT("pop eax");
-  writeTEXT("pop ecx");
+  writeTEXT("movsxd rbx, dword [rsp]");
+  writeTEXT("lea rdx, [" + X86::makeID(lvname) + "]");
+  writeTEXT("mov rcx, [rsp+8]");
+  writeTEXT("lea rdx, [rdx + rcx * SIZEOF_SLOT]");
+  writeTEXT("mov [rdx], rbx");
+  writeTEXT("pop rax");
+  writeTEXT("pop rcx");
   writeTEXT("; fimpara");
 }
 
 void X86::declarePrimitive(int decl_type, const string &name, int type) {
   stringstream s;
   if (decl_type == VAR_GLOBAL) {
-    // all sizes have 32 bits (double word)
+    // every value takes one 8-byte slot
     switch (type) {
     case TIPO_INTEIRO:
     case TIPO_REAL:
     case TIPO_CARACTERE:
     case TIPO_LITERAL:
     case TIPO_LOGICO:
-      s << X86::makeID(name) << " dd 0";
+      s << X86::makeID(name) << " dq 0";
       writeDATA(s.str());
       break;
     default:
@@ -436,7 +425,7 @@ void X86::declareMatrix(int decl_type, int type, string name,
     case TIPO_CARACTERE:
     case TIPO_LOGICO:
     case TIPO_LITERAL:
-      s << X86::makeID(name) << " times " << size << " dd 0";
+      s << X86::makeID(name) << " times " << size << " dq 0";
       break;
     default:
       GPTDisplay::self()->showError(
@@ -468,6 +457,12 @@ string X86::toNasmString(string str) {
         break;
       case 'r':
         ret += "',13,'";
+        break;
+      case 't':
+        ret += "',9,'";
+        break;
+      case '\'':
+        ret += "',39,'";
         break;
       default:
         ret += str[i];
@@ -538,10 +533,8 @@ string X86::source() {
   str << "section .text" << endl;
   str << "start_no equ $" << endl;
 
-  string sss;
   for (map<string, X86SubProgram>::iterator it = _subprograms.begin();
        it != _subprograms.end(); ++it) {
-    sss = it->second.source();
     str << it->second.source();
   }
 
@@ -550,57 +543,49 @@ string X86::source() {
   return str.str();
 }
 
+// Reals travel as the 64 bits of a double in the integer registers and
+// stack slots; the SSE registers are only used while operating on them.
 void X86::writeCast(int e1, int e2) {
-  // casts
   if ((e1 != TIPO_REAL) && (e2 == TIPO_REAL)) {
-    // int to float
-    writeTEXT("mov dword [aux], eax");
-    writeTEXT("fild dword [aux]");
-    writeTEXT("fstp dword [aux]");
-    writeTEXT("mov eax, dword [aux]");
+    writeTEXT("cvtsi2sd xmm0, eax");
+    writeTEXT("movq rax, xmm0");
   } else if ((e1 == TIPO_REAL) && (e2 != TIPO_REAL)) {
-    // float to int (truncate!)
-
-    // backup float flags and set round mode
-    writeTEXT("fnstcw word [aux2]");
-    writeTEXT("mov dx, word [aux2]");
-    writeTEXT("mov dh, 0xc");
-    writeTEXT("mov word [aux], dx");
-    writeTEXT("fldcw word [aux]");
-
-    writeTEXT("mov dword [aux], eax");
-    writeTEXT("fld dword [aux]");
-    writeTEXT("fistp dword [aux]");
-    writeTEXT("mov eax, dword [aux]");
-
-    // restore backup
-    writeTEXT("fldcw word [aux2]");
+    // truncates, like the C cast
+    writeTEXT("movq xmm0, rax");
+    writeTEXT("cvttsd2si eax, xmm0");
   }
 }
 
+// Integer values are computed in 32 bits, so the slot gets the sign
+// extension before being stored; literals and reals already fill 64 bits.
+void X86::writeSignExtend(int type) {
+  if ((type != TIPO_REAL) && (type != TIPO_LITERAL)) {
+    writeTEXT("movsxd rax, eax");
+  }
+}
+
+// Left operand from rax into xmm0 and right from rbx into xmm1, converting
+// whichever side is an integer.
+void X86::writeLoadReals(int e1, int e2) {
+  writeTEXT(e1 == TIPO_REAL ? "movq xmm0, rax" : "cvtsi2sd xmm0, eax");
+  writeTEXT(e2 == TIPO_REAL ? "movq xmm1, rbx" : "cvtsi2sd xmm1, ebx");
+}
+
 void X86::writeAttribution(int e1, int e2, pair<pair<int, bool>, string> &lv) {
-  writeTEXT("pop eax");
-  writeTEXT("pop ecx");
+  writeTEXT("pop rax");
+  writeTEXT("pop rcx");
 
   writeCast(e1, e2);
+  writeSignExtend(e2);
 
-  stringstream s;
-
-  Symbol symb = _stable.getSymbol(currentScope(), lv.second, true);
-  s << "lea edx, [" << X86::makeID(lv.second) << "]";
-  writeTEXT(s.str());
-
-  s.str("");
-  s << "lea edx, [edx + ecx * SIZEOF_DWORD]";
-  writeTEXT(s.str());
-  s.str("");
-  s << "mov [edx], eax";
-  writeTEXT(s.str());
+  writeTEXT("lea rdx, [" + X86::makeID(lv.second) + "]");
+  writeTEXT("lea rdx, [rdx + rcx * SIZEOF_SLOT]");
+  writeTEXT("mov [rdx], rax");
 }
 
 void X86::writeOuExpr() {
-  writeTEXT("pop ebx");
-  writeTEXT("pop eax");
+  writeTEXT("pop rbx");
+  writeTEXT("pop rax");
 
   writeTEXT("cmp eax, 0");
   writeTEXT("setne al");
@@ -610,12 +595,12 @@ void X86::writeOuExpr() {
   writeTEXT("and ebx, 0xff");
   writeTEXT("or al, bl");
 
-  writeTEXT("push eax");
+  writeTEXT("push rax");
 }
 
 void X86::writeEExpr() {
-  writeTEXT("pop ebx");
-  writeTEXT("pop eax");
+  writeTEXT("pop rbx");
+  writeTEXT("pop rax");
 
   writeTEXT("cmp eax, 0");
   writeTEXT("setne al");
@@ -625,410 +610,196 @@ void X86::writeEExpr() {
   writeTEXT("and ebx, 0xff");
   writeTEXT("and al, bl");
 
-  writeTEXT("push eax");
+  writeTEXT("push rax");
 }
 
 void X86::writeBitOuExpr() {
-  writeTEXT("pop ebx");
-  writeTEXT("pop eax");
+  writeTEXT("pop rbx");
+  writeTEXT("pop rax");
 
   writeTEXT("or eax, ebx");
 
-  writeTEXT("push eax");
+  writeTEXT("push rax");
 }
 
 void X86::writeBitXouExpr() {
-  writeTEXT("pop ebx");
-  writeTEXT("pop eax");
+  writeTEXT("pop rbx");
+  writeTEXT("pop rax");
 
   writeTEXT("xor eax, ebx");
 
-  writeTEXT("push eax");
+  writeTEXT("push rax");
 }
 
 void X86::writeBitEExpr() {
-  writeTEXT("pop ebx");
-  writeTEXT("pop eax");
+  writeTEXT("pop rbx");
+  writeTEXT("pop rax");
 
   writeTEXT("and eax, ebx");
 
-  writeTEXT("push eax");
+  writeTEXT("push rax");
 }
 
+// A literal compared with anything goes through strcmp, which returns 1
+// when the strings are equal. Reals compare as doubles, so 3.0 = 3 holds
+// and NaN is different from everything, including itself.
 void X86::writeIgualExpr(int e1, int e2) {
-  writeTEXT("pop ebx");
-  writeTEXT("pop eax");
+  writeTEXT("pop rbx");
+  writeTEXT("pop rax");
 
-  writeCast(e1, e2);
-
-  if ((e1 != TIPO_LITERAL) && (e2 != TIPO_LITERAL)) {
+  if ((e1 == TIPO_LITERAL) || (e2 == TIPO_LITERAL)) {
+    writeTEXT("addarg rax");
+    writeTEXT("addarg rbx");
+    writeTEXT("call strcmp");
+    writeTEXT("clargs 2");
+  } else if ((e1 == TIPO_REAL) || (e2 == TIPO_REAL)) {
+    writeLoadReals(e1, e2);
+    writeTEXT("ucomisd xmm0, xmm1");
+    writeTEXT("sete al");
+    writeTEXT("setnp bl");
+    writeTEXT("and al, bl");
+    writeTEXT("and eax, 0xff");
+  } else {
     writeTEXT("cmp eax, ebx");
     writeTEXT("sete al");
     writeTEXT("and eax, 0xff");
-  } else {
-    writeTEXT("addarg eax");
-    writeTEXT("addarg ebx");
-    writeTEXT("call strcmp");
-    writeTEXT("clargs 2");
   }
 
-  writeTEXT("push eax");
+  writeTEXT("push rax");
 }
 
 void X86::writeDiferenteExpr(int e1, int e2) {
+  writeTEXT("pop rbx");
+  writeTEXT("pop rax");
 
-  writeTEXT("pop ebx");
-  writeTEXT("pop eax");
-
-  writeCast(e1, e2);
-
-  if ((e1 != TIPO_LITERAL) && (e2 != TIPO_LITERAL)) {
-    writeTEXT("cmp eax, ebx");
-  } else {
-    writeTEXT("addarg eax");
-    writeTEXT("addarg ebx");
+  if ((e1 == TIPO_LITERAL) || (e2 == TIPO_LITERAL)) {
+    writeTEXT("addarg rax");
+    writeTEXT("addarg rbx");
     writeTEXT("call strcmp");
     writeTEXT("clargs 2");
-
     writeTEXT("cmp eax, 1");
+    writeTEXT("setne al");
+    writeTEXT("and eax, 0xff");
+  } else if ((e1 == TIPO_REAL) || (e2 == TIPO_REAL)) {
+    writeLoadReals(e1, e2);
+    writeTEXT("ucomisd xmm0, xmm1");
+    writeTEXT("setne al");
+    writeTEXT("setp bl");
+    writeTEXT("or al, bl");
+    writeTEXT("and eax, 0xff");
+  } else {
+    writeTEXT("cmp eax, ebx");
+    writeTEXT("setne al");
+    writeTEXT("and eax, 0xff");
   }
 
-  writeTEXT("setne al");
-  writeTEXT("and eax, 0xff");
+  writeTEXT("push rax");
+}
 
-  writeTEXT("push eax");
+// Ordering of two literals compares their lengths, as the interpreter
+// does. For reals only seta and setae are used: comisd sets CF and ZF on
+// an unordered result, so a NaN operand gives falso, as in C. The
+// less-than forms swap the operands to get there.
+void X86::writeOrderExpr(int e1, int e2, const string &intSet,
+                         const string &realSet, bool swapReals) {
+  writeTEXT("pop rbx");
+  writeTEXT("pop rax");
+
+  if ((e1 == TIPO_REAL) || (e2 == TIPO_REAL)) {
+    writeLoadReals(e1, e2);
+    writeTEXT(swapReals ? "comisd xmm1, xmm0" : "comisd xmm0, xmm1");
+    writeTEXT(realSet + " al");
+    writeTEXT("and eax, 0xff");
+  } else if ((e1 == TIPO_LITERAL) && (e2 == TIPO_LITERAL)) {
+    writeTEXT("push rbx");
+
+    writeTEXT("addarg rax");
+    writeTEXT("call strlen");
+    writeTEXT("clargs 1");
+
+    writeTEXT("pop rbx");
+    writeTEXT("push rax");
+
+    writeTEXT("addarg rbx");
+    writeTEXT("call strlen");
+    writeTEXT("clargs 1");
+
+    writeTEXT("mov ebx, eax");
+    writeTEXT("pop rax");
+
+    writeTEXT("cmp eax, ebx");
+    writeTEXT(intSet + " al");
+    writeTEXT("and eax, 0xff");
+  } else {
+    writeTEXT("cmp eax, ebx");
+    writeTEXT(intSet + " al");
+    writeTEXT("and eax, 0xff");
+  }
+
+  writeTEXT("push rax");
 }
 
 void X86::writeMaiorExpr(int e1, int e2) {
-  writeTEXT("pop ebx");
-  writeTEXT("pop eax");
-
-  // fcomp assumes ST0 is left-hand operand aways
-  // flags after comp:
-  // 5.0 @ 4 : ax -> 0
-  // 5.0 @ 5 : ax -> 0x4000
-  // 4.0 @ 6 : ax -> 0x100
-  if ((e1 == TIPO_REAL) || (e2 == TIPO_REAL)) {
-    writeTEXT("fninit");
-    if ((e1 == TIPO_REAL) && (e2 != TIPO_REAL)) { // float/integer
-      writeTEXT("mov [aux], eax");
-      writeTEXT("fld dword [aux]");
-      writeTEXT("mov [aux], ebx");
-      writeTEXT("ficomp dword [aux]");
-      writeTEXT("fstsw ax");
-      writeTEXT("cmp ax, 0");
-    } else if ((e1 != TIPO_REAL) && (e2 == TIPO_REAL)) { // integer/float
-      writeTEXT("mov [aux], ebx");
-      writeTEXT("fld dword [aux]");
-      writeTEXT("mov [aux], eax");
-      writeTEXT("ficomp dword [aux]");
-      writeTEXT("fstsw ax");
-      writeTEXT("cmp ax, 0x100");
-    } else { // float/float
-      writeTEXT("mov [aux], eax");
-      writeTEXT("fld dword [aux]");
-      writeTEXT("mov [aux], ebx");
-      writeTEXT("fcomp dword [aux]");
-      writeTEXT("fstsw ax");
-      writeTEXT("cmp ax, 0");
-    }
-    writeTEXT("sete al");
-    writeTEXT("and eax, 0xff");
-  } else if ((e1 == TIPO_LITERAL) && (e2 == TIPO_LITERAL)) {
-    writeTEXT("push ebx");
-
-    writeTEXT("addarg eax");
-    writeTEXT("call strlen");
-    writeTEXT("clargs 1");
-
-    writeTEXT("pop ebx");
-    writeTEXT("push eax");
-
-    writeTEXT("addarg ebx");
-    writeTEXT("call strlen");
-    writeTEXT("clargs 1");
-
-    writeTEXT("mov ebx, eax");
-    writeTEXT("pop eax");
-
-    // compare lengths
-    writeTEXT("cmp eax, ebx");
-    writeTEXT("setg al");
-    writeTEXT("and eax, 0xff");
-
-  } else {
-    writeTEXT("cmp eax, ebx");
-    writeTEXT("setg al");
-    writeTEXT("and eax, 0xff");
-  }
-
-  writeTEXT("push eax");
+  writeOrderExpr(e1, e2, "setg", "seta", false);
 }
 
 void X86::writeMenorExpr(int e1, int e2) {
-  writeTEXT("pop ebx");
-  writeTEXT("pop eax");
-
-  if ((e1 == TIPO_REAL) || (e2 == TIPO_REAL)) {
-    writeTEXT("fninit");
-    if ((e1 == TIPO_REAL) && (e2 != TIPO_REAL)) { // float/integer
-      writeTEXT("mov [aux], eax");
-      writeTEXT("fld dword [aux]");
-      writeTEXT("mov [aux], ebx");
-      writeTEXT("ficomp dword [aux]");
-      writeTEXT("fstsw ax");
-      writeTEXT("cmp ax, 0x100");
-    } else if ((e1 != TIPO_REAL) && (e2 == TIPO_REAL)) { // integer/float
-      writeTEXT("mov [aux], ebx");
-      writeTEXT("fld dword [aux]");
-      writeTEXT("mov [aux], eax");
-      writeTEXT("ficomp dword [aux]");
-      writeTEXT("fstsw ax");
-      writeTEXT("cmp ax, 0");
-    } else { // float/float
-      writeTEXT("mov [aux], eax");
-      writeTEXT("fld dword [aux]");
-      writeTEXT("mov [aux], ebx");
-      writeTEXT("fcomp dword [aux]");
-      writeTEXT("fstsw ax");
-      writeTEXT("cmp ax, 0x100");
-    }
-    writeTEXT("sete al");
-    writeTEXT("and eax, 0xff");
-  } else if ((e1 == TIPO_LITERAL) && (e2 == TIPO_LITERAL)) {
-    writeTEXT("push ebx");
-
-    writeTEXT("addarg eax");
-    writeTEXT("call strlen");
-    writeTEXT("clargs 1");
-
-    writeTEXT("pop ebx");
-    writeTEXT("push eax");
-
-    writeTEXT("addarg ebx");
-    writeTEXT("call strlen");
-    writeTEXT("clargs 1");
-
-    writeTEXT("mov ebx, eax");
-    writeTEXT("pop eax");
-
-    // compare lengths
-    writeTEXT("cmp eax, ebx");
-    writeTEXT("setl al");
-    writeTEXT("and eax, 0xff");
-  } else {
-    writeTEXT("cmp eax, ebx");
-    writeTEXT("setl al");
-    writeTEXT("and eax, 0xff");
-  }
-
-  writeTEXT("push eax");
+  writeOrderExpr(e1, e2, "setl", "seta", true);
 }
 
 void X86::writeMaiorEqExpr(int e1, int e2) {
-  writeTEXT("pop ebx");
-  writeTEXT("pop eax");
-
-  if ((e1 == TIPO_REAL) || (e2 == TIPO_REAL)) {
-    writeTEXT("fninit");
-    if ((e1 == TIPO_REAL) && (e2 != TIPO_REAL)) { // float/integer
-      writeTEXT("mov [aux], eax");
-      writeTEXT("fld dword [aux]");
-      writeTEXT("mov [aux], ebx");
-      writeTEXT("ficomp dword [aux]");
-      writeTEXT("fstsw ax");
-      writeTEXT("cmp ax, 0");
-    } else if ((e1 != TIPO_REAL) && (e2 == TIPO_REAL)) { // integer/float
-      writeTEXT("mov [aux], ebx");
-      writeTEXT("fld dword [aux]");
-      writeTEXT("mov [aux], eax");
-      writeTEXT("ficomp dword [aux]");
-      writeTEXT("fstsw ax");
-      writeTEXT("cmp ax, 0x100");
-    } else { // float/float
-      writeTEXT("mov [aux], eax");
-      writeTEXT("fld dword [aux]");
-      writeTEXT("mov [aux], ebx");
-      writeTEXT("fcomp dword [aux]");
-      writeTEXT("fstsw ax");
-      writeTEXT("cmp ax, 0");
-    }
-    writeTEXT("sete bl");
-    writeTEXT("and ebx, 0xff");
-
-    writeTEXT("cmp ax, 0x4000");
-    writeTEXT("sete al");
-    writeTEXT("and eax, 0xff");
-    writeTEXT("or eax, ebx");
-  } else if ((e1 == TIPO_LITERAL) && (e2 == TIPO_LITERAL)) {
-    writeTEXT("push ebx");
-
-    writeTEXT("addarg eax");
-    writeTEXT("call strlen");
-    writeTEXT("clargs 1");
-
-    writeTEXT("pop ebx");
-    writeTEXT("push eax");
-
-    writeTEXT("addarg ebx");
-    writeTEXT("call strlen");
-    writeTEXT("clargs 1");
-
-    writeTEXT("mov ebx, eax");
-    writeTEXT("pop eax");
-
-    // compare lengths
-    writeTEXT("cmp eax, ebx");
-    writeTEXT("setge al");
-    writeTEXT("and eax, 0xff");
-  } else {
-    writeTEXT("cmp eax, ebx");
-    writeTEXT("setge al");
-    writeTEXT("and eax, 0xff");
-  }
-
-  writeTEXT("push eax");
+  writeOrderExpr(e1, e2, "setge", "setae", false);
 }
 
 void X86::writeMenorEqExpr(int e1, int e2) {
-  writeTEXT("pop ebx");
-  writeTEXT("pop eax");
+  writeOrderExpr(e1, e2, "setle", "setae", true);
+}
 
-  if ((e1 == TIPO_REAL) || (e2 == TIPO_REAL)) {
-    writeTEXT("fninit");
-    if ((e1 == TIPO_REAL) && (e2 != TIPO_REAL)) { // float/integer
-      writeTEXT("mov [aux], eax");
-      writeTEXT("fld dword [aux]");
-      writeTEXT("mov [aux], ebx");
-      writeTEXT("ficomp dword [aux]");
-      writeTEXT("fstsw ax");
-      writeTEXT("cmp ax, 0x100");
-    } else if ((e1 != TIPO_REAL) && (e2 == TIPO_REAL)) { // integer/float
-      writeTEXT("mov [aux], ebx");
-      writeTEXT("fld dword [aux]");
-      writeTEXT("mov [aux], eax");
-      writeTEXT("ficomp dword [aux]");
-      writeTEXT("fstsw ax");
-      writeTEXT("cmp ax, 0");
-    } else { // float/float
-      writeTEXT("mov [aux], eax");
-      writeTEXT("fld dword [aux]");
-      writeTEXT("mov [aux], ebx");
-      writeTEXT("fcomp dword [aux]");
-      writeTEXT("fstsw ax");
-      writeTEXT("cmp ax, 0x100");
-    }
-    writeTEXT("sete bl");
-    writeTEXT("and ebx, 0xff");
-
-    writeTEXT("cmp ax, 0x4000");
-    writeTEXT("sete al");
-    writeTEXT("and eax, 0xff");
-    writeTEXT("or eax, ebx");
-  } else if ((e1 == TIPO_LITERAL) && (e2 == TIPO_LITERAL)) {
-    writeTEXT("push ebx");
-
-    writeTEXT("addarg eax");
-    writeTEXT("call strlen");
-    writeTEXT("clargs 1");
-
-    writeTEXT("pop ebx");
-    writeTEXT("push eax");
-
-    writeTEXT("addarg ebx");
-    writeTEXT("call strlen");
-    writeTEXT("clargs 1");
-
-    writeTEXT("mov ebx, eax");
-    writeTEXT("pop eax");
-
-    // compare lengths
-    writeTEXT("cmp eax, ebx");
-    writeTEXT("setle al");
-    writeTEXT("and eax, 0xff");
-  } else {
-    writeTEXT("cmp eax, ebx");
-    writeTEXT("setle al");
-    writeTEXT("and eax, 0xff");
-  }
-
-  writeTEXT("push eax");
+void X86::writeRealArith(int e1, int e2, const string &op) {
+  writeLoadReals(e1, e2);
+  writeTEXT(op + " xmm0, xmm1");
+  writeTEXT("movq rax, xmm0");
 }
 
 void X86::writeMaisExpr(int e1, int e2) {
-  writeTEXT("pop ebx");
-  writeTEXT("pop eax");
+  writeTEXT("pop rbx");
+  writeTEXT("pop rax");
 
   if ((e1 == TIPO_REAL) || (e2 == TIPO_REAL)) {
-    string addpop;
-    writeTEXT("fninit");
-    if ((e1 == TIPO_REAL) && (e2 != TIPO_REAL)) { // float/integer
-      writeTEXT("mov [aux], eax");
-      writeTEXT("fld dword [aux]");
-      writeTEXT("mov [aux], ebx");
-      addpop = "fiadd dword [aux]";
-    } else if ((e1 != TIPO_REAL) && (e2 == TIPO_REAL)) { // integer/float
-      writeTEXT("mov [aux], ebx");
-      writeTEXT("fld dword [aux]");
-      writeTEXT("mov [aux], eax");
-      addpop = "fiadd dword [aux]";
-    } else { // float/float
-      writeTEXT("mov [aux], eax");
-      writeTEXT("fld dword [aux]");
-      writeTEXT("mov [aux], ebx");
-      addpop = "fadd dword [aux]";
-    }
-    writeTEXT(addpop);
-    writeTEXT("fstp dword [aux]");
-    writeTEXT("mov eax, dword [aux]");
+    writeRealArith(e1, e2, "addsd");
   } else {
     writeTEXT("add eax, ebx");
   }
 
-  writeTEXT("push eax");
+  writeTEXT("push rax");
 }
 
 void X86::writeMenosExpr(int e1, int e2) {
-  writeTEXT("pop ebx");
-  writeTEXT("pop eax");
+  writeTEXT("pop rbx");
+  writeTEXT("pop rax");
 
   if ((e1 == TIPO_REAL) || (e2 == TIPO_REAL)) {
-    string subop;
-    writeTEXT("fninit");
-    if ((e1 == TIPO_REAL) && (e2 != TIPO_REAL)) { // float/integer
-      writeTEXT("mov [aux], eax");
-      writeTEXT("fld dword [aux]");
-      writeTEXT("mov [aux], ebx");
-      subop = "fisub dword [aux]";
-    } else if ((e1 != TIPO_REAL) && (e2 == TIPO_REAL)) { // integer/float
-      writeTEXT("mov [aux], ebx");
-      writeTEXT("fld dword [aux]");
-      writeTEXT("mov [aux], eax");
-      subop = "fisubr dword [aux]";
-    } else { // float/float
-      writeTEXT("mov [aux], eax");
-      writeTEXT("fld dword [aux]");
-      writeTEXT("mov [aux], ebx");
-      subop = "fsub dword [aux]";
-    }
-    writeTEXT(subop);
-    writeTEXT("fstp dword [aux]");
-    writeTEXT("mov eax, dword [aux]");
+    writeRealArith(e1, e2, "subsd");
   } else {
     writeTEXT("sub eax, ebx");
   }
 
-  writeTEXT("push eax");
+  writeTEXT("push rax");
 }
 
-// With the divisor in ebx, a zero ends the program with the interpreter's
+// With the divisor in rbx, a zero ends the program with the interpreter's
 // message. A real divisor is tested without its sign bit so that -0.0 also
 // counts as zero.
 void X86::writeDivisorCheck(int line, bool realDivisor) {
   string ok = createLabel(true, "div");
   stringstream s;
 
-  writeTEXT(realDivisor ? "test ebx, 0x7fffffff" : "cmp ebx, 0");
+  if (realDivisor) {
+    writeTEXT("mov rcx, rbx");
+    writeTEXT("shl rcx, 1");
+  } else {
+    writeTEXT("cmp ebx, 0");
+  }
   writeTEXT("jne " + ok);
   s << "addarg " << line;
   writeTEXT(s.str());
@@ -1057,114 +828,85 @@ void X86::writeSignedDivide(int line, bool remainder) {
 }
 
 void X86::writeDivExpr(int e1, int e2, int line) {
-  writeTEXT("pop ebx");
-  writeTEXT("pop eax");
+  writeTEXT("pop rbx");
+  writeTEXT("pop rax");
 
   if ((e1 == TIPO_REAL) || (e2 == TIPO_REAL)) {
-    string divpop;
     writeDivisorCheck(line, e2 == TIPO_REAL);
-    writeTEXT("fninit");
-    if ((e1 == TIPO_REAL) && (e2 != TIPO_REAL)) { // float/integer
-      writeTEXT("mov [aux], eax");
-      writeTEXT("fld dword [aux]");
-      writeTEXT("mov [aux], ebx");
-      divpop = "fidiv dword [aux]";
-    } else if ((e1 != TIPO_REAL) && (e2 == TIPO_REAL)) { // integer/float
-      writeTEXT("mov [aux], ebx");
-      writeTEXT("fld dword [aux]");
-      writeTEXT("mov [aux], eax");
-      divpop = "fidivr dword [aux]";
-    } else { // float/float
-      writeTEXT("mov [aux], eax");
-      writeTEXT("fld dword [aux]");
-      writeTEXT("mov [aux], ebx");
-      divpop = "fdiv dword [aux]";
-    }
-    writeTEXT(divpop);
-    writeTEXT("fstp dword [aux]");
-    writeTEXT("mov eax, dword [aux]");
+    writeRealArith(e1, e2, "divsd");
   } else {
     writeSignedDivide(line, false);
   }
 
-  writeTEXT("push eax");
+  writeTEXT("push rax");
 }
 
 void X86::writeMultipExpr(int e1, int e2) {
-  writeTEXT("pop ebx");
-  writeTEXT("pop eax");
+  writeTEXT("pop rbx");
+  writeTEXT("pop rax");
 
   if ((e1 == TIPO_REAL) || (e2 == TIPO_REAL)) {
-    string mulpop;
-    writeTEXT("fninit");
-    if ((e1 == TIPO_REAL) && (e2 != TIPO_REAL)) { // float/integer
-      writeTEXT("mov [aux], eax");
-      writeTEXT("fld dword [aux]");
-      writeTEXT("mov [aux], ebx");
-      mulpop = "fimul dword [aux]";
-    } else if ((e1 != TIPO_REAL) && (e2 == TIPO_REAL)) { // integer/float
-      writeTEXT("mov [aux], ebx");
-      writeTEXT("fld dword [aux]");
-      writeTEXT("mov [aux], eax");
-      mulpop = "fimul dword [aux]";
-    } else { // float/float
-      writeTEXT("mov [aux], eax");
-      writeTEXT("fld dword [aux]");
-      writeTEXT("mov [aux], ebx");
-      mulpop = "fmul dword [aux]";
-    }
-    writeTEXT(mulpop);
-    writeTEXT("fstp dword [aux]");
-    writeTEXT("mov eax, dword [aux]");
+    writeRealArith(e1, e2, "mulsd");
   } else {
     writeTEXT("imul eax, ebx");
   }
 
-  writeTEXT("push eax");
+  writeTEXT("push rax");
 }
 
 void X86::writeModExpr(int line) {
-  writeTEXT("pop ebx");
-  writeTEXT("pop eax");
+  writeTEXT("pop rbx");
+  writeTEXT("pop rax");
 
   writeSignedDivide(line, true);
 
-  writeTEXT("push eax");
+  writeTEXT("push rax");
 }
 
 void X86::writeUnaryNeg(int etype) {
-  writeTEXT("pop eax");
+  writeTEXT("pop rax");
 
-  stringstream s;
   if (etype == TIPO_REAL) {
-    s << "xor eax ,0x80000000";
+    writeTEXT("btc rax, 63");
   } else {
-    s << "neg eax";
+    writeTEXT("neg eax");
   }
-  writeTEXT(s.str());
 
-  writeTEXT("push eax");
+  writeTEXT("push rax");
 }
 
 void X86::writeUnaryNot() {
-  writeTEXT("pop eax");
+  writeTEXT("pop rax");
 
   writeTEXT("mov ebx, eax");
   writeTEXT("xor eax, eax");
   writeTEXT("cmp ebx, 0");
   writeTEXT("sete al");
 
-  writeTEXT("push eax");
+  writeTEXT("push rax");
 }
 
 void X86::writeUnaryBitNotExpr() {
-  writeTEXT("pop eax");
+  writeTEXT("pop rax");
   writeTEXT("not eax");
 
-  writeTEXT("push eax");
+  writeTEXT("push rax");
 }
 
-void X86::writeLiteralExpr(int, const string &src) { writeTEXT("push " + src); }
+// push sign-extends a 32-bit immediate, so a real and an integer literal
+// above INT_MAX (only reachable as the operand of a unary minus) go through
+// rax.
+void X86::writeLiteralExpr(int type, const string &src) {
+  if (type == TIPO_REAL) {
+    writeTEXT("mov rax, " + src);
+    writeTEXT("push rax");
+  } else if (type == TIPO_INTEIRO && strtoll(src.c_str(), NULL, 10) > INT_MAX) {
+    writeTEXT("mov eax, " + src);
+    writeTEXT("push rax");
+  } else {
+    writeTEXT("push " + src);
+  }
+}
 
 // The message names only the subscript that failed, so for a matrix with
 // several dimensions it shows "m[7]" where the interpreter shows "m[1][7]".
@@ -1179,7 +921,8 @@ void X86::writeIndexCheck(const string &name, int line, int size) {
   s << "cmp eax, " << size;
   writeTEXT(s.str());
   writeTEXT("jb " + ok);
-  writeTEXT("addarg eax");
+  writeTEXT("movsxd rax, eax");
+  writeTEXT("addarg rax");
   writeTEXT("addarg " + lit->second);
   s.str("");
   s << "addarg " << line;
@@ -1189,17 +932,14 @@ void X86::writeIndexCheck(const string &name, int line, int size) {
 }
 
 void X86::writeLValueExpr(pair<pair<int, bool>, string> &lv) {
-  stringstream s;
+  writeTEXT("lea rdx, [" + X86::makeID(lv.second) + "]");
+  writeTEXT("lea rdx, [rdx + rcx * SIZEOF_SLOT]");
 
-  s << "lea edx, [" << X86::makeID(lv.second) << "]";
-  writeTEXT(s.str());
-  writeTEXT("lea edx, [edx + ecx * SIZEOF_DWORD]");
-
-  if (lv.first.second) { // using matrix (ie mat), oush matrix address
+  if (lv.first.second) { // using matrix (ie mat), push matrix address
                          //(probably passing mat to a function f(mm[])
-    writeTEXT("push edx");
+    writeTEXT("push rdx");
   } else { // not using matrix (ie. mat[1] or x), push the value of var/index
-    writeTEXT("push dword [edx]");
+    writeTEXT("push qword [rdx]");
   }
 }
 
@@ -1208,7 +948,7 @@ string X86::toChar(const string &str) {
   if (str.length() == 0) {
     return "0";
   } else if (str[0] != '\\') {
-    s << (int)str[0];
+    s << (int)(unsigned char)str[0];
     return s.str();
   } else {
     string ret;
@@ -1222,24 +962,25 @@ string X86::toChar(const string &str) {
     case 'r':
       ret = "13";
       break;
+    case 't':
+      ret = "9";
+      break;
     default:
-      s << (int)str[1];
+      s << (int)(unsigned char)str[1];
       ret = s.str();
     }
     return ret;
   }
 }
 
-// extrai os bytes que representam um número em ponto flutuante
-// e devolve o inteiro como string
+// The literal as the 64 bits of its double, in hexadecimal.
 string X86::toReal(const string &str) {
-  float fvalue = (float)atof(str.c_str());
-  unsigned char *cp = (unsigned char *)&fvalue;
-
-  int i = cp[0] + (cp[1] << 8) + (cp[2] << 16) + (cp[3] << 24);
+  double value = atof(str.c_str());
+  unsigned long long bits;
+  memcpy(&bits, &value, sizeof bits);
 
   stringstream s;
-  s << i;
+  s << "0x" << hex << bits;
 
   return s.str();
 }

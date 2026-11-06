@@ -1,0 +1,22 @@
+algoritmo leia_invalido;
+variáveis
+  i : inteiro;
+  r : real;
+  c : caractere;
+fim-variáveis
+início
+  i := leia(); imprima("i=", i);
+  i := leia(); imprima("i=", i);
+  i := leia(); imprima("i=", i);
+  i := leia(); imprima("i=", i);
+  i := leia(); imprima("i=", i);
+  r := leia(); imprima("r=", r);
+  r := leia(); imprima("r=", r);
+  r := leia(); imprima("r=", r);
+  r := leia(); imprima("r=", r);
+  r := leia(); imprima("r=", r);
+  r := leia(); imprima("r=", r);
+  r := leia(); imprima("r=", r);
+  c := leia(); imprima("c=", c);
+  c := leia(); imprima("c=", c);
+fim

@@ -63,10 +63,10 @@
 extern char **environ;
 #endif
 
-// The native backend emits 32-bit x86 assembly and NASM turns it into a flat
-// binary, so -o only yields something runnable when gpt itself runs on x86.
-#if defined(__i386__) || defined(__x86_64__) || defined(_M_IX86) ||            \
-    defined(_M_X64)
+// The native backend emits x86-64 assembly and NASM turns it into a flat
+// binary, so -o only yields something runnable when gpt itself runs on
+// x86-64.
+#if defined(__x86_64__) || defined(_M_X64)
 #define GPT_HOST_X86 1
 #endif
 
@@ -292,7 +292,8 @@ void GPT::showHelp() {
        "Opções:\n"
        "   -v            mostra versão do programa\n"
        "   -h            mostra esse texto\n"
-       "   -o <arquivo>  compila e salva programa como <arquivo> (só em x86)\n"
+       "   -o <arquivo>  compila e salva programa como <arquivo> (só em "
+       "x86-64)\n"
        "   -t <arquivo>  salva o código em linguagem C como <arquivo>\n"
        "   -s <arquivo>  salva o código em linguagem Assembly como <arquivo>\n"
        "   -i            interpreta o algoritmo\n"
@@ -438,7 +439,7 @@ bool GPT::compile(const list<string> &ifnames, bool genBinary) {
 
 #ifndef GPT_HOST_X86
   if (genBinary) {
-    s << PACKAGE << ": a geração de executável só funciona em máquinas x86. "
+    s << PACKAGE << ": a geração de executável só funciona em máquinas x86-64. "
       << "Use -t para traduzir o algoritmo para C." << endl;
     GPTDisplay::self()->showError(s);
     return false;
