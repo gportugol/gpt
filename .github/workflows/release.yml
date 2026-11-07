@@ -106,42 +106,42 @@ jobs:
     steps:
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
-          name: gpt-windows
-          path: release/windows
+          name: gpt-windows-x86_64
+          path: release/windows-x86_64
 
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
-          name: gpt-linux
-          path: release/linux
+          name: gpt-linux-x86_64
+          path: release/linux-x86_64
 
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
-          name: gpt-linux-arm64
-          path: release/linux-arm64
+          name: gpt-linux-aarch64
+          path: release/linux-aarch64
 
-      - name: Repack Windows zip
+      - name: Repack Windows x86_64 zip
         run: |
           cd release
           TAG=${{ github.event.release.tag_name }}
-          mv windows "gpt-${TAG}"
+          mv windows-x86_64 "gpt-${TAG}"
           zip -r "gpt-win-x86_64.zip" "gpt-${TAG}"
           rm -rf "gpt-${TAG}"
 
-      - name: Repack Linux tar.gz
+      - name: Repack Linux x86_64 tar.gz
         run: |
           cd release
           TAG=${{ github.event.release.tag_name }}
-          mv linux "gpt-${TAG}"
+          mv linux-x86_64 "gpt-${TAG}"
           # The artifact zip stores every file as 644.
           chmod +x "gpt-${TAG}/bin/gpt"
           tar -czf "gpt-linux-x86_64.tar.gz" "gpt-${TAG}"
           rm -rf "gpt-${TAG}"
 
-      - name: Repack Linux arm64 tar.gz
+      - name: Repack Linux aarch64 tar.gz
         run: |
           cd release
           TAG=${{ github.event.release.tag_name }}
-          mv linux-arm64 "gpt-${TAG}"
+          mv linux-aarch64 "gpt-${TAG}"
           chmod +x "gpt-${TAG}/bin/gpt"
           tar -czf "gpt-linux-aarch64.tar.gz" "gpt-${TAG}"
           rm -rf "gpt-${TAG}"

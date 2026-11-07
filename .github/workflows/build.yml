@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 jobs:
-  build-linux:
+  build-linux-x86_64:
     if: ${{ inputs.target == 'linux' || inputs.target == 'all' }}
     runs-on: ubuntu-latest
     container:
@@ -47,10 +47,10 @@ jobs:
       - name: Upload Linux Artifact
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: gpt-linux
+          name: gpt-linux-x86_64
           path: dist/*
 
-  build-linux-arm64:
+  build-linux-aarch64:
     if: ${{ inputs.target == 'linux' || inputs.target == 'all' }}
     runs-on: ubuntu-24.04-arm
     container:
@@ -83,7 +83,7 @@ jobs:
       - name: Upload Linux Artifact
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: gpt-linux-arm64
+          name: gpt-linux-aarch64
           path: dist/*
 
   build-linux-i386:
@@ -122,7 +122,7 @@ jobs:
       - name: Run Tests under linux32 as in sbuild
         run: docker exec i386 setarch i686 bash test/run_test.sh
 
-  build-windows:
+  build-windows-x86_64:
     if: ${{ inputs.target == 'windows' || inputs.target == 'all' }}
     runs-on: windows-latest
 
@@ -226,5 +226,5 @@ jobs:
       - name: Upload Windows ZIP Artifact
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: gpt-windows
+          name: gpt-windows-x86_64
           path: dist/*
