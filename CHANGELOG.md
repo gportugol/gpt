@@ -3,7 +3,21 @@
 Todas as mudanças relevantes do **GPT (GPortugol)** organizadas por release.
 Este arquivo foi consolidado a partir do ChangeLog histórico (CVS/SVN).
 
-## [1.4.0] - 2026-10-26
+## [Unreleased]
+
+### Adicionado
+
+- Backend AArch64 para GNU/Linux. Numa máquina arm64, `gpt -o` gera o
+  executável com o `as` e o `ld` do binutils, e `gpt -s` grava o assembly
+  GNU correspondente. Em outra máquina, o `gpt` chama
+  `aarch64-linux-gnu-as` e `aarch64-linux-gnu-ld`. Esse backend não usa o
+  NASM, que não monta código AArch64.
+- Opção `-a <arq>`, que escolhe a arquitetura do código de `-o` e `-s`:
+  `x86-64` (ou `x86_64` e `amd64`) ou `arm64` (ou `aarch64`). Sem ela, vale a
+  arquitetura da máquina que roda o `gpt`. As páginas man e o manual
+  descrevem a opção e as ferramentas que cada arquitetura usa.
+- Cada release publica também `gpt-linux-aarch64.tar.gz`, compilado e
+  testado no CI num runner arm64.
 
 ### Alterado
 
@@ -12,11 +26,59 @@ Este arquivo foi consolidado a partir do ChangeLog histórico (CVS/SVN).
   ferramenta `antlr4` (Java) com o runtime C++ `libantlr4-runtime`. A
   análise semântica, o interpretador, o gerador x86 e o tradutor para C são
   agora classes C++ que percorrem a árvore sintática, portadas dos walkers
-  ANTLR2 originais, e produzem a mesma saída da versão 1.3.0.
+  ANTLR2 originais, e produzem a mesma saída da versão 1.4.0. O build
+  exige um compilador C++17 e um runtime 4.9 ou mais novo da mesma versão
+  4.x da ferramenta (com o runtime 4.9, a ferramenta pode ser de 4.7 a 4.9).
+  O `configure` recusa outras combinações, como a ferramenta 4.9.2 com o
+  runtime 4.10 do Ubuntu 24.04, cujo parser gerado não compila.
 - Mensagens de erro sintático e léxico mantêm o formato
   `arquivo:linha - Esperando X, encontrado Y` e as dicas da opção `-d`.
+  Algumas mensagens mudam com a recuperação de erros do novo parser.
 - Strings aceitam qualquer caractere UTF-8; literais de caractere continuam
   limitados ao Latin-1.
+- `gpt -o` gera executáveis x86-64, ELF64 no GNU/Linux e PE32+ no Windows,
+  no lugar de ELF32 e PE32. Os reais passam a ser `double` em SSE2, e não
+  mais `float` no x87. Um executável gerado agora exige um sistema de 64
+  bits.
+- No Windows, qualquer NASM 2.x monta o código gerado, e o zip da release
+  traz o NASM do MSYS2. Antes o template PE32 dependia de um pacote de macros
+  que só o NASM 0.99.05 aceitava.
+- Sem `-a`, `gpt -o` recusa gerar executável numa máquina que não é x86-64
+  nem arm64 e sugere `-t`. A exceção é o GNU/Linux x86 de 32 bits com kernel
+  de 64 bits, como o i386 do Debian 13, que não tem mais kernel de 32 bits:
+  ali o `gpt` gera x86-64, inclusive sob a personalidade `linux32`. Com
+  kernel de 32 bits, onde a 1.4.0 gerava ELF32, `gpt -o` passa a recusar.
+- Com `--enable-install-devel`, a `libgportugol` instalada passa a ser
+  `libgportugol.so.1`, porque a maior parte dos símbolos da `.so.0` sumiu com
+  o ANTLR 2, e liga o runtime do ANTLR 4 e o PCRE2 que ela chama. A suíte de
+  regressão também passa nessa configuração, em que `src/gpt` é o wrapper do
+  libtool.
+- O CI compila e testa o `gpt` também num runner arm64 e num container
+  i386, e o job x86-64 roda a suíte para arm64 sob `qemu-aarch64`, com as
+  variáveis `GPT_TEST_ARCH` e `GPT_TEST_RUNNER` do `test/run_test.sh`. Os jobs
+  e artefatos levam o nome da arquitetura, e os nomes dos arquivos da release
+  não mudam.
+
+### Corrigido
+
+- A função `arredonda` da biblioteca padrão não tinha `retorne` e devolvia
+  um valor indefinido, que mudava com o modo e com as chamadas anteriores.
+  Agora `arredonda(2.6)` dá `3.00` nos três modos.
+- No executável nativo, os reais tinham precisão simples, então
+  `12345678.9` saía como `12345679.00` e `123456789012.0` como `28.74`. Ele
+  também imprimia `-0.5` como `0.50` e `99.999` como `99.010`, escrevia `t`
+  no lugar da tabulação de `\t` e mostrava um literal vazio devolvido por
+  função como texto vazio em vez de `(nulo)`. Agora a saída é igual à da
+  tradução para C.
+- `imprima` mostrava o sinal de um NaN, que depende do processador: o NaN de
+  `inf - inf` saía como `-nan` no x86 e como `nan` no ARM. Agora sai como
+  `nan` nos três modos e em qualquer processador, e o manual explica como
+  `inf` e `nan` são impressos.
+
+## [1.4.0] - 2026-10-26
+
+### Alterado
+
 - Sem `-o`, o programa compilado recebe o nome do primeiro arquivo fonte, sem
   o diretório e a extensão, e não mais o identificador de
   `algoritmo <nome>;`. Esse identificador deixava o fonte escolher qual
@@ -134,7 +196,7 @@ Este arquivo foi consolidado a partir do ChangeLog histórico (CVS/SVN).
 - O `HACKING.md` explica por que o Windows precisa do NASM 0.99.05 (as
   versões 2.16.01 e 3.01 rejeitam o assembly gerado) e como rodar a suíte de
   regressão.
-- Os downloads usados no build da release (ANTLR, JDK e NASM) são
+- Os downloads usados no build da release (ANTLR 2.7.7, JDK e NASM) são
   conferidos por SHA-256, e as GitHub Actions são fixadas por commit.
 - O push só dispara o CI na `master`, então um commit de pull request deixa
   de rodar duas vezes, pelo push e pelo evento `pull_request`.

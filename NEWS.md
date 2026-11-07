@@ -5,6 +5,22 @@ Notícias e destaques das versões do **GPT (GPortugol)**.
 Este arquivo apresenta um resumo das principais mudanças de cada versão, com
 foco em funcionalidades e correções relevantes para os usuários.
 
+## Unreleased
+
+- `gpt -o` gera executáveis de 64 bits: ELF64 x86-64 no GNU/Linux e PE32+
+  no Windows. Os reais do executável nativo passam a ter precisão dupla e
+  saem iguais aos da tradução para C, e qualquer NASM 2.x monta o código.
+- Novo backend AArch64 para GNU/Linux, que gera executáveis com o `as` e o
+  `ld` do binutils, e nova opção `-a` para escolher entre `x86-64` e
+  `arm64`. Cada release traz também um pacote para Linux aarch64.
+- Num GNU/Linux i386 sobre kernel de 64 bits, como o i386 do Debian 13,
+  `gpt -o` gera executável x86-64.
+- O lexer e o parser passam a ser gerados pelo ANTLR 4, que substitui o
+  ANTLR 2.7.7 no build, e strings aceitam qualquer caractere UTF-8.
+- A função `arredonda` da biblioteca padrão passa a devolver o valor
+  arredondado.
+- Um NaN sai como `nan` nos três modos, em qualquer processador.
+
 ## 1.4.0 - 2026-10-26
 
 - O executável nativo e a tradução para C conferem os índices de matriz e
