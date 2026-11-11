@@ -949,6 +949,26 @@ done
 echo ""
 
 echo "========================================"
+echo "Variáveis globais"
+echo "========================================"
+# Global variables start zeroed, so they take no room in the executable,
+# where the 2000000 slots of globais_grandes would need 16 MB.
+if [ $CAN_EXEC_NATIVE -eq 0 ] || [ $HAVE_ASSEMBLER -eq 0 ]; then
+	echo "⚠ tamanho do executável: pulado (sem backend nativo ou sem ${ASSEMBLER:-montador})"
+elif ! $TIMEOUT "$GPT" "${GPT_A[@]}" -o "$TMP/globais.bin" casos/globais_grandes.gpt >"$TMP/globais.build" 2>&1; then
+	fail "tamanho do executável: compilação falhou"
+	head -5 "$TMP/globais.build"
+else
+	TAMANHO=$(wc -c <"$TMP/globais.bin")
+	if [ "$TAMANHO" -lt 1048576 ]; then
+		ok "matriz global fora do executável ($TAMANHO bytes)"
+	else
+		fail "matriz global fora do executável: $TAMANHO bytes (esperado: menos de 1 MiB)"
+	fi
+fi
+echo ""
+
+echo "========================================"
 echo "Segmentos do executável"
 echo "========================================"
 # The generated ELF must declare a non-executable stack and keep the code

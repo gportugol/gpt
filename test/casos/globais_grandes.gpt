@@ -1,0 +1,15 @@
+algoritmo globais_grandes;
+variáveis
+  m : matriz[2000000] de inteiros;
+  s : literal;
+  i : inteiro;
+  r : real;
+  l : lógico;
+  c : caractere;
+fim-variáveis
+início
+  i := c;
+  imprima(m[0], " ", m[1999999], " [", s, "] ", i, " ", r, " ", l);
+  m[1999999] := 5;
+  imprima(m[1999998], " ", m[1999999]);
+fim
