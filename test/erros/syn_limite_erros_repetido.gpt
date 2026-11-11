@@ -1,0 +1,7 @@
+algoritmo syn_limite_erros_repetido;
+variáveis
+  y: inteiro;
+fim-variáveis
+início
+  y := 1;
+fim

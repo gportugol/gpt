@@ -447,6 +447,16 @@ void PortugolErrorStrategy::report(Parser *recognizer, Token *offending) {
                                      tokenText(offending) + "\"",
                                  line, cd);
   }
+
+  // Each error lands on the line of a token at or after the previous
+  // error, and the display shows the earliest errors by file and line, so
+  // the ones after this would not be shown, unless a file name repeats and
+  // a later copy sorts before an earlier one. Recovering from them is
+  // costly: each walks the whole rule stack.
+  if (++_reported == GPTDisplay::self()->MAX_ERRORS &&
+      GPTDisplay::self()->distinctFileNames()) {
+    throw ParseCancellationException();
+  }
 }
 
 void PortugolLexerErrorListener::syntaxError(

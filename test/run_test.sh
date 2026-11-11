@@ -659,6 +659,25 @@ else
 	fail "-d com literal sem vírgula antes: código $RESULT (esperado: 1 e a dica com \"x\")"
 	echo "$ERRO"
 fi
+
+# Only the first 10 errors are shown, and recovering from each syntax error
+# walks the whole rule stack, so these 6000 errors inside 97 nested calls
+# took half a minute while the parser went on after the last error it could
+# show.
+{
+	printf 'algoritmo erros;\nvariáveis\n  x: inteiro;\nfim-variáveis\ninício\n'
+	yes "x := $(printf 'f(%.0s' $(seq 97));" | head -n 6000
+	printf 'fim\n'
+} >"$TMP/muitos_erros.gpt"
+ERRO=$(cd "$TMP" && ${TIMEOUT:+timeout 10} "$GPT" -s "$TMP/muitos_erros.s" muitos_erros.gpt 2>&1 </dev/null >/dev/null)
+RESULT=$?
+if [ $RESULT -eq 1 ] && [ "$(grep -c '^muitos_erros.gpt:' <<<"$ERRO")" -eq 10 ] &&
+	grep -q '^muitos_erros.gpt:15 - Esperando ' <<<"$ERRO"; then
+	ok "-s com 6000 erros de sintaxe"
+else
+	fail "-s com 6000 erros de sintaxe: código $RESULT (esperado: 1 e 10 erros em menos de 10 s)"
+	echo "$ERRO"
+fi
 echo ""
 
 echo "========================================"
