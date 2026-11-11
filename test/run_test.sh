@@ -35,7 +35,6 @@
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 GPT="$SCRIPT_DIR/../src/gpt"
-TMP="${TMPDIR:-/tmp}/gpt_test_$$"
 
 FAILURES=0
 PASSED=0
@@ -46,7 +45,7 @@ if [ ! -f "$GPT" ]; then
 	exit 1
 fi
 
-mkdir -p "$TMP"
+TMP=$(mktemp -d "${TMPDIR:-/tmp}/gpt_test.XXXXXX") || exit 1
 trap 'rm -rf "$TMP"' EXIT
 
 # Detect architecture / platform
