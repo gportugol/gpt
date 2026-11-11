@@ -253,13 +253,55 @@ jobs:
           make install DESTDIR=$PWD/release
           mkdir -p dist
           mv release/usr/local/* dist/
-          cp /ucrt64/bin/nasm.exe dist/bin/
-          ldd /usr/local/bin/gpt | grep "/ucrt64/" | awk '{print $3}' | while read dll; do
-              if [ -f "$dll" ]; then
-                  echo "Copying $dll"
-                  cp "$dll" dist/bin/
+          # The licenses of NASM, of the ANTLR4 runtime and of winpthreads
+          # ask binary copies to carry their notices.
+          ship_licenses() {
+              pkg=$(pacman -Qqo "$1")
+              files=$(pacman -Qlq "$pkg" | grep '^/ucrt64/share/licenses/.*[^/]$' || true)
+              if [ -n "$files" ]; then
+                  for f in $files; do
+                      rel=${f#/ucrt64/share/}
+                      mkdir -p "dist/share/${rel%/*}"
+                      cp "$f" "dist/share/$rel"
+                  done
+              elif [ "$pkg" = mingw-w64-ucrt-x86_64-antlr4-runtime-cpp ]; then
+                  # This package has no license file. configure requires the
+                  # runtime to be the 4.x release of the ANTLR4 tool above.
+                  mkdir -p dist/share/licenses/antlr4-runtime-cpp
+                  wget -O dist/share/licenses/antlr4-runtime-cpp/LICENSE.txt \
+                    https://raw.githubusercontent.com/antlr/antlr4/4.13.2/LICENSE.txt
+                  echo "3db1fb3ee79a4b4f9918fc4d0f6133bf18a3cf787f126cd22f8aa9b862281c0c  dist/share/licenses/antlr4-runtime-cpp/LICENSE.txt" | sha256sum -c -
+              else
+                  echo "$pkg, which provides $1, has no license file" >&2
+                  return 1
               fi
+          }
+          cp /ucrt64/bin/nasm.exe dist/bin/
+          ship_licenses /ucrt64/bin/nasm.exe
+          for exe in /usr/local/bin/gpt.exe /ucrt64/bin/nasm.exe; do
+              ldd "$exe"
+          done | awk '$3 ~ "^/ucrt64/" {print $3}' | sort -u | while read -r dll; do
+              echo "Copying $dll"
+              cp "$dll" dist/bin/
+              ship_licenses "$dll"
           done
+          mkdir -p dist/share/doc/nasm
+          {
+              pacman -Qo /ucrt64/bin/nasm.exe
+              dist/bin/nasm.exe -v
+              (cd dist/bin && sha256sum nasm.exe)
+          } > dist/share/doc/nasm/VERSION
+          cat dist/share/doc/nasm/VERSION
+
+      # With only the Windows directories in PATH, a DLL that the zip lacks
+      # makes gpt.exe or nasm.exe fail here, as on a machine without MSYS2.
+      - shell: msys2 {0}
+        name: Check Windows Package without MSYS2
+        run: |
+          PATH="$(cygpath -S):$(cygpath -W)"
+          dist/bin/nasm.exe -v
+          dist/bin/gpt.exe -o olamundo.exe exemplos/olamundo.gpt
+          ./olamundo.exe
 
       - name: Upload Windows ZIP Artifact
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
