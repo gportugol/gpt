@@ -144,6 +144,7 @@ static string xmlEscape(const string &str) {
 }
 
 InterpreterDBG::InterpreterDBG() {
+  breakpointCount = 0;
   currentCmd = CMDNull;
 #ifndef WIN32
   clientsock = -1;
@@ -554,73 +555,73 @@ int InterpreterDBG::receiveCmd(bool nonBlocking) {
 }
 
 void InterpreterDBG::processBreakpointCMD(string &bpcommand) {
-  // cerr << "process breakpoint " << bpcommand << endl;
+  // An editor sets a few breakpoints on files whose names fit PATH_MAX. The
+  // caps keep a peer from growing memory, and the lookup done at every
+  // statement, without bound.
+  const size_t maxBreakpoints = 1000;
+  const size_t maxFileName = 4096;
 
   pcre2_code *re;
   pcre2_match_data *md;
-  PCRE2_UCHAR *str;
   PCRE2_SPTR pat, subj;
   PCRE2_SIZE offset;
-  int line, rc;
+  int rc;
 
   pat = reinterpret_cast<PCRE2_SPTR>(
       "breakpoint cmd=(add|remove).*file=\"([^\"]*)\".*line=(\\d+)");
   subj = reinterpret_cast<PCRE2_SPTR>(bpcommand.c_str());
   re = pcre2_compile(pat, PCRE2_ZERO_TERMINATED, 0, &rc, &offset, nullptr);
-  if (offset != 0) {
+  if (re == nullptr) {
     return;
   }
 
   md = pcre2_match_data_create_from_pattern(re, nullptr);
+  if (md == nullptr) {
+    pcre2_code_free(re);
+    return;
+  }
   rc = pcre2_match(re, subj, bpcommand.length(), 0, 0, md, nullptr);
   pcre2_code_free(re);
   if (rc != 4) {
-    // cerr << PACKAGE << ": comando invalido (2): \"" << cmd << "\"" << endl;
     pcre2_match_data_free(md);
     return;
   }
 
-  pcre2_substring_get_bynumber(md, 1, &str, &offset);
-  string cmd(reinterpret_cast<char *>(str));
-  pcre2_substring_free(str);
-  pcre2_substring_get_bynumber(md, 2, &str, &offset);
-  string file(reinterpret_cast<char *>(str));
-  pcre2_substring_free(str);
-  pcre2_substring_get_bynumber(md, 3, &str, &offset);
-  line = atoi((const char *)str);
-  pcre2_substring_free(str);
+  // Every group takes part in a match, so each pair of offsets delimits its
+  // text and nothing needs to be copied out by PCRE2.
+  PCRE2_SIZE *ov = pcre2_get_ovector_pointer(md);
+  string cmd = bpcommand.substr(ov[2], ov[3] - ov[2]);
+  string file = bpcommand.substr(ov[4], ov[5] - ov[4]);
+  int line = atoi(bpcommand.c_str() + ov[6]);
   pcre2_match_data_free(md);
 
-  // cerr << PACKAGE << ": capturado:" << cmd << ":" << file << ":" << line <<
-  // endl;
-
-  if (cmd == "add") {
-    breakpoints[file].push_back(line);
-    // cerr << PACKAGE << ": adding \"" << file << ":" << line << " -- " << cmd
-    // << "\"" << endl;
-  } else if (cmd == "remove") {
-    breakpoints[file].remove(line);
-    // cerr << PACKAGE << ": removing \"" << file << ":" << line << " -- " <<
-    // cmd << "\"" << endl;
-  } else {
-    cerr << PACKAGE << ": breakpoint cmd invalido \"" << bpcommand << "\""
-         << endl;
-    return;
+  map<string, set<int>>::iterator it = breakpoints.find(file);
+  bool present = it != breakpoints.end() && it->second.count(line) != 0;
+  if (cmd == "add" && !present) {
+    if (file.length() > maxFileName) {
+      dropConnection("nome de arquivo longo demais num ponto de parada");
+      return;
+    }
+    if (breakpointCount >= maxBreakpoints) {
+      stringstream why;
+      why << "mais de " << maxBreakpoints << " pontos de parada";
+      dropConnection(why.str());
+      return;
+    }
+    breakpoints[file].insert(line);
+    breakpointCount++;
+  } else if (cmd == "remove" && present) {
+    it->second.erase(line);
+    breakpointCount--;
+    if (it->second.empty()) {
+      breakpoints.erase(it);
+    }
   }
 }
 
 bool InterpreterDBG::breakOn(const string &file, int line) {
-  // cerr << "Breakon file:" << file << " * line:" << line << endl;
-  for (list<int>::iterator it = breakpoints[file].begin();
-       it != breakpoints[file].end(); ++it) {
-    // cerr << "---breakon checkin on " << file << " * line:" << (*it) << endl;
-    if ((*it) == line) {
-      // cerr << "found! breakon BREAK on " << *it << endl;
-      return true;
-    }
-  }
-
-  return false;
+  map<string, set<int>>::const_iterator it = breakpoints.find(file);
+  return it != breakpoints.end() && it->second.count(line) != 0;
 }
 
 void InterpreterDBG::closeSock() {

@@ -633,6 +633,12 @@ def send(cmd):
     conn.sendall(str(len(cmd) + 1).encode() + b"\0" + cmd + b"\0")
 
 
+def first_file():
+    for frame in frames():
+        if frame.startswith(b"<stackinfo>"):
+            return ET.fromstring(frame).find("entry").get("file").encode()
+
+
 if mode == "cabecalho":
     conn.sendall(b"9" * 4000 + b"\0")
 elif mode == "corpo":
@@ -659,6 +665,43 @@ elif mode in ("passos", "xml"):
             out.write(seen)
         if malformed:
             sys.exit("XML malformado: " + malformed[0])
+elif mode == "pontos":
+    # The breakpoint on the loop body stops the program twice; once it is
+    # removed, the program runs to the end. Removing one that was never set
+    # and setting the same one again do not count toward the limit, or the
+    # connection would be dropped before the first hit.
+    stops = hits = 0
+    for frame in frames():
+        if not frame.startswith(b"<stackinfo>"):
+            continue
+        stops += 1
+        entry = ET.fromstring(frame).find("entry")
+        if stops == 1:
+            name = entry.get("file").encode()
+            for _ in range(1001):
+                send(b'breakpoint cmd=remove file="' + name + b'" line=9')
+            for _ in range(1001):
+                send(b'breakpoint cmd=add file="' + name + b'" line=8')
+        elif entry.get("line") == "8":
+            hits += 1
+            if hits == 2:
+                send(b'breakpoint cmd=remove file="' + name + b'" line=8')
+        send(b"continue")
+    if (stops, hits) != (3, 2):
+        sys.exit("esperava 3 paradas, 2 no ponto de parada; houve %d e %d" % (stops, hits))
+elif mode in ("limite", "nome"):
+    name = first_file()
+    try:
+        if mode == "nome":
+            send(b'breakpoint cmd=add file="' + b"x" * 5000 + b'" line=1')
+        else:
+            for line in range(1001):
+                send(b'breakpoint cmd=add file="' + name + b'" line=%d' % (1000 + line))
+        send(b"continue")
+        for frame in frames():
+            pass
+    except OSError:
+        pass
 conn.close()
 EOF
 	# run_depurador <modo> <programa> <texto esperado na saída>
@@ -695,6 +738,37 @@ EOF
 		fail "-H com um host que avança passo a passo"
 		cat "$TMP/depurador.passos.out"
 	fi
+
+	cat >"$TMP/depurador_laco.gpt" <<'EOF'
+algoritmo depurador_laco;
+variáveis
+  i : inteiro;
+fim-variáveis
+início
+  i := 0;
+  enquanto i < 5 faça
+    i := i + 1;
+  fim-enquanto
+  imprima("fim ", i);
+fim
+EOF
+	if run_depurador pontos "$TMP/depurador_laco.gpt" "fim 5" >"$TMP/depurador.pontos.out"; then
+		ok "-H com um ponto de parada repetido, adicionado e removido"
+	else
+		fail "-H com um ponto de parada repetido, adicionado e removido"
+		cat "$TMP/depurador.pontos.out"
+	fi
+	# A peer that sets more breakpoints, or longer file names, than any
+	# editor would is dropped like one that sends a malformed message.
+	for caso in "limite:mais de 1000 pontos de parada" "nome:nome de arquivo longo demais"; do
+		modo=${caso%%:*}
+		if run_depurador "$modo" casos/control.gpt "${caso#*:}" >"$TMP/depurador.$modo.out"; then
+			ok "-H com ${caso#*:}"
+		else
+			fail "-H com ${caso#*:}"
+			cat "$TMP/depurador.$modo.out"
+		fi
+	done
 
 	# A value with a quote must not close the XML attribute carrying it, and
 	# a control character or a byte that is not UTF-8 typed into leia() is not

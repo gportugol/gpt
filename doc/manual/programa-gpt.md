@@ -207,7 +207,9 @@ A depuração ocorre tendo o programa GPT se comunicando via socket com o client
 (ex: GPTEditor), iniciando transmissão de dados entre esses dois pontos. As
 informações enviadas pelo GPT (variáveis, breakpoints, etc) usam o formato
 baseado em XML, enquanto o cliente envia comandos simples (o que evita que o
-programa GPT necessite de um XML parser).
+programa GPT necessite de um XML parser). O GPT aceita até 1000 pontos de
+parada, com nomes de arquivo de até 4096 bytes; um cliente que passe desses
+limites é desconectado, e o algoritmo continua a execução sem depurador.
 
 Por exemplo, a pilha de funções pode ser representada da seguinte forma:
 
