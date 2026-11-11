@@ -60,6 +60,21 @@ ANTLR4_LIB="-L/prefixo/lib -lantlr4-runtime" ./configure
 O runtime C++ do ANTLR4 exige C++17; o `configure` acrescenta `-std=gnu++17`
 a `CXXFLAGS` quando o compilador não usa esse padrão por omissão.
 
+#### Proteções de compilação
+
+O `configure` testa e acrescenta, antes das flags informadas pelo usuário,
+`-D_FORTIFY_SOURCE=2` (se o compilador ou o `CPPFLAGS` ainda não definirem
+um nível), `-D_GLIBCXX_ASSERTIONS`, `-fstack-protector-strong`,
+`-fstack-clash-protection`, `-fcf-protection`, `-mbranch-protection=standard`,
+`-Wl,-z,relro` e `-Wl,-z,now`. Cada flag só entra se o compilador e o linker a
+aceitarem sem nenhum aviso, então as que não se aplicam à plataforma (como as
+`-z` no Windows, a `-fcf-protection` fora de x86 e a `-mbranch-protection`
+fora de arm64) ficam de fora. Para não acrescentar nenhuma delas:
+
+```bash
+./configure --disable-hardening
+```
+
 #### Devel
 
 Se você deseja que a biblioteca dinâmica (.so) e headers do compilador sejam
