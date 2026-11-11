@@ -1,0 +1,1104 @@
+algoritmo aninhamento_limite;
+variáveis
+  x: inteiro;
+  i: inteiro;
+  v: matriz[1] de inteiros;
+fim-variáveis
+início
+  x := ((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((1))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))));
+  imprima(x);
+  x := v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[v[0]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]];
+  imprima(x);
+  x := f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(2))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))));
+  imprima(x);
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+se verdadeiro então
+imprima("se");
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+se falso então
+senão
+imprima("senão");
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+fim-se
+  x := 0;
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+enquanto x = 0 faça
+imprima("enquanto");
+x := 1;
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+fim-enquanto
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+para i de 1 até 1 faça
+imprima("para");
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+fim-para
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+repita
+imprima("repita");
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+até verdadeiro;
+fim
+
+função f(n: inteiro): inteiro
+início
+  retorne n;
+fim

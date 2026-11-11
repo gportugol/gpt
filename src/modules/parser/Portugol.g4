@@ -51,6 +51,35 @@ bool PortugolLexer::atFileStart() {
 }
 }
 
+@parser::postinclude {
+#include "GPTDisplay.hpp"
+}
+
+@parser::declarations {
+  int nesting = 0;
+  void enterNesting();
+}
+
+@parser::definitions {
+// This parser, the semantic analysis, the interpreter and the code
+// generators all recurse at least once per command or expression nested in
+// another. At 100 levels every mode needs under 450 KiB of the 2 MiB stack
+// of gpt.exe, and the frames between two checks of the interpreter's
+// recursion limit, about 1.3 KiB per level of function arguments, stay
+// within the 256 KiB it keeps free there.
+static const int max_nesting = 100;
+
+void PortugolParser::enterNesting() {
+  if (++nesting > max_nesting) {
+    std::stringstream s;
+    s << "Aninhamento muito profundo: mais de " << max_nesting
+      << " níveis de comandos e expressões";
+    GPTDisplay::self()->add(s.str(), (int)getCurrentToken()->getLine());
+    throw ParseCancellationException();
+  }
+}
+}
+
 /******************************** GRAMATICA *************************************************/
 
 algoritmo
@@ -107,6 +136,7 @@ stm_list
   ;
 
 stm
+@init { enterNesting(); }
   : stm_attr T_SEMICOL                         # stmAtribuicao
   | fcall T_SEMICOL                            # stmChamadaFunc
   | stm_ret T_SEMICOL                          # stmRetorno
@@ -115,6 +145,7 @@ stm
   | stm_repita T_SEMICOL                       # stmRepita
   | stm_para                                   # stmPara
   ;
+  finally { nesting--; }
 
 stm_ret
   : T_KW_RETORNE expr                          # retorneComExpr
@@ -161,8 +192,10 @@ passo
 /* ----------------------------- Expressoes ---------------------------------- */
 
 expr
+@init { enterNesting(); }
   : expr_e (T_KW_OU expr_e)*
   ;
+  finally { nesting--; }
 
 expr_e
   : expr_bit_ou (T_KW_E expr_bit_ou)*
