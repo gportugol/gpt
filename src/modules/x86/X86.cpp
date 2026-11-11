@@ -446,39 +446,45 @@ void X86::declareMatrix(int decl_type, int type, string name,
   }
 }
 
+// The escapes of a G-Portugol literal, then the quote and the control
+// characters as numbers: a raw line break, or the 0x1A byte NASM also reads
+// as one, would end the db line and start a new line of source.
 string X86::toNasmString(string str) {
-  string ret;
+  string bytes;
   for (unsigned int i = 0; i < str.length(); i++) {
-    if (str[i] == '\\') {
-      i++;
-      switch (str[i]) {
-      case '0':
-        ret += "',0,'";
-        break;
-      case 'n':
-        ret += "',10,'";
-        break;
-      case 'r':
-        ret += "',13,'";
-        break;
-      case 't':
-        ret += "',9,'";
-        break;
-      case '\'':
-        ret += "',39,'";
-        break;
-      default:
-        ret += str[i];
-      }
-    } else {
-      if (str[i] == '\'') {
-        ret += "',39,'";
-      } else {
-        ret += str[i];
-      }
+    if (str[i] != '\\') {
+      bytes += str[i];
+      continue;
+    }
+    i++;
+    switch (str[i]) {
+    case '0':
+      bytes += '\0';
+      break;
+    case 'n':
+      bytes += '\n';
+      break;
+    case 'r':
+      bytes += '\r';
+      break;
+    case 't':
+      bytes += '\t';
+      break;
+    default:
+      bytes += str[i];
     }
   }
-  return ret;
+
+  stringstream s;
+  for (unsigned int i = 0; i < bytes.length(); i++) {
+    unsigned char c = bytes[i];
+    if (c == '\'' || c < 32 || c == 127) {
+      s << "'," << (int)c << ",'";
+    } else {
+      s << c;
+    }
+  }
+  return s.str();
 }
 
 string X86::addGlobalLiteral(string str) {
