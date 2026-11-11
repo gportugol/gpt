@@ -366,6 +366,7 @@ string Portugol2CTranslator::translateFunctionName(const string &id, int type) {
       case TIPO_REAL:
         return "leia_real";
       case TIPO_LITERAL:
+      case TIPO_ALL:
         return "leia_literal";
       case TIPO_CARACTERE:
         return "leia_caractere";
@@ -405,6 +406,7 @@ string Portugol2CTranslator::translateFunctionParams(const string &id,
         first_arg << "c";
         break;
       case TIPO_LITERAL:
+      case TIPO_ALL:
         first_arg << "s";
         break;
       case TIPO_LOGICO:
