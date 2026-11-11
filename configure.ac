@@ -94,6 +94,72 @@ fi
 
 
 dnl------------------------------
+dnl hardening
+dnl------------------------------
+
+AC_ARG_ENABLE([hardening],
+  AS_HELP_STRING([--disable-hardening],
+    [nao acrescenta -D_FORTIFY_SOURCE=2, -D_GLIBCXX_ASSERTIONS,
+     -fstack-protector-strong, -fstack-clash-protection, -fcf-protection,
+     -mbranch-protection=standard, -Wl,-z,relro e -Wl,-z,now as flags de
+     compilacao]),
+  [], [enable_hardening=yes])
+
+dnl A flag is kept only when a program with a stack buffer, a fortified call
+dnl and a container links with it and prints nothing: the MinGW linker
+dnl rejects -z, and a flag that only warns, such as a second definition of a
+dnl macro, would still break a -Werror build. The flags go before the user's,
+dnl so a later -fno-stack-protector or -U_FORTIFY_SOURCE still wins.
+AC_DEFUN([GPT_TRY_HARDENING_FLAG], [
+  AC_MSG_CHECKING([whether $CXX accepts $2])
+  gpt_save_flags=$$1
+  $1="$2${$1:+ $$1}"
+  ac_cxx_werror_flag=yes
+  AC_LINK_IFELSE([AC_LANG_SOURCE([[
+#include <cstdio>
+#include <cstring>
+#include <vector>
+int main(int argc, char **argv)
+{
+  char buf[64];
+  std::snprintf(buf, sizeof buf, "%s", argv[0]);
+  std::vector<int> v(argc);
+  return v.empty() ? 1 : (int)std::strlen(buf) + v[0];
+}
+]])],
+    [AC_MSG_RESULT([yes])],
+    [AC_MSG_RESULT([no])
+     $1=$gpt_save_flags])
+  ac_cxx_werror_flag=
+])
+
+if test "x$enable_hardening" != xno; then
+  dnl Ubuntu's GCC defines _FORTIFY_SOURCE=3 when optimizing and lets -D
+  dnl lower it without a warning, and a level from CPPFLAGS would clash.
+  AC_MSG_CHECKING([whether _FORTIFY_SOURCE is already defined])
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[
+#ifndef _FORTIFY_SOURCE
+#error _FORTIFY_SOURCE is not defined
+#endif
+]])],
+    [AC_MSG_RESULT([yes])
+     gpt_fortify=],
+    [AC_MSG_RESULT([no])
+     gpt_fortify=-D_FORTIFY_SOURCE=2])
+  for gpt_flag in $gpt_fortify -D_GLIBCXX_ASSERTIONS; do
+    GPT_TRY_HARDENING_FLAG([CPPFLAGS], [$gpt_flag])
+  done
+  for gpt_flag in -fstack-protector-strong -fstack-clash-protection \
+                  -fcf-protection -mbranch-protection=standard; do
+    GPT_TRY_HARDENING_FLAG([CXXFLAGS], [$gpt_flag])
+  done
+  for gpt_flag in -Wl,-z,relro -Wl,-z,now; do
+    GPT_TRY_HARDENING_FLAG([LDFLAGS], [$gpt_flag])
+  done
+fi
+
+
+dnl------------------------------
 dnl Check SO
 dnl------------------------------
 
@@ -352,6 +418,8 @@ Sumario:
 	pcre includes   : $PCRE_INC
 	pcre lib        : $PCRE_LIB
 
+	CPPFLAGS        : $CPPFLAGS
 	CXXFLAGS        : $CXXFLAGS
+	LDFLAGS         : $LDFLAGS
 	MS Windows      : $SO_WINDOWS
 ])
