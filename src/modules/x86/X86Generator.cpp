@@ -297,8 +297,10 @@ int X86Generator::fcall(PortugolParser::FcallContext *ctx, int expct_type) {
   // so we get the params
   Symbol f = stable.getSymbol(SymbolTable::GlobalScope, id);
   if (f.lexeme == "leia") {
-    fname = x86.translateFuncLeia(expct_type);
-    type = expct_type;
+    // No type is expected in imprima(leia()) or a bare leia(); read the
+    // whole line as text, like the interpreter.
+    type = (expct_type == TIPO_ALL) ? TIPO_LITERAL : expct_type;
+    fname = x86.translateFuncLeia(type);
     // ptype doesn't matter: (expr)* is not used
   } else {
     fname = f.lexeme;

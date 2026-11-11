@@ -1,0 +1,9 @@
+algoritmo imprima_leia;
+início
+  imprima("[", leia(), "]");
+  imprima("[", leia(), "]");
+  imprima("[", (leia()), "]");
+  leia();
+  imprima("[", leia(), "]");
+  imprima("[", leia(), "]");
+fim

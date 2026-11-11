@@ -475,7 +475,9 @@ A função `leia` não recebe argumentos e retorna o valor lido da entrada padr�
 (STDIN), o que significa, geralmente, ler os dados que o usuário digitar no
 teclado, seguido do caractere "nova linha" (em geral, associado à tecla "Enter"
 no teclado). O tipo de dado retornado por `leia` é implicitamente convertido
-para o tipo primitivo exigido no contexto em que ela é usada.
+para o tipo primitivo exigido no contexto em que ela é usada. Quando o contexto
+não exige tipo nenhum, como em `imprima(leia())` ou num `leia();` isolado, a
+linha inteira é lida como literal.
 
 A função `imprima` recebe um número variável de argumentos de qualquer tipo
 primitivo, sendo que pelo menos um argumento deve ser passado. Os valores
