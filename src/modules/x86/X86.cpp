@@ -157,6 +157,7 @@ void X86::init(const string &name) {
 #include <asm_elf.h>
 #endif
 
+  // Global variables start zeroed, so they live in .bss with the arena.
 #ifdef WIN32
   // The PE template declares the sections and their alignment up front.
   _bss << "section .bss\n"
@@ -403,8 +404,8 @@ void X86::declarePrimitive(int decl_type, const string &name, int type) {
     case TIPO_CARACTERE:
     case TIPO_LITERAL:
     case TIPO_LOGICO:
-      s << X86::makeID(name) << " dq 0";
-      writeDATA(s.str());
+      s << X86::makeID(name) << " resq 1";
+      writeBSS(s.str());
       break;
     default:
       GPTDisplay::self()->showError(
@@ -436,14 +437,14 @@ void X86::declareMatrix(int decl_type, int type, string name,
     case TIPO_CARACTERE:
     case TIPO_LOGICO:
     case TIPO_LITERAL:
-      s << X86::makeID(name) << " times " << size << " dq 0";
+      s << X86::makeID(name) << " resq " << size;
       break;
     default:
       GPTDisplay::self()->showError(
           "Erro interno: tipo nao suportado (X86::declarePrimitive).");
       exit(1);
     }
-    writeDATA(s.str());
+    writeBSS(s.str());
   } else if (decl_type == VAR_PARAM) {
     _subprograms[currentScope()].declareParam(name, type, size);
   } else if (decl_type == VAR_LOCAL) {
