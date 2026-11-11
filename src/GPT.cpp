@@ -36,6 +36,8 @@
 #undef ERROR // Avoid conflict with ParseTreeType::ERROR (already parsed by
              // ANTLR4)
 #else
+#include <cstring>
+#include <signal.h>
 #include <spawn.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
@@ -200,6 +202,100 @@ static string findTool(const string &name) {
 #endif
 }
 
+#ifndef WIN32
+// SIGINT, SIGTERM or SIGHUP during a build stops the tool gpt started and
+// removes the temporary files before gpt dies of the signal. The handler may
+// only make async-signal-safe calls, so the names of the assembly and of the
+// object file are copied in advance into fixed buffers.
+static char tmpNames[2][PATH_MAX];
+static volatile sig_atomic_t tmpUsed[2];
+static volatile sig_atomic_t toolPid;
+
+static void stopBuild(int sig) {
+  // Waiting for the tool first keeps it from creating again a file removed
+  // below, such as the object file of as. A tool runProgram already reaped is
+  // left alone: its pid may belong to another process by now.
+  if (toolPid > 0 && waitpid(toolPid, NULL, WNOHANG) == 0) {
+    kill(toolPid, sig);
+    waitpid(toolPid, NULL, 0);
+  }
+  for (int i = 0; i < 2; ++i) {
+    if (tmpUsed[i]) {
+      unlink(tmpNames[i]);
+    }
+  }
+  signal(sig, SIG_DFL);
+  raise(sig);
+}
+
+static const int stopSignals[] = {SIGINT, SIGTERM, SIGHUP};
+
+// Holds those signals back while the state the handler reads changes.
+class StopSignalsBlocked {
+public:
+  StopSignalsBlocked() {
+    sigset_t set;
+    sigemptyset(&set);
+    for (int sig : stopSignals) {
+      sigaddset(&set, sig);
+    }
+    sigprocmask(SIG_BLOCK, &set, &_previous);
+  }
+  ~StopSignalsBlocked() { sigprocmask(SIG_SETMASK, &_previous, NULL); }
+  const sigset_t *previous() const { return &_previous; }
+
+private:
+  sigset_t _previous;
+};
+
+// A signal that was ignored when gpt started, as SIGHUP under nohup, stays
+// ignored.
+static void handleStopSignals() {
+  static bool installed = false;
+  if (installed) {
+    return;
+  }
+  installed = true;
+  struct sigaction sa;
+  memset(&sa, 0, sizeof(sa));
+  sa.sa_handler = stopBuild;
+  sigemptyset(&sa.sa_mask);
+  for (int sig : stopSignals) {
+    sigaddset(&sa.sa_mask, sig);
+  }
+  for (int sig : stopSignals) {
+    struct sigaction old;
+    if (sigaction(sig, NULL, &old) == 0 && old.sa_handler != SIG_IGN) {
+      sigaction(sig, &sa, NULL);
+    }
+  }
+}
+
+// Called with the stop signals blocked, right after the file is created.
+static void registerTmpFile(const string &path) {
+  handleStopSignals();
+  for (int i = 0; i < 2; ++i) {
+    if (!tmpUsed[i] && path.size() < sizeof(tmpNames[i])) {
+      memcpy(tmpNames[i], path.c_str(), path.size() + 1);
+      tmpUsed[i] = 1;
+      return;
+    }
+  }
+}
+#endif
+
+static void removeTmpFile(const string &path) {
+#ifndef WIN32
+  StopSignalsBlocked blocked;
+  for (int i = 0; i < 2; ++i) {
+    if (tmpUsed[i] && path == tmpNames[i]) {
+      tmpUsed[i] = 0;
+    }
+  }
+#endif
+  unlink(path.c_str());
+}
+
 enum RunResult { RUN_OK, RUN_FAILED, RUN_NOT_FOUND };
 
 // The arguments reach the program as they are, without a shell: the output
@@ -265,18 +361,34 @@ static RunResult runProgram(const char *const argv[]) {
   CloseHandle(pi.hProcess);
   return ok ? RUN_OK : RUN_FAILED;
 #else
+  // The signals stay blocked until the handler knows the tool's pid, and the
+  // tool starts with the mask gpt had before.
   pid_t pid;
-  int spawned = posix_spawnp(&pid, argv[0], NULL, NULL,
-                             const_cast<char **>(argv), environ);
+  int spawned;
+  {
+    StopSignalsBlocked blocked;
+    posix_spawnattr_t attr;
+    posix_spawnattr_init(&attr);
+    posix_spawnattr_setsigmask(&attr, blocked.previous());
+    posix_spawnattr_setflags(&attr, POSIX_SPAWN_SETSIGMASK);
+    spawned = posix_spawnp(&pid, argv[0], NULL, &attr,
+                           const_cast<char **>(argv), environ);
+    posix_spawnattr_destroy(&attr);
+    if (spawned == 0) {
+      toolPid = pid;
+    }
+  }
   if (spawned != 0) {
     return spawned == ENOENT ? RUN_NOT_FOUND : RUN_FAILED;
   }
   int status;
   while (waitpid(pid, &status, 0) == -1) {
     if (errno != EINTR) {
+      toolPid = 0;
       return RUN_FAILED;
     }
   }
+  toolPid = 0;
   return WIFEXITED(status) && WEXITSTATUS(status) == 0 ? RUN_OK : RUN_FAILED;
 #endif
 }
@@ -395,11 +507,16 @@ bool GPT::writeTmpFile(const string &content, string &path) {
   string name = string(tmpdir && *tmpdir ? tmpdir : "/tmp") + "/c__XXXXXX";
   vector<char> buf(name.begin(), name.end());
   buf.push_back('\0');
-  int fd = mkstemp(&buf[0]);
-  if (fd == -1) {
-    return false;
+  int fd;
+  {
+    StopSignalsBlocked blocked;
+    fd = mkstemp(&buf[0]);
+    if (fd == -1) {
+      return false;
+    }
+    path = &buf[0];
+    registerTmpFile(path);
   }
-  path = &buf[0];
 
   const char *data = content.data();
   string::size_type left = content.size();
@@ -428,7 +545,7 @@ bool GPT::assembleArm64(const string &ofname, const string &asmfile,
   string objfile;
   if (!writeTmpFile("", objfile)) {
     if (!objfile.empty()) {
-      unlink(objfile.c_str());
+      removeTmpFile(objfile);
     }
     error = "erro ao processar arquivo temporário";
     return false;
@@ -441,7 +558,7 @@ bool GPT::assembleArm64(const string &ofname, const string &asmfile,
                         " (binutils).",
                     error) &&
             runArm64Linker(ofname, objfile, error);
-  unlink(objfile.c_str());
+  removeTmpFile(objfile);
   return ok;
 }
 
@@ -714,7 +831,7 @@ bool GPT::compile(const list<string> &ifnames, bool genBinary) {
     if (genBinary) {
       if (!writeTmpFile(asmCode, asmfile)) {
         if (!asmfile.empty()) {
-          unlink(asmfile.c_str());
+          removeTmpFile(asmfile);
         }
         s << PACKAGE << ": erro ao processar arquivo temporário" << endl;
         GPTDisplay::self()->showError(s);
@@ -724,7 +841,7 @@ bool GPT::compile(const list<string> &ifnames, bool genBinary) {
       string error;
       bool assembled = (arch == "arm64") ? assembleArm64(ofname, asmfile, error)
                                          : runNasm(ofname, asmfile, error);
-      unlink(asmfile.c_str());
+      removeTmpFile(asmfile);
       if (!assembled) {
         s << PACKAGE << ": " << error << endl;
         GPTDisplay::self()->showError(s);
