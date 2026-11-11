@@ -26,9 +26,16 @@ grammar Portugol;
 #include "GPTDisplay.hpp"
 }
 
+@lexer::members {
+  std::unique_ptr<antlr4::Token> nextToken() override;
+}
+
 @lexer::declarations {
   bool followedByIdChar();
   bool atFileStart();
+  size_t matchToken();
+  size_t unclosedQuoteEnd = 0;
+  size_t unclosedCommentEndLine = 0;
 }
 
 @lexer::definitions {
@@ -48,6 +55,78 @@ bool PortugolLexer::followedByIdChar() {
 // of a file must not run into the next one.
 bool PortugolLexer::atFileStart() {
   return GPTDisplay::self()->isFileStart((int)getLine());
+}
+
+// Lexer::nextToken() of the ANTLR runtime (the same from 4.9 to 4.13), with
+// match() replaced by matchToken(). An ANTLRInputStream needs no mark, and
+// the grammar has no "more" command.
+std::unique_ptr<Token> PortugolLexer::nextToken() {
+  for (;;) {
+    if (hitEOF) {
+      emitEOF();
+      return std::move(token);
+    }
+    token.reset();
+    channel = Token::DEFAULT_CHANNEL;
+    tokenStartCharIndex = _input->index();
+    tokenStartCharPositionInLine = getCharPositionInLine();
+    tokenStartLine = getLine();
+    setText("");
+    type = Token::INVALID_TYPE;
+    size_t ttype;
+    try {
+      ttype = matchToken();
+    } catch (LexerNoViableAltException &e) {
+      notifyListeners(e);
+      recover(e);
+      ttype = SKIP;
+    }
+    if (_input->LA(1) == Token::EOF) {
+      hitEOF = true;
+    }
+    if (type == Token::INVALID_TYPE) {
+      type = ttype;
+    }
+    if (type != SKIP) {
+      if (!token) {
+        emit();
+      }
+      return std::move(token);
+    }
+  }
+}
+
+// A string that does not close scans to the end of its line, and a comment
+// to the end of its file. A quote that scan passed over would fail the same
+// way, and so would any later "/*" in the file, so they are taken as the
+// lone character they lex to instead of being scanned again each time.
+size_t PortugolLexer::matchToken() {
+  atn::LexerATNSimulator *sim = getInterpreter<atn::LexerATNSimulator>();
+  size_t c = _input->LA(1);
+  if ((c == '"' && tokenStartCharIndex < unclosedQuoteEnd) ||
+      (c == '/' && _input->LA(2) == '*' &&
+       tokenStartLine < unclosedCommentEndLine)) {
+    sim->consume(_input);
+    return c == '"' ? T_QUOTE_ERROR : T_DIV;
+  }
+  size_t ttype = sim->match(_input, mode);
+  if (ttype == T_QUOTE_ERROR && c == '"') {
+    size_t i = 1;
+    for (;;) {
+      size_t d = _input->LA(i);
+      if (d == Token::EOF || d == '"' || d == '\r' || d == '\n' ||
+          (d == '\\' && _input->LA(i + 1) == Token::EOF)) {
+        break;
+      }
+      i += (d == '\\') ? 2 : 1;
+    }
+    unclosedQuoteEnd = _input->index() + i - 1;
+  } else if (ttype == T_DIV && _input->LA(1) == '*') {
+    int next = GPTDisplay::self()->nextFileStart((int)tokenStartLine);
+    unclosedCommentEndLine =
+        next ? (size_t)next : std::numeric_limits<size_t>::max();
+  }
+  return ttype;
 }
 }
 
@@ -343,6 +422,8 @@ T_CARAC_LIT
   : '\'' ( ~['\\\r\n] | ESC )? '\''
   ;
 
+// matchToken() repeats this rule and ESC by hand to find where a string
+// that does not close stops; a change to either must be made there too.
 T_STRING_LIT
   : '"' ( ~["\\\r\n] | ESC)* '"'
   ;
