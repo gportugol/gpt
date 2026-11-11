@@ -37,6 +37,7 @@
              // ANTLR4)
 #else
 #include <cstring>
+#include <fcntl.h>
 #include <signal.h>
 #include <spawn.h>
 #include <sys/stat.h>
@@ -459,15 +460,29 @@ static bool runArm64Linker(const string &ofname, const string &objfile,
 
 #ifndef WIN32
 // Same bits as "chmod +x": execute for everyone, except what the umask hides.
+// Only a regular file gets them, as ld does for "-o /dev/null", so the type
+// is checked on the descriptor that is changed. A symbolic link given as the
+// output is followed: nasm, or ld when the target is empty, already wrote the
+// program into its target.
 static bool makeExecutable(const string &path) {
   struct stat st;
-  if (stat(path.c_str(), &st) != 0) {
-    return false;
+  int fd = open(path.c_str(), O_RDONLY | O_NONBLOCK | O_NOCTTY);
+  // fchmod needs only ownership, but open needs read or write access.
+  if (fd == -1 && errno == EACCES) {
+    fd = open(path.c_str(), O_WRONLY | O_NONBLOCK | O_NOCTTY);
   }
-  mode_t mask = umask(0);
-  umask(mask);
-  mode_t exec = (S_IXUSR | S_IXGRP | S_IXOTH) & ~mask;
-  return chmod(path.c_str(), st.st_mode | exec) == 0;
+  if (fd == -1) {
+    return stat(path.c_str(), &st) == 0 && !S_ISREG(st.st_mode);
+  }
+  bool ok = fstat(fd, &st) == 0;
+  if (ok && S_ISREG(st.st_mode)) {
+    mode_t mask = umask(0);
+    umask(mask);
+    mode_t exec = (S_IXUSR | S_IXGRP | S_IXOTH) & ~mask;
+    ok = fchmod(fd, st.st_mode | exec) == 0;
+  }
+  close(fd);
+  return ok;
 }
 #endif
 

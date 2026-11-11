@@ -1139,6 +1139,56 @@ fi
 echo ""
 
 echo "========================================"
+echo "Permissões do executável"
+echo "========================================"
+# Like ld, gpt -o makes only a regular file executable: /dev/null keeps its
+# mode even when the suite runs as root. The program written through a
+# symbolic link, or over a file without read permission, must still run.
+if [ $CAN_EXEC_NATIVE -eq 0 ] || [ $ON_WINDOWS -eq 1 ] || [ $HAVE_ASSEMBLER -eq 0 ]; then
+	echo "⚠ permissões do executável: pulado (sem backend nativo, no Windows ou sem ${ASSEMBLER:-montador})"
+else
+	ANTES=$(ls -l /dev/null | cut -c1-10)
+	ERRO=$($TIMEOUT "$GPT" "${GPT_A[@]}" -o /dev/null casos/olamundo.gpt 2>&1 >/dev/null)
+	RESULT=$?
+	DEPOIS=$(ls -l /dev/null | cut -c1-10)
+	if [ $RESULT -eq 0 ] && [ "$ANTES" = "$DEPOIS" ]; then
+		ok "-o /dev/null mantém o modo do dispositivo"
+	else
+		fail "-o /dev/null: código $RESULT, modo $ANTES virou $DEPOIS (esperado: 0 e o mesmo modo)"
+		echo "$ERRO"
+	fi
+
+	# The program is written through the link, except that ld replaces the
+	# link with a new file when its target is not empty.
+	: >"$TMP/alvo_do_link"
+	ln -s alvo_do_link "$TMP/link_de_saida"
+	ERRO=$($TIMEOUT "$GPT" "${GPT_A[@]}" -o "$TMP/link_de_saida" casos/olamundo.gpt 2>&1 >/dev/null)
+	RESULT=$?
+	if [ $RESULT -eq 0 ] && "${RUNNER[@]}" "$TMP/link_de_saida" | grep -q "Mundo"; then
+		ok "-o com um link simbólico gera um programa executável"
+	else
+		fail "-o com um link simbólico: código $RESULT (esperado: 0 e o programa executável pelo link)"
+		echo "$ERRO"
+	fi
+
+	# ld refuses to open an empty output it cannot read, so only nasm gets
+	# here.
+	if [ "$NATIVE_ARCH" = x86-64 ]; then
+		: >"$TMP/so_escrita"
+		chmod 200 "$TMP/so_escrita"
+		ERRO=$($TIMEOUT "$GPT" "${GPT_A[@]}" -o "$TMP/so_escrita" casos/olamundo.gpt 2>&1 >/dev/null)
+		RESULT=$?
+		if [ $RESULT -eq 0 ] && [ -x "$TMP/so_escrita" ]; then
+			ok "-o sobre um arquivo sem permissão de leitura"
+		else
+			fail "-o sobre um arquivo sem permissão de leitura: código $RESULT (esperado: 0 e o arquivo executável)"
+			echo "$ERRO"
+		fi
+	fi
+fi
+echo ""
+
+echo "========================================"
 echo "Resumo dos testes"
 echo "========================================"
 echo "$PASSED verificação(ões) passou(aram)"
