@@ -528,6 +528,31 @@ if [ $CAN_EXEC_NATIVE -eq 1 ]; then
 		fail "-o com o $ASSEMBLER falhando: código $RESULT (esperado: 1 e o diagnóstico do gpt)"
 		echo "$ERRO"
 	fi
+	# Neither next to gpt nor in PATH, the assembler is reported missing.
+	# libtool's wrapper script (--enable-install-devel) needs PATH itself.
+	if [ $ON_WINDOWS -eq 0 ] && [ "$(head -c 2 "$GPT")" != "#!" ]; then
+		mkdir -p "$TMP/path_vazio"
+		ERRO=$($TIMEOUT env PATH="$TMP/path_vazio" "$GPT" "${GPT_A[@]}" -o "$TMP/recusa.bin" tester.gpt 2>&1 >/dev/null)
+		RESULT=$?
+		if [ $RESULT -eq 1 ] && grep -q "encontrar o $ASSEMBLER" <<<"$ERRO"; then
+			ok "-o sem o $ASSEMBLER no PATH"
+		else
+			fail "-o sem o $ASSEMBLER no PATH: código $RESULT (esperado: 1 e o aviso de que ele não foi encontrado)"
+			echo "$ERRO"
+		fi
+		# A directory named after the assembler next to gpt is not taken for
+		# it, so the one in PATH still builds the program.
+		mkdir -p "$TMP/dir_irmao/$ASSEMBLER"
+		cp "$GPT" "$TMP/dir_irmao/gpt"
+		ERRO=$($TIMEOUT "$TMP/dir_irmao/gpt" "${GPT_A[@]}" -o "$TMP/dir_irmao.bin" tester.gpt 2>&1 >/dev/null)
+		RESULT=$?
+		if [ $RESULT -eq 0 ] && [ -x "$TMP/dir_irmao.bin" ]; then
+			ok "-o com um diretório $ASSEMBLER ao lado do gpt"
+		else
+			fail "-o com um diretório $ASSEMBLER ao lado do gpt: código $RESULT (esperado: 0 e o $ASSEMBLER do PATH)"
+			echo "$ERRO"
+		fi
+	fi
 else
 	ERRO=$($TIMEOUT "$GPT" -o "$TMP/recusa.bin" tester.gpt 2>&1 >/dev/null)
 	RESULT=$?
@@ -759,6 +784,19 @@ else
 	else
 		fail "-o com o nasm ao lado do gpt: código $RESULT (esperado: 0 e o programa montado)"
 		echo "$ERRO"
+	fi
+	# With a bare name, CreateProcess tries the current directory before PATH.
+	# The failing nasm.exe sits in the current directory here, and only the
+	# nasm in PATH can build the program.
+	if [ $ON_WINDOWS -eq 1 ]; then
+		ERRO=$(cd "$TMP/nasm_falso" && $TIMEOUT "$GPT" -o "$TMP/plantado.exe" "$SCRIPT_DIR/casos/olamundo.gpt" 2>&1 >/dev/null)
+		RESULT=$?
+		if [ $RESULT -eq 0 ] && "$TMP/plantado.exe" | grep -q "Mundo"; then
+			ok "-o com um nasm.exe no diretório atual usa o do PATH"
+		else
+			fail "-o com um nasm.exe no diretório atual: código $RESULT (esperado: 0 e o programa montado pelo nasm do PATH)"
+			echo "$ERRO"
+		fi
 	fi
 fi
 echo ""

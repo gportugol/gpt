@@ -139,7 +139,11 @@ ou na seção de dados.
 No x86-64, é necessário que o NASM (versão 2.x ou mais nova, com suporte a
 x86-64) esteja instalado no sistema. Ele pode ser encontrado em
 <https://www.nasm.us/>. No Windows e no GNU/Linux, o GPT procura o `nasm`
-primeiro no diretório do próprio executável e depois nos diretórios do `PATH`.
+primeiro no diretório do próprio executável e depois nos diretórios do `PATH`,
+na ordem em que aparecem; o diretório atual só é usado quando está no `PATH`.
+As ferramentas do binutils usadas no arm64, descritas a seguir, são procuradas
+da mesma forma. Se a ferramenta não for encontrada, o GPT avisa e termina com
+erro.
 
 Em arm64, como num Raspberry Pi com sistema de 64 bits, o GPT gera Assembly
 para o GNU as e usa o `as` e o `ld` do binutils (que acompanha o compilador C

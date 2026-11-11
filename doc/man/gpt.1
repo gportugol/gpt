@@ -86,12 +86,9 @@ with
 on a machine that is neither, use
 .B \-t
 and compile the C code with the system compiler.
-For x86-64, on Windows and GNU/Linux,
+For x86-64,
 .BR nasm (1)
-is looked up first in the directory of
-.I gpt
-and then in
-.BR PATH .
+builds the executable.
 For arm64,
 .BR as (1)
 and
@@ -101,6 +98,13 @@ the cross tools
 .B aarch64-linux-gnu-as
 and
 .BR aarch64-linux-gnu-ld .
+On Windows and GNU/Linux these tools are looked up first in the directory of
+.I gpt
+and then in the directories of
+.BR PATH ;
+the current directory is used only when
+.B PATH
+names it.
 .br
 .ns
 .TP

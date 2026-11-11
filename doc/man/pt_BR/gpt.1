@@ -89,12 +89,9 @@ ou arm64 (um executável ELF64 no GNU/Linux), conforme a opção
 numa máquina que não é nenhuma das duas, use
 .B \-t
 e compile o código C com o compilador do sistema.
-Para x86-64, no Windows e no GNU/Linux, o
+Para x86-64, o
 .BR nasm (1)
-é procurado primeiro no diretório do
-.I gpt
-e depois no
-.BR PATH .
+monta o executável.
 Para arm64, o
 .BR as (1)
 e o
@@ -104,6 +101,13 @@ ferramentas cruzadas
 .B aarch64-linux-gnu-as
 e
 .BR aarch64-linux-gnu-ld .
+No Windows e no GNU/Linux, essas ferramentas são procuradas primeiro no
+diretório do
+.I gpt
+e depois nos diretórios do
+.BR PATH ;
+o diretório atual só é usado quando está no
+.BR PATH .
 .br
 .ns
 .TP
