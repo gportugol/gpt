@@ -58,6 +58,8 @@ private:
   std::string expectingText(antlr4::Parser *recognizer,
                             const antlr4::misc::IntervalSet &expected,
                             antlr4::Token *offending);
+
+  int _reported = 0;
 };
 
 /*

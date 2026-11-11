@@ -1,0 +1,10 @@
+_syn_limite_erros_lib.gpt:3 - Esperando expressão, encontrado ; após ":=".
+_syn_limite_erros_lib.gpt:3 - Esperando expressão, encontrado ; após ":=".
+_syn_limite_erros_lib.gpt:7 - Esperando expressão, encontrado ; após ":=".
+_syn_limite_erros_lib.gpt:7 - Esperando expressão, encontrado ; após ":=".
+_syn_limite_erros_lib.gpt:11 - Esperando expressão, encontrado ; após ":=".
+_syn_limite_erros_lib.gpt:11 - Esperando expressão, encontrado ; após ":=".
+_syn_limite_erros_lib.gpt:15 - Esperando expressão, encontrado ; após ":=".
+_syn_limite_erros_lib.gpt:15 - Esperando expressão, encontrado ; após ":=".
+_syn_limite_erros_lib.gpt:19 - Esperando expressão, encontrado ; após ":=".
+_syn_limite_erros_lib.gpt:19 - Esperando expressão, encontrado ; após ":=".

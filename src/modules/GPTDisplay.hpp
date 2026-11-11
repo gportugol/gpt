@@ -89,6 +89,9 @@ public:
   bool isFileStart(int line);
   // First line of the input file after the one holding line, or 0.
   int nextFileStart(int line);
+  // Whether each input file has a name of its own. A name given twice
+  // shares one place in the order the errors are shown in.
+  bool distinctFileNames();
   //   void addInternalError(const string&);
   //   void addInternalError(const stringstream&);
 

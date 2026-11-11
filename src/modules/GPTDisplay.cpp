@@ -210,6 +210,10 @@ int GPTDisplay::nextFileStart(int line) {
   return 0;
 }
 
+bool GPTDisplay::distinctFileNames() {
+  return _file_map.size() == _file_ranges.size();
+}
+
 string GPTDisplay::getCurrentFile() { return _currentFile; }
 
 GPTDisplay::ErrorMsg GPTDisplay::getFirstError() {
