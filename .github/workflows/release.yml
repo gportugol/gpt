@@ -120,30 +120,35 @@ jobs:
           path: release/linux-aarch64
 
       - name: Repack Windows x86_64 zip
+        env:
+          TAG: ${{ github.event.release.tag_name }}
         run: |
           cd release
-          TAG=${{ github.event.release.tag_name }}
           mv windows-x86_64 "gpt-${TAG}"
-          zip -r "gpt-win-x86_64.zip" "gpt-${TAG}"
+          zip -r -X "gpt-win-x86_64.zip" "gpt-${TAG}"
           rm -rf "gpt-${TAG}"
 
       - name: Repack Linux x86_64 tar.gz
+        env:
+          TAG: ${{ github.event.release.tag_name }}
         run: |
           cd release
-          TAG=${{ github.event.release.tag_name }}
           mv linux-x86_64 "gpt-${TAG}"
           # The artifact zip stores every file as 644.
           chmod +x "gpt-${TAG}/bin/gpt"
-          tar -czf "gpt-linux-x86_64.tar.gz" "gpt-${TAG}"
+          tar --owner=0 --group=0 --numeric-owner \
+            -czf "gpt-linux-x86_64.tar.gz" "gpt-${TAG}"
           rm -rf "gpt-${TAG}"
 
       - name: Repack Linux aarch64 tar.gz
+        env:
+          TAG: ${{ github.event.release.tag_name }}
         run: |
           cd release
-          TAG=${{ github.event.release.tag_name }}
           mv linux-aarch64 "gpt-${TAG}"
           chmod +x "gpt-${TAG}/bin/gpt"
-          tar -czf "gpt-linux-aarch64.tar.gz" "gpt-${TAG}"
+          tar --owner=0 --group=0 --numeric-owner \
+            -czf "gpt-linux-aarch64.tar.gz" "gpt-${TAG}"
           rm -rf "gpt-${TAG}"
 
       - name: Upload to GitHub Release
