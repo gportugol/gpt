@@ -170,6 +170,7 @@ private:
 
   map<string, X86SubProgram> _subprograms;
   map<string, string> _nameLiterals;
+  long long _globalBytes;
 };
 
 #endif

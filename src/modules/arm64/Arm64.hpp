@@ -171,6 +171,7 @@ private:
   stringstream _lib;
 
   map<string, Arm64SubProgram> _subprograms;
+  long long _globalBytes;
   map<string, string> _nameLiterals;
 };
 

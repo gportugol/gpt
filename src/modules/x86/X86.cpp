@@ -57,6 +57,8 @@ string X86SubProgram::name() { return _name; }
 
 void X86SubProgram::declareLocal(const string &local_var, int msize,
                                  bool minit) {
+  long long bytes = (long long)(msize == 0 ? 1 : msize) * SizeofSlot;
+  NativeBackend::checkVariableBytes(_local_offset - SizeofSlot + bytes, _name);
   if (msize == 0) {
     _head << "%define " << X86::makeID(local_var) << " rbp-" << _local_offset
           << endl;
@@ -143,7 +145,7 @@ string X86::EntryPoint = "start";
 // which an identifier cannot contain.
 string X86::makeID(const string &str) { return string("_") + str; }
 
-X86::X86(SymbolTable &st) : _stable(st) {}
+X86::X86(SymbolTable &st) : _stable(st), _globalBytes(0) {}
 
 X86::~X86() {}
 
@@ -404,6 +406,8 @@ void X86::declarePrimitive(int decl_type, const string &name, int type) {
     case TIPO_CARACTERE:
     case TIPO_LITERAL:
     case TIPO_LOGICO:
+      _globalBytes += 8;
+      checkVariableBytes(_globalBytes, SymbolTable::GlobalScope);
       s << X86::makeID(name) << " resq 1";
       writeBSS(s.str());
       break;
@@ -424,10 +428,7 @@ void X86::declarePrimitive(int decl_type, const string &name, int type) {
 
 void X86::declareMatrix(int decl_type, int type, string name,
                         list<string> dims) {
-  int size = 1;
-  for (list<string>::iterator it = dims.begin(); it != dims.end(); it++) {
-    size *= atoi((*it).c_str());
-  }
+  int size = (int)matrixElements(dims);
 
   if (decl_type == VAR_GLOBAL) {
     stringstream s;
@@ -437,6 +438,8 @@ void X86::declareMatrix(int decl_type, int type, string name,
     case TIPO_CARACTERE:
     case TIPO_LOGICO:
     case TIPO_LITERAL:
+      _globalBytes += (long long)size * 8;
+      checkVariableBytes(_globalBytes, SymbolTable::GlobalScope);
       s << X86::makeID(name) << " resq " << size;
       break;
     default:

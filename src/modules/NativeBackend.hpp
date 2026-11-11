@@ -116,6 +116,15 @@ public:
   string translateFuncLeia(int type);
   string toChar(const string &);
   string toReal(const string &);
+
+  // On x86-64 the frame offsets are signed 32-bit displacements, and the
+  // code reaches the global variables relative to rip, within 2 GiB, in an
+  // image that also holds the code, the strings and the arena. 1 GiB for
+  // the variables of one function, and as much for the global ones, keeps
+  // both in range.
+  static const long long MaxVariableBytes = 1LL << 30;
+  static long long matrixElements(const list<string> &dims);
+  static void checkVariableBytes(long long bytes, const string &scope);
 };
 
 #endif

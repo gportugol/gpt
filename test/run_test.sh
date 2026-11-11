@@ -1138,6 +1138,60 @@ fi
 echo ""
 
 echo "========================================"
+echo "Tamanho das matrizes"
+echo "========================================"
+# A matrix takes up to 2^26 elements in every mode. A native executable
+# also takes up to 1 GiB of global variables and 1 GiB of variables in each
+# function: two such matrices fill either, and one variable more is refused.
+cat >"$TMP/teto.gpt" <<'EOF'
+algoritmo teto;
+variáveis
+  m : matriz[8192][8192] de inteiros;
+fim-variáveis
+início
+  m[8191][8191] := 5;
+  imprima(m[8191][8191] + m[0][0]);
+fim
+EOF
+SAIDA=$($TIMEOUT "$GPT" -i "$TMP/teto.gpt" 2>&1 </dev/null)
+RESULT=$?
+if [ $RESULT -eq 0 ] && [ "$SAIDA" = 5 ]; then
+	ok "matriz com 2^26 elementos (-i)"
+else
+	fail "matriz com 2^26 elementos (-i): código $RESULT (esperado: 0 e 5)"
+	echo "$SAIDA"
+fi
+if [ $CAN_EXEC_NATIVE -eq 0 ]; then
+	echo "⚠ 1 GiB de variáveis (-s): pulado (gpt recusa -s na arquitetura $ARCH)"
+else
+	for escopo in globais locais; do
+		for extra in "" "c : inteiro;"; do
+			if [ $escopo = globais ]; then
+				printf 'algoritmo teto;\nvariáveis\n  a, b : matriz[67108864] de inteiros;\n  %s\nfim-variáveis\ninício\nfim\n' "$extra"
+			else
+				printf 'algoritmo teto;\ninício\n  f();\nfim\nfunção f()\n  a, b : matriz[67108864] de inteiros;\n  %s\ninício\nfim\n' "$extra"
+			fi >"$TMP/teto_$escopo.gpt"
+			ERRO=$($TIMEOUT "$GPT" "${GPT_A[@]}" -s "$TMP/teto_$escopo.asm" "$TMP/teto_$escopo.gpt" 2>&1 </dev/null)
+			RESULT=$?
+			if [ -z "$extra" ]; then
+				if [ $RESULT -eq 0 ]; then
+					ok "1 GiB de variáveis $escopo (-s)"
+				else
+					fail "1 GiB de variáveis $escopo (-s): código $RESULT (esperado: 0)"
+					echo "$ERRO"
+				fi
+			elif [ $RESULT -eq 1 ] && grep -q "ocupam mais de 1 GiB" <<<"$ERRO"; then
+				ok "mais de 1 GiB de variáveis $escopo é recusado (-s)"
+			else
+				fail "mais de 1 GiB de variáveis $escopo (-s): código $RESULT (esperado: 1 e o limite)"
+				echo "$ERRO"
+			fi
+		done
+	done
+fi
+echo ""
+
+echo "========================================"
 echo "Segmentos do executável"
 echo "========================================"
 # The generated ELF must declare a non-executable stack and keep the code

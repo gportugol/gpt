@@ -24,7 +24,9 @@
 #include "GPTDisplay.hpp"
 #include "Symbol.hpp"
 
+#include <limits.h>
 #include <sstream>
+#include <stdlib.h>
 
 using namespace std;
 using antlr4::ParserRuleContext;
@@ -80,11 +82,14 @@ int SemanticAnalyzer::tipoDecl(PortugolParser::Tipo_declContext *ctx) {
   return TIPO_NULO;
 }
 
+// A dimension beyond int stops at INT_MAX instead of wrapping around, so
+// that the evaluator rejects it as too large.
 list<int> SemanticAnalyzer::dimensoes(PortugolParser::Tipo_declContext *ctx) {
   list<int> dims;
   if (auto m = dynamic_cast<PortugolParser::TipoMatrizContext *>(ctx)) {
     for (auto d : m->tp_matriz()->dimensoes()->T_INT_LIT()) {
-      dims.push_back(atoi(d->getText().c_str()));
+      long long size = strtoll(d->getText().c_str(), NULL, 10);
+      dims.push_back(size > INT_MAX ? INT_MAX : (int)size);
     }
   }
   return dims;
