@@ -130,23 +130,56 @@ bool GPT::setArch(const string &arch) {
   return true;
 }
 
-// Find nasm executable - check same directory as gpt first, then PATH
-static string findNasm() {
 #ifdef WIN32
+static bool isFile(const string &path) {
+  DWORD attrs = GetFileAttributesA(path.c_str());
+  return attrs != INVALID_FILE_ATTRIBUTES &&
+         !(attrs & FILE_ATTRIBUTE_DIRECTORY);
+}
+#else
+static bool isFile(const string &path) {
+  struct stat st;
+  return stat(path.c_str(), &st) == 0 && S_ISREG(st.st_mode);
+}
+#endif
+
+// A tool is looked up in gpt's own directory first, then in PATH. With a bare
+// name, CreateProcess would try the current directory before PATH, so on
+// Windows PATH is searched here as well, and an empty result means the tool
+// is missing.
+static string findTool(const string &name) {
+#ifdef WIN32
+  string exe = name + ".exe";
   char exePath[MAX_PATH];
   // A result of MAX_PATH means the path did not fit and was truncated.
   DWORD len = GetModuleFileNameA(NULL, exePath, MAX_PATH);
   if (len > 0 && len < MAX_PATH) {
     string dir(exePath);
     size_t pos = dir.find_last_of("\\/");
-    if (pos != string::npos) {
-      string nasmPath = dir.substr(0, pos + 1) + "nasm.exe";
-      if (GetFileAttributesA(nasmPath.c_str()) != INVALID_FILE_ATTRIBUTES) {
-        return nasmPath;
-      }
+    if (pos != string::npos && isFile(dir.substr(0, pos + 1) + exe)) {
+      return dir.substr(0, pos + 1) + exe;
     }
   }
-  return "nasm"; // Fall back to PATH
+  DWORD size = GetEnvironmentVariableA("PATH", NULL, 0);
+  vector<char> path(size + 1);
+  if (size == 0 || GetEnvironmentVariableA("PATH", &path[0], size) >= size) {
+    return "";
+  }
+  stringstream dirs(&path[0]);
+  string dir;
+  while (getline(dirs, dir, ';')) {
+    dir.erase(remove(dir.begin(), dir.end(), '"'), dir.end());
+    if (dir.empty()) {
+      continue;
+    }
+    if (dir[dir.size() - 1] != '\\' && dir[dir.size() - 1] != '/') {
+      dir += '\\';
+    }
+    if (isFile(dir + exe)) {
+      return dir + exe;
+    }
+  }
+  return "";
 #else
   char exePath[PATH_MAX];
   // readlink truncates silently, so a full buffer may hold a partial path.
@@ -156,20 +189,26 @@ static string findNasm() {
     string dir(exePath);
     size_t pos = dir.find_last_of('/');
     if (pos != string::npos) {
-      string nasmPath = dir.substr(0, pos + 1) + "nasm";
-      if (access(nasmPath.c_str(), X_OK) == 0) {
-        return nasmPath;
+      string toolPath = dir.substr(0, pos + 1) + name;
+      if (isFile(toolPath) && access(toolPath.c_str(), X_OK) == 0) {
+        return toolPath;
       }
     }
   }
-  return "nasm"; // Fall back to PATH
+  return name; // posix_spawnp searches PATH
 #endif
 }
 
+enum RunResult { RUN_OK, RUN_FAILED, RUN_NOT_FOUND };
+
 // The arguments reach the program as they are, without a shell: the output
-// name comes from the command line and may hold any character.
-static bool runProgram(const char *const argv[]) {
+// name comes from the command line and may hold any character. argv[0] is
+// what findTool returned.
+static RunResult runProgram(const char *const argv[]) {
 #ifdef WIN32
+  if (!*argv[0]) {
+    return RUN_NOT_FOUND;
+  }
   // CreateProcess hands the program a single command line, which its C
   // runtime splits back into argv: quote each argument the way that split
   // expects.
@@ -214,37 +253,55 @@ static bool runProgram(const char *const argv[]) {
   si.hStdOutput = GetStdHandle(STD_OUTPUT_HANDLE);
   si.hStdError = GetStdHandle(STD_ERROR_HANDLE);
   PROCESS_INFORMATION pi;
-  if (!CreateProcessA(NULL, &buf[0], NULL, NULL, TRUE, 0, NULL, NULL, &si,
+  if (!CreateProcessA(argv[0], &buf[0], NULL, NULL, TRUE, 0, NULL, NULL, &si,
                       &pi)) {
-    return false;
+    return RUN_FAILED;
   }
   WaitForSingleObject(pi.hProcess, INFINITE);
   DWORD code = 1;
   bool ok = GetExitCodeProcess(pi.hProcess, &code) && code == 0;
   CloseHandle(pi.hThread);
   CloseHandle(pi.hProcess);
-  return ok;
+  return ok ? RUN_OK : RUN_FAILED;
 #else
   pid_t pid;
-  if (posix_spawnp(&pid, argv[0], NULL, NULL, const_cast<char **>(argv),
-                   environ) != 0) {
-    return false;
+  int spawned = posix_spawnp(&pid, argv[0], NULL, NULL,
+                             const_cast<char **>(argv), environ);
+  if (spawned != 0) {
+    return spawned == ENOENT ? RUN_NOT_FOUND : RUN_FAILED;
   }
   int status;
   while (waitpid(pid, &status, 0) == -1) {
     if (errno != EINTR) {
-      return false;
+      return RUN_FAILED;
     }
   }
-  return WIFEXITED(status) && WEXITSTATUS(status) == 0;
+  return WIFEXITED(status) && WEXITSTATUS(status) == 0 ? RUN_OK : RUN_FAILED;
 #endif
 }
 
-static bool runNasm(const string &ofname, const string &asmfile) {
-  string nasm = findNasm();
+// Runs the tool called name and, when it does not succeed, says why in error.
+static bool runTool(const string &name, const char *const argv[],
+                    const string &failure, string &error) {
+  switch (runProgram(argv)) {
+  case RUN_OK:
+    return true;
+  case RUN_NOT_FOUND:
+    error = "não foi possível encontrar o " + name + ".";
+    return false;
+  default:
+    error = failure;
+    return false;
+  }
+}
+
+static bool runNasm(const string &ofname, const string &asmfile,
+                    string &error) {
+  string nasm = findTool("nasm");
   const char *argv[] = {nasm.c_str(),   "-O1",           "-fbin", "-o",
                         ofname.c_str(), asmfile.c_str(), NULL};
-  return runProgram(argv);
+  return runTool("nasm", argv, "não foi possível montar o programa com o nasm.",
+                 error);
 }
 
 // binutils names its cross tools after the target, so on another host the
@@ -259,11 +316,16 @@ static string arm64Tool(const string &tool) {
 
 // ld writes the ELF headers and lays out the segments, aligned for the
 // 4, 16 and 64 KiB pages that arm64 kernels use.
-static bool runArm64Linker(const string &ld, const string &ofname,
-                           const string &objfile) {
+static bool runArm64Linker(const string &ofname, const string &objfile,
+                           string &error) {
+  string name = arm64Tool("ld");
+  string ld = findTool(name);
   const char *argv[] = {ld.c_str(),     "-static",       "-e", "start", "-o",
                         ofname.c_str(), objfile.c_str(), NULL};
-  return runProgram(argv);
+  return runTool(name + " (binutils)", argv,
+                 "não foi possível ligar o programa com o " + name +
+                     " (binutils).",
+                 error);
 }
 
 #ifndef WIN32
@@ -344,8 +406,8 @@ bool GPT::writeTmpFile(const string &content, string &path) {
 // removed either way.
 bool GPT::assembleArm64(const string &ofname, const string &asmfile,
                         string &error) {
-  string as = arm64Tool("as");
-  string ld = arm64Tool("ld");
+  string name = arm64Tool("as");
+  string as = findTool(name);
   string objfile;
   if (!writeTmpFile("", objfile)) {
     if (!objfile.empty()) {
@@ -356,13 +418,11 @@ bool GPT::assembleArm64(const string &ofname, const string &asmfile,
   }
   const char *asArgs[] = {as.c_str(), "-o", objfile.c_str(), asmfile.c_str(),
                           NULL};
-  bool ok = runProgram(asArgs);
-  if (!ok) {
-    error = "não foi possível montar o programa com o " + as + " (binutils).";
-  } else if (!runArm64Linker(ld, ofname, objfile)) {
-    ok = false;
-    error = "não foi possível ligar o programa com o " + ld + " (binutils).";
-  }
+  bool ok = runTool(name + " (binutils)", asArgs,
+                    "não foi possível montar o programa com o " + name +
+                        " (binutils).",
+                    error) &&
+            runArm64Linker(ofname, objfile, error);
   unlink(objfile.c_str());
   return ok;
 }
@@ -576,9 +636,9 @@ bool GPT::compile(const list<string> &ifnames, bool genBinary) {
         return false;
       }
 
-      string error = "não foi possível montar o programa com o nasm.";
+      string error;
       bool assembled = (arch == "arm64") ? assembleArm64(ofname, asmfile, error)
-                                         : runNasm(ofname, asmfile);
+                                         : runNasm(ofname, asmfile, error);
       unlink(asmfile.c_str());
       if (!assembled) {
         s << PACKAGE << ": " << error << endl;
