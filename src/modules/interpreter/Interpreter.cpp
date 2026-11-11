@@ -462,6 +462,17 @@ ExprValue Interpreter::fcall(PortugolParser::FcallContext *ctx) {
     mapLine(ctx->T_IDENTIFICADOR()->getSymbol()->getLine(), file, line);
 
     funcDecls(it->second, args, line); // executes
+    if (!_returning) {
+      // retExpr still holds the value of the last retorne run anywhere. A
+      // matrix subscript is keyed by its text, so a number must be "0".
+      ExprValue zero;
+      auto rt = dynamic_cast<PortugolParser::RettypeComTipoContext *>(
+          it->second->rettype());
+      if (rt && !rt->tp_prim()->T_KW_LITERAL()) {
+        zero.value = "0";
+      }
+      interpreter.setReturnExprValue(zero);
+    }
     _returning = false;
     v = interpreter.getReturnExprValue(name);
   }

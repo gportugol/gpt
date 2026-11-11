@@ -1215,6 +1215,10 @@ void Portugol2CTranslator::funcDecls(PortugolParser::Func_declsContext *ctx) {
 
   stmBlock(ctx->stm_block());
 
+  if (_currentScopeType != TIPO_NULO) {
+    writeln("return 0;");
+  }
+
   unindent();
   writeln("}");
   setScope(SymbolTable::GlobalScope);

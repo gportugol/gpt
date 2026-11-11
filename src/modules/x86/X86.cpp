@@ -228,7 +228,12 @@ void X86::writeFuncReturn(int expecting_type, int etype, bool hasRetExpr) {
   writeTEXT("return");
 }
 
-void X86::writeFuncEnd() { writeTEXT("return"); }
+// A function that ends without retorne returns all bits zero, which is 0,
+// 0.0, falso or the null literal, as in the interpreter.
+void X86::writeFuncEnd() {
+  writeTEXT("xor eax, eax");
+  writeTEXT("return");
+}
 
 void X86::writeComment(const string &text) { writeTEXT("; " + text); }
 
