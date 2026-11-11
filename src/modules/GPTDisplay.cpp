@@ -166,7 +166,16 @@ void GPTDisplay::addFileRange(int firstLine, const string &file) {
   _file_ranges.push_back(pair<int, string>(firstLine, file));
 }
 
-void GPTDisplay::clearFileRanges() { _file_ranges.clear(); }
+void GPTDisplay::addLineBreak(int line) { _added_line_breaks.insert(line); }
+
+bool GPTDisplay::hasAddedLineBreak(int line) {
+  return _added_line_breaks.count(line) > 0;
+}
+
+void GPTDisplay::clearFileRanges() {
+  _file_ranges.clear();
+  _added_line_breaks.clear();
+}
 
 void GPTDisplay::mapLine(int line, string &file, int &localLine) {
   localLine = line;
