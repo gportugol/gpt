@@ -353,7 +353,9 @@ suporte para funções aninhadas, isso é, funções declaradas dentro de funç�
 
 O retorno de dados é feito por meio da instrução `retorne` e o valor de retorno
 (se houver) deve ser compatível com o tipo da função. Esse tipo não pode ser um
-tipo agregado como matrizes e vetores.
+tipo agregado como matrizes e vetores. Uma função com tipo de retorno que chega
+ao fim sem executar `retorne` devolve o valor zero do tipo: `0`, `0.0`, `falso`,
+o caractere de código 0 ou o literal nulo, que `imprima` mostra como `(nulo)`.
 
 Tanto a passagem de argumentos quanto o retorno são feitos *por valor*, isso é,
 a cópia do valor é feita, ao invés da cópia de endereço ou passagem *por

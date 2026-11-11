@@ -298,7 +298,12 @@ void Arm64::writeFuncReturn(int expecting_type, int etype, bool hasRetExpr) {
   writeTEXT("return");
 }
 
-void Arm64::writeFuncEnd() { writeTEXT("return"); }
+// A function that ends without retorne returns all bits zero, which is 0,
+// 0.0, falso or the null literal, as in the interpreter.
+void Arm64::writeFuncEnd() {
+  writeTEXT("mov x0, #0");
+  writeTEXT("return");
+}
 
 void Arm64::writeComment(const string &text) { writeTEXT("// " + text); }
 

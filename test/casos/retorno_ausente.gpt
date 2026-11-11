@@ -1,0 +1,58 @@
+algoritmo retorno_ausente;
+variáveis
+  c : inteiro;
+  v : matriz[2] de inteiros;
+fim-variáveis
+início
+  imprima(sete(), " [", lit(), "]");
+  imprima(sete(), " ", int());
+  imprima(sete(), " ", rea());
+  imprima(sete(), " ", log());
+  c := sete();
+  c := car();
+  imprima(c);
+  c := sete();
+  v[int()] := 5;
+  imprima(v[0]);
+  imprima(sete(), " ", interna());
+fim
+
+função sete() : inteiro
+início
+  retorne 7;
+fim
+
+função lit() : literal
+  x : inteiro;
+início
+  x := 7;
+fim
+
+função int() : inteiro
+  x : inteiro;
+início
+  x := 7;
+fim
+
+função rea() : real
+  x : real;
+início
+  x := 7.5;
+fim
+
+função log() : lógico
+  x : lógico;
+início
+  x := verdadeiro;
+fim
+
+função car() : caractere
+  x : caractere;
+início
+  x := 'A';
+fim
+
+função interna() : inteiro
+início
+  sete();
+fim
