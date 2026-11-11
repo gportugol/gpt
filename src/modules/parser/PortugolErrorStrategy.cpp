@@ -572,7 +572,8 @@ void validateTokens(CommonTokenStream &tokens) {
       continue;
     }
     // The ANTLR2 lexer rewrote 0c17/0x1F/0b101 to decimal text, so every
-    // consumer only ever sees base-10 integers.
+    // consumer only ever sees base-10 integers. A decimal with leading zeros
+    // loses them too, or the C translation would read 010 as octal.
     if (t->getType() == PortugolParser::T_INT_LIT) {
       const string &text = t->getText();
       int base = literalBase(text);
@@ -592,6 +593,10 @@ void validateTokens(CommonTokenStream &tokens) {
         s << v;
         if (auto wt = dynamic_cast<WritableToken *>(t))
           wt->setText(s.str());
+      } else if (text.size() > 1 && text[0] == '0') {
+        string::size_type digit = text.find_first_not_of('0');
+        if (auto wt = dynamic_cast<WritableToken *>(t))
+          wt->setText(digit == string::npos ? "0" : text.substr(digit));
       }
       continue;
     }

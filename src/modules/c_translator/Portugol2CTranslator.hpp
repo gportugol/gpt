@@ -131,8 +131,6 @@ private:
   Production combine(const Production &left, const Production &right,
                      antlr4::Token *op);
 
-  static std::vector<std::string>
-  dimensoes(PortugolParser::Tipo_declContext *ctx);
   static int binaryType(int left, int right, size_t optoken);
   static char matrixTypeChar(int type);
 };
