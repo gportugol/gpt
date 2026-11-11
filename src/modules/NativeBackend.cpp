@@ -21,6 +21,8 @@
 #include "NativeBackend.hpp"
 #include "GPTDisplay.hpp"
 #include "Symbol.hpp"
+#include "SymbolTable.hpp"
+#include "config.h"
 
 #include <sstream>
 #include <stdlib.h>
@@ -85,4 +87,36 @@ string NativeBackend::translateFuncLeia(int type) {
         "Erro interno: tipo nao suportado (NativeBackend::translateFuncLeia).");
     exit(1);
   }
+}
+
+// The semantic analyzer keeps every dimension and their product between 1
+// and 2^26, so anything else here is a bug and stops the generation.
+long long NativeBackend::matrixElements(const list<string> &dims) {
+  long long elements = 1;
+  for (list<string>::const_iterator it = dims.begin(); it != dims.end(); ++it) {
+    long long size = strtoll((*it).c_str(), NULL, 10);
+    if (size < 1 || size > MaxVariableBytes ||
+        (elements *= size) > MaxVariableBytes) {
+      GPTDisplay::self()->showError("Erro interno: dimensao fora do limite "
+                                    "(NativeBackend::matrixElements).");
+      exit(1);
+    }
+  }
+  return elements;
+}
+
+void NativeBackend::checkVariableBytes(long long bytes, const string &scope) {
+  if (bytes <= MaxVariableBytes) {
+    return;
+  }
+  stringstream s;
+  s << PACKAGE << ": ";
+  if (scope == SymbolTable::GlobalScope) {
+    s << "as variáveis globais";
+  } else {
+    s << "as variáveis locais da função \"" << scope << "\"";
+  }
+  s << " ocupam mais de 1 GiB, o limite do executável nativo.";
+  GPTDisplay::self()->showError(s.str());
+  exit(1);
 }

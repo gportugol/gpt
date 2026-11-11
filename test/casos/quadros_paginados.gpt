@@ -1,0 +1,25 @@
+algoritmo quadros_paginados;
+início
+  imprima(f(2));
+  imprima(pagina(7));
+fim
+
+função f(n : inteiro) : inteiro
+  v : matriz[150001] de inteiros;
+  a : inteiro;
+início
+  a := n;
+  v[0] := n;
+  v[150000] := n * 10;
+  se n > 0 então
+    a := a + f(n - 1);
+  fim-se
+  retorne a + v[0] + v[150000];
+fim
+
+função pagina(n : inteiro) : inteiro
+  m : matriz[512] de inteiros;
+início
+  m[511] := n;
+  retorne m[0] + m[511];
+fim

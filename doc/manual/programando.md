@@ -158,6 +158,15 @@ como variáveis de tipos primitivos, são inicializadas com o valor "0" ou "nulo
 em todas as suas posições. Quando usadas como argumentos de funções, matrizes
 são passadas *por valor*.
 
+Uma matriz pode ter no máximo 67108864 (2^26) elementos, contando todas as
+dimensões: `matriz[8192][8192]` é o maior quadrado aceito. No executável nativo,
+onde cada valor ocupa 8 bytes, as variáveis globais somadas não podem passar de
+1 GiB, nem as variáveis locais de uma função somadas, contando a cópia de cada
+parâmetro matriz; acima disso, o `gpt` se recusa a gerar o programa. As
+variáveis locais ficam na pilha, que costuma ter 8 MiB: se as de uma função não
+couberem nela, o programa nativo termina com um erro de segmentação (ou de
+estouro de pilha, no Windows) ao chamar essa função.
+
 > *"As pessoas são divididas em dois grupos: aquelas que começam a contar a
 > partir do '0', e aquelas que não."*
 >

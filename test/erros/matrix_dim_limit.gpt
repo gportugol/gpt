@@ -1,0 +1,14 @@
+algoritmo erro;
+variáveis
+  a : matriz[65536][65536] de inteiros;
+  b : matriz[3000000000] de reais;
+  c : matriz[0xFFFFFFFF] de lógicos;
+  d, d2 : matriz[67108865] de caracteres;
+fim-variáveis
+início
+fim
+
+função f(p : matriz[8192][8193] de inteiros)
+  v : matriz[536870912] de literais;
+início
+fim

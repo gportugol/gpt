@@ -57,6 +57,8 @@ bool Arm64SubProgram::offsetOf(const string &var, int &offset) {
 // the lowest address.
 void Arm64SubProgram::declareLocal(const string &local_var, int msize,
                                    bool minit) {
+  long long bytes = (long long)(msize == 0 ? 1 : msize) * 8;
+  NativeBackend::checkVariableBytes(_local_offset - 8 + bytes, _name);
   _declared.push_back(local_var);
   if (msize == 0) {
     _offsets[local_var] = -_local_offset;
@@ -123,14 +125,23 @@ string Arm64SubProgram::source() {
       int offset = _offsets[*it];
       s << "// " << *it << ": x29" << (offset < 0 ? "" : "+") << offset << endl;
     }
-    // sp stays aligned to 16 bytes
+    // sp stays aligned to 16 bytes. A frame of a page or more grows one
+    // page at a time, touching each one, so that it cannot skip the guard
+    // page below the stack and land in other memory.
     int frame = (_local_offset - 8 + 15) & ~15;
     if (frame <= 4095) {
       s << "begin " << frame << endl;
     } else {
       s << "begin 0" << endl;
-      s << Arm64::loadImm("x9", frame) << endl;
-      s << "sub sp, sp, x9" << endl;
+      s << Arm64::loadImm("x9", frame / 4096) << endl;
+      s << "1:" << endl;
+      s << "sub sp, sp, #4096" << endl;
+      s << "str xzr, [sp]" << endl;
+      s << "subs x9, x9, #1" << endl;
+      s << "b.ne 1b" << endl;
+      if (frame % 4096) {
+        s << "sub sp, sp, #" << frame % 4096 << endl;
+      }
     }
   }
 
@@ -230,7 +241,7 @@ string Arm64::dropArgs(int count) {
   return s.str();
 }
 
-Arm64::Arm64(SymbolTable &st) : _stable(st) {}
+Arm64::Arm64(SymbolTable &st) : _stable(st), _globalBytes(0) {}
 
 Arm64::~Arm64() {}
 
@@ -458,6 +469,8 @@ void Arm64::declarePrimitive(int decl_type, const string &name, int type) {
     case TIPO_CARACTERE:
     case TIPO_LITERAL:
     case TIPO_LOGICO:
+      _globalBytes += 8;
+      checkVariableBytes(_globalBytes, SymbolTable::GlobalScope);
       _bss << Arm64::makeID(name) << ": .zero 8" << endl;
       break;
     default:
@@ -477,10 +490,7 @@ void Arm64::declarePrimitive(int decl_type, const string &name, int type) {
 
 void Arm64::declareMatrix(int decl_type, int type, string name,
                           list<string> dims) {
-  int size = 1;
-  for (list<string>::iterator it = dims.begin(); it != dims.end(); it++) {
-    size *= atoi((*it).c_str());
-  }
+  int size = (int)matrixElements(dims);
 
   if (decl_type == VAR_GLOBAL) {
     switch (type) {
@@ -489,6 +499,8 @@ void Arm64::declareMatrix(int decl_type, int type, string name,
     case TIPO_CARACTERE:
     case TIPO_LOGICO:
     case TIPO_LITERAL:
+      _globalBytes += (long long)size * 8;
+      checkVariableBytes(_globalBytes, SymbolTable::GlobalScope);
       _bss << Arm64::makeID(name) << ": .zero " << (long long)size * 8 << endl;
       break;
     default:

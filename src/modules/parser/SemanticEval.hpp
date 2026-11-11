@@ -149,6 +149,7 @@ public:
 
 protected:
   bool evalVariableRedeclaration(const string &scope, const TokenRef &id);
+  void evalMatrixSize(const list<int> &dims, int line);
   ExpressionValue evaluateNumTypes(ExpressionValue &left,
                                    ExpressionValue &right);
 

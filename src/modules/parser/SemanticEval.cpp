@@ -201,6 +201,7 @@ void SemanticEval::declareVar(int type, list<int> dims, const TokenRef &mt) {
       GPTDisplay::self()->add(msg.str(), mt.getLine());
     }
   }
+  evalMatrixSize(dims, mt.getLine());
 
   if (!evalVariableRedeclaration(currentScope, mt)) {
     stable.declareVar(currentScope, mt.getText(), mt.getLine(), type, dims);
@@ -227,6 +228,7 @@ void SemanticEval::declareVars(int type, const list<int> &dims,
       GPTDisplay::self()->add(msg.str(), ms.begin()->getLine());
     }
   }
+  evalMatrixSize(dims, ms.begin()->getLine());
 
   list<TokenRef>::const_iterator it;
   for (it = ms.begin(); it != ms.end(); ++it) {
@@ -667,6 +669,34 @@ void SemanticEval::evaluatePasso(int line, const string &str) {
 
 /************************************** Protected
  * ***********************************/
+
+// A native executable keeps a matrix as one block of 8-byte elements,
+// cleared and copied by loops that count its bytes in 32 bits. 2^26
+// elements take 512 MiB, half of what the backends allow for the global
+// variables or for the variables of one function.
+static const long long MaxMatrixElements = 67108864;
+
+// No dimension is above INT_MAX and the product is checked after every
+// step, so it cannot overflow 64 bits. A negative dimension comes from a
+// hexadecimal, octal or binary literal, which keeps only its low 32 bits.
+void SemanticEval::evalMatrixSize(const list<int> &dims, int line) {
+  long long elements = 1;
+  for (list<int>::const_iterator it = dims.begin(); it != dims.end(); ++it) {
+    if ((*it) < 0) {
+      GPTDisplay::self()->add(
+          "Dimensões de matrizes/conjuntos não podem ser negativas", line);
+      return;
+    }
+    elements *= (*it);
+    if (elements > MaxMatrixElements) {
+      stringstream msg;
+      msg << "Matrizes/conjuntos não podem ter mais de " << MaxMatrixElements
+          << " elementos";
+      GPTDisplay::self()->add(msg.str(), line);
+      return;
+    }
+  }
+}
 
 bool SemanticEval::evalVariableRedeclaration(const string &scope,
                                              const TokenRef &id) {
