@@ -1,0 +1,8 @@
+algoritmo leia_matriz_caractere;
+variáveis
+  c : matriz[2] de caracteres;
+fim-variáveis
+início
+  c[1] := leia();
+  imprima("[", c[1], "]");
+fim

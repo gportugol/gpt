@@ -1,0 +1,10 @@
+algoritmo divzero_param;
+início
+  imprima("antes");
+  imprima(inv(leia()));
+  imprima("depois");
+fim
+função inv(x: inteiro): inteiro
+início
+  retorne 100 / x;
+fim

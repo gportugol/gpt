@@ -1,0 +1,38 @@
+algoritmo conversao_argumentos;
+variáveis
+  v : matriz[3] de inteiros;
+fim-variáveis
+início
+  imprima("[", letra(leia()), "]");
+  testa(0.5);
+  testa(2.7);
+  lg(2);
+  imprima(dois() = verdadeiro);
+  v[leia()] := 5;
+  imprima(v[0], v[1], v[2]);
+  imprima(lido() * 1.5);
+fim
+função letra(c: caractere): caractere
+início
+  retorne c;
+fim
+função testa(x: inteiro)
+início
+  se x então
+    imprima(x, " verdadeiro ", x * 1.5);
+  senão
+    imprima(x, " falso ", x * 1.5);
+  fim-se
+fim
+função lg(b: lógico)
+início
+  imprima(b, " ", b = verdadeiro);
+fim
+função dois(): lógico
+início
+  retorne 2;
+fim
+função lido(): inteiro
+início
+  retorne leia();
+fim
