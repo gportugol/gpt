@@ -564,6 +564,36 @@ else
 	echo "$ERRO"
 fi
 
+# Each quote or "/*" after an unterminated one used to scan the rest of the
+# line or file again, so these 80 KB inputs took over half a minute.
+{
+	printf 'algoritmo aspas;\ninício\n  imprima("'
+	yes '\"' | head -n 40000 | tr -d '\n'
+	printf ');\nfim\n'
+} >"$TMP/aspas_abertas.gpt"
+ERRO=$(cd "$TMP" && ${TIMEOUT:+timeout 10} "$GPT" -s "$TMP/aspas.s" aspas_abertas.gpt 2>&1 </dev/null >/dev/null)
+RESULT=$?
+if [ $RESULT -eq 1 ] && grep -q "^aspas_abertas.gpt:3 - Faltando fechar aspas" <<<"$ERRO"; then
+	ok "-s com 40000 aspas sem fechar"
+else
+	fail "-s com 40000 aspas sem fechar: código $RESULT (esperado: 1 em menos de 10 s)"
+	echo "$ERRO"
+fi
+{
+	printf 'algoritmo comentarios;\ninício\n'
+	yes '/* ' | head -n 27000 | tr -d '\n'
+	printf '\nfim\n'
+} >"$TMP/comentarios_abertos.gpt"
+ERRO=$(cd "$TMP" && ${TIMEOUT:+timeout 10} "$GPT" -s "$TMP/comentarios.s" comentarios_abertos.gpt 2>&1 </dev/null >/dev/null)
+RESULT=$?
+if [ $RESULT -eq 1 ] && grep -q "^comentarios_abertos.gpt:5 - AVISO: coment" <<<"$ERRO" &&
+	grep -q " iniciado na linha 3 " <<<"$ERRO"; then
+	ok "-s com 27000 comentários sem fechar"
+else
+	fail "-s com 27000 comentários sem fechar: código $RESULT (esperado: 1 em menos de 10 s)"
+	echo "$ERRO"
+fi
+
 ERRO=$(cd erros && $TIMEOUT "$GPT" -i call_var_as_func.gpt 2>&1 </dev/null >/dev/null)
 RESULT=$?
 if [ $RESULT -eq 1 ] && grep -q '^call_var_as_func.gpt:6 - "a" ' <<<"$ERRO"; then
