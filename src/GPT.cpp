@@ -1026,6 +1026,9 @@ bool GPT::parse(list<pair<string, istream *>> &istream_list) {
     }
 
     return true;
+  } catch (ParseCancellationException &) {
+    GPTDisplay::self()->showErrors();
+    return false;
   } catch (std::exception &e) {
     s << PACKAGE << ": erro interno: " << e.what() << endl;
     GPTDisplay::self()->showError(s);

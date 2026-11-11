@@ -1,0 +1,14 @@
+algoritmo aninhamento_recursao;
+início
+  imprima(f(0));
+fim
+
+função f(n: inteiro): inteiro
+início
+  retorne g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(g(f(n + 1))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))));
+fim
+
+função g(n: inteiro): inteiro
+início
+  retorne n;
+fim

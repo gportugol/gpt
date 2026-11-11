@@ -117,6 +117,20 @@ No momento, o analisador do GPT percorre o código fonte à procura de erros e,
 mesmo que encontre, continua a análise à procura de mais erros. Uma outra
 abordagem seria interromper a análise assim que um erro fosse encontrado.
 
+O GPT aceita até 100 níveis de aninhamento. Cada comando conta um nível, e
+cada expressão também, inclusive as que ficam entre parênteses, no índice de
+uma matriz e no argumento de uma função, e os níveis de comandos e expressões
+que estão uns dentro dos outros se somam. Por exemplo, `imprima(v[(i + 1)])`
+dentro de dois `se` usa seis níveis: os dois `se`, o `imprima`, o seu
+argumento, o índice e a expressão entre parênteses. Cada `senão se` é um `se`
+dentro do `senão` anterior e também conta um nível, então uma sequência de
+`se` e `senão se` com 98 condições, cada uma seguida de um `imprima(x)`, já
+usa os 100 níveis. Um algoritmo com mais níveis é recusado com o erro
+"Aninhamento muito profundo", e a análise para nesse ponto: os erros de
+sintaxe que vierem depois dele não são relatados. A análise, o interpretador
+e os geradores de código percorrem o algoritmo de forma recursiva, e sem esse
+limite um aninhamento grande demais esgotaria a pilha do próprio GPT.
+
 ## Execução de programas
 
 ### Compilação e geração de código executável
