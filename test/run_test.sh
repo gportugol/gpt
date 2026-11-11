@@ -896,6 +896,60 @@ done
 echo ""
 
 echo "========================================"
+echo "Saída igual a uma entrada"
+echo "========================================"
+# gpt refuses to write over one of its input files, whatever name leads to
+# it, before writing anything. GPT_INCLUDE files are inputs too.
+cp casos/olamundo.gpt "$TMP/proprio.gpt"
+echo "// funções extras" >"$TMP/extra.gpt"
+ln -f "$TMP/proprio.gpt" "$TMP/duro.gpt"
+ENTRADAS=(proprio.gpt extra.gpt)
+CASOS_SAIDA=("-s proprio.gpt proprio.gpt" "-t ./proprio.gpt proprio.gpt"
+	"-s duro.gpt proprio.gpt" "-t extra.gpt proprio.gpt extra.gpt"
+	"GPT_INCLUDE=extra.gpt -s extra.gpt proprio.gpt")
+if [ $ON_WINDOWS -eq 0 ]; then
+	ln -sf proprio.gpt "$TMP/link.gpt"
+	CASOS_SAIDA+=("-t link.gpt proprio.gpt")
+fi
+if [ $CAN_EXEC_NATIVE -eq 1 ]; then
+	# Without -o the program of proprio.gpt is called proprio (proprio.exe on
+	# Windows), here also the name of the second input.
+	PROPRIO=proprio
+	[ $ON_WINDOWS -eq 1 ] && PROPRIO=proprio.exe
+	cp "$TMP/extra.gpt" "$TMP/$PROPRIO"
+	ENTRADAS+=("$PROPRIO")
+	CASOS_SAIDA+=("-o proprio.gpt proprio.gpt" "proprio.gpt $PROPRIO")
+fi
+for f in "${ENTRADAS[@]}"; do
+	cp "$TMP/$f" "$TMP/$f.orig"
+done
+for caso in "${CASOS_SAIDA[@]}"; do
+	# cp writes into the existing file, so duro.gpt stays a hard link
+	for f in "${ENTRADAS[@]}"; do
+		cp "$TMP/$f.orig" "$TMP/$f"
+	done
+	read -r -a ARGS <<<"$caso"
+	AMBIENTE=()
+	if [[ ${ARGS[0]} == *=* ]]; then
+		AMBIENTE=("${ARGS[0]}")
+		ARGS=("${ARGS[@]:1}")
+	fi
+	ERRO=$(cd "$TMP" && env "${AMBIENTE[@]}" $TIMEOUT "$GPT" "${GPT_A[@]}" "${ARGS[@]}" 2>&1 >/dev/null)
+	RESULT=$?
+	MUDOU=""
+	for f in "${ENTRADAS[@]}"; do
+		cmp -s "$TMP/$f" "$TMP/$f.orig" || MUDOU="$MUDOU $f"
+	done
+	if [ $RESULT -eq 1 ] && [ -z "$MUDOU" ] && grep -q "um dos arquivos de entrada" <<<"$ERRO"; then
+		ok "gpt $caso: recusado"
+	else
+		fail "gpt $caso: código $RESULT, alterados:${MUDOU:- nenhum} (esperado: 1, a recusa e nenhuma entrada alterada)"
+		echo "$ERRO"
+	fi
+done
+echo ""
+
+echo "========================================"
 echo "Segmentos do executável"
 echo "========================================"
 # The generated ELF must declare a non-executable stack and keep the code
