@@ -1,0 +1,25 @@
+algoritmo nomes_gerados;
+variáveis
+  v : matriz[2] de inteiros;
+  _str_0 : inteiro;
+  _str_1 : literal;
+fim-variáveis
+início
+  v[0] := 11;
+  v[1] := 22;
+  _str_0 := 5;
+  _str_1 := "seis";
+  imprima(le(v, 33));
+  imprima(soma(44, v));
+  imprima("_str_0 = ", _str_0, ", _str_1 = ", _str_1);
+fim
+
+função le(x : matriz[2] de inteiros, p__x : inteiro) : inteiro
+início
+  retorne x[1] + p__x;
+fim
+
+função soma(p__m : inteiro, m : matriz[2] de inteiros) : inteiro
+início
+  retorne p__m + m[0];
+fim
