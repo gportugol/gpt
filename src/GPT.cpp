@@ -281,6 +281,18 @@ static RunResult runProgram(const char *const argv[]) {
 #endif
 }
 
+// nasm, as and ld read an argument starting with @ as a file of further
+// options and may take one starting with - as an option, ld even as the value
+// of -o, and ld looks for an input file starting with = or $SYSROOT in its
+// sysroot, so such a name is passed as ./name.
+static string fileArg(const string &path) {
+  if (!path.empty() && (path[0] == '@' || path[0] == '-' || path[0] == '=' ||
+                        path.compare(0, 8, "$SYSROOT") == 0)) {
+    return "./" + path;
+  }
+  return path;
+}
+
 // Runs the tool called name and, when it does not succeed, says why in error.
 static bool runTool(const string &name, const char *const argv[],
                     const string &failure, string &error) {
@@ -299,8 +311,10 @@ static bool runTool(const string &name, const char *const argv[],
 static bool runNasm(const string &ofname, const string &asmfile,
                     string &error) {
   string nasm = findTool("nasm");
-  const char *argv[] = {nasm.c_str(),   "-O1",           "-fbin", "-o",
-                        ofname.c_str(), asmfile.c_str(), NULL};
+  string out = fileArg(ofname);
+  string in = fileArg(asmfile);
+  const char *argv[] = {nasm.c_str(), "-O1",      "-fbin", "-o",
+                        out.c_str(),  in.c_str(), NULL};
   return runTool("nasm", argv, "não foi possível montar o programa com o nasm.",
                  error);
 }
@@ -321,8 +335,10 @@ static bool runArm64Linker(const string &ofname, const string &objfile,
                            string &error) {
   string name = arm64Tool("ld");
   string ld = findTool(name);
-  const char *argv[] = {ld.c_str(),     "-static",       "-e", "start", "-o",
-                        ofname.c_str(), objfile.c_str(), NULL};
+  string out = fileArg(ofname);
+  string in = fileArg(objfile);
+  const char *argv[] = {ld.c_str(), "-static",   "-e",       "start",
+                        "-o",       out.c_str(), in.c_str(), NULL};
   return runTool(name + " (binutils)", argv,
                  "não foi possível ligar o programa com o " + name +
                      " (binutils).",
@@ -417,8 +433,9 @@ bool GPT::assembleArm64(const string &ofname, const string &asmfile,
     error = "erro ao processar arquivo temporário";
     return false;
   }
-  const char *asArgs[] = {as.c_str(), "-o", objfile.c_str(), asmfile.c_str(),
-                          NULL};
+  string out = fileArg(objfile);
+  string in = fileArg(asmfile);
+  const char *asArgs[] = {as.c_str(), "-o", out.c_str(), in.c_str(), NULL};
   bool ok = runTool(name + " (binutils)", asArgs,
                     "não foi possível montar o programa com o " + name +
                         " (binutils).",

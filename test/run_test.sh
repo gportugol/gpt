@@ -806,13 +806,17 @@ echo "Nome de saída com caracteres especiais"
 echo "========================================"
 # The name given to -o reaches the assembler, the linker and chmod as it is,
 # never through a shell: nothing in it may run, and the program must be
-# written under that name.
+# written under that name. GNU ld reads "@resposta" as the options in the
+# file "resposta", here an output name that would leave the marker, and
+# rewrites "-lsaida" to "--library=saida".
 if [ $CAN_EXEC_NATIVE -eq 0 ] || [ $HAVE_ASSEMBLER -eq 0 ]; then
 	echo "⚠ -o com caracteres especiais: pulado (sem backend nativo ou sem ${ASSEMBLER:-montador})"
 else
 	cp casos/olamundo.gpt "$TMP/especial.gpt"
+	echo marcador >"$TMP/resposta"
 	for nome in 'saida$(touch marcador)' 'saida`touch marcador`' \
-		'saida; touch marcador' 'saida com espaco' 'saida%OS%'; do
+		'saida; touch marcador' 'saida com espaco' 'saida%OS%' \
+		'@resposta' '-lsaida'; do
 		rm -f "$TMP/marcador"
 		ERRO=$(cd "$TMP" && $TIMEOUT "$GPT" "${GPT_A[@]}" -o "$nome" especial.gpt 2>&1 >/dev/null)
 		RESULT=$?
@@ -823,6 +827,23 @@ else
 			echo "$ERRO"
 		fi
 	done
+	# The temporary files reach the tools too, under a TMPDIR that gpt reads
+	# only outside Windows. ld looks for an object under "=tmp" or
+	# "$SYSROOTtmp" in its sysroot.
+	if [ $ON_WINDOWS -eq 0 ]; then
+		for dir in -tmp @tmp =tmp '$SYSROOTtmp'; do
+			mkdir -p "$TMP/$dir"
+			rm -f "$TMP/saida_tmpdir"
+			ERRO=$(cd "$TMP" && TMPDIR="$dir" $TIMEOUT "$GPT" "${GPT_A[@]}" -o saida_tmpdir especial.gpt 2>&1 >/dev/null)
+			RESULT=$?
+			if [ $RESULT -eq 0 ] && "${RUNNER[@]}" "$TMP/saida_tmpdir" | grep -q "Mundo"; then
+				ok "-o com TMPDIR=$dir"
+			else
+				fail "-o com TMPDIR=$dir: código $RESULT (esperado: 0 e o programa montado)"
+				echo "$ERRO"
+			fi
+		done
+	fi
 
 	# Without -o the program takes the name of the source file, not the name
 	# written inside it, so a source cannot choose which file it replaces. A
@@ -841,6 +862,16 @@ else
 		ok "sem -o: programa com o nome do arquivo fonte"
 	else
 		fail "sem -o: código $RESULT (esperado: 0 e o programa em especial$EXE)"
+		echo "$ERRO"
+	fi
+	cp casos/olamundo.gpt "$TMP/@resposta.gpt"
+	rm -f "$TMP/@resposta$EXE" "$TMP/marcador"
+	ERRO=$(cd "$TMP" && $TIMEOUT "$GPT" "${GPT_A[@]}" @resposta.gpt 2>&1 >/dev/null)
+	RESULT=$?
+	if [ $RESULT -eq 0 ] && [ ! -e "$TMP/marcador" ] && "${RUNNER[@]}" "$TMP/@resposta$EXE" | grep -q "Mundo"; then
+		ok "sem -o: fonte com nome começando com @"
+	else
+		fail "sem -o com fonte @resposta.gpt: código $RESULT (esperado: 0 e o programa em @resposta$EXE)"
 		echo "$ERRO"
 	fi
 	ERRO=$(cd "$TMP" && $TIMEOUT "$GPT" "${GPT_A[@]}" semext 2>&1 >/dev/null)
