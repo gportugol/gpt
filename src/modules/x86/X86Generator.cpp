@@ -542,8 +542,9 @@ int X86Generator::exprUnario(PortugolParser::Expr_unarioContext *ctx,
     etype = element(u->expr_elemento(), expecting_type);
     // nothing
   } else if (auto u = dynamic_cast<PortugolParser::ExprNotContext *>(ctx)) {
-    etype = element(u->expr_elemento(), expecting_type);
+    element(u->expr_elemento(), expecting_type);
     x86.writeUnaryNot();
+    etype = TIPO_LOGICO;
   } else if (auto u = dynamic_cast<PortugolParser::ExprBitNotContext *>(ctx)) {
     etype = element(u->expr_elemento(), expecting_type);
     x86.writeUnaryBitNotExpr();
