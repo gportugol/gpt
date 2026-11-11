@@ -144,6 +144,8 @@ string Arm64SubProgram::source() {
 
 string Arm64::EntryPoint = "start";
 
+// Every identifier x of the program becomes _x, so the string labels carry
+// a $, which an identifier cannot contain.
 string Arm64::makeID(const string &str) { return string("_") + str; }
 
 // mov takes what a single movz or movn builds; any other value is built 16
@@ -560,7 +562,7 @@ string Arm64::createLabel(bool local, string tmpl) {
   if (local) {
     s << ".L__" << tmpl << "_" << c;
   } else {
-    s << "__" << tmpl << "_" << c;
+    s << "__" << tmpl << "$" << c;
   }
   c++;
   return s.str();

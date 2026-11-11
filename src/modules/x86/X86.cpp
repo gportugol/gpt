@@ -84,9 +84,9 @@ void X86SubProgram::declareParam(const string &param, int type, int msize) {
           << endl;
     _end << "%undef " << X86::makeID(param) << endl;
   } else {
-    _head << "%define _p_" << X86::makeID(param) << " rbp+" << _param_offset
+    _head << "%define _p$" << X86::makeID(param) << " rbp+" << _param_offset
           << endl;
-    _end << "%undef _p_" << X86::makeID(param) << endl;
+    _end << "%undef _p$" << X86::makeID(param) << endl;
     declareLocal(param, msize, false);
     writeMatrixCopyCode(param, type, msize);
   }
@@ -96,7 +96,7 @@ void X86SubProgram::declareParam(const string &param, int type, int msize) {
 void X86SubProgram::writeMatrixCopyCode(const string &param, int type,
                                         int msize) {
   _init << "lea rax, [" << X86::makeID(param) << "]" << endl;
-  _init << "addarg qword [_p_" << X86::makeID(param) << "]" << endl;
+  _init << "addarg qword [_p$" << X86::makeID(param) << "]" << endl;
   _init << "addarg rax" << endl;
   _init << "addarg " << (type == TIPO_LITERAL) << endl;
   _init << "addarg " << (msize * SizeofSlot) << endl;
@@ -138,6 +138,9 @@ string X86SubProgram::source() {
 
 string X86::EntryPoint = "start";
 
+// Every identifier x of the program becomes _x, so the names gpt makes up
+// (the pointer slot of a matrix parameter and the string labels) carry a $,
+// which an identifier cannot contain.
 string X86::makeID(const string &str) { return string("_") + str; }
 
 X86::X86(SymbolTable &st) : _stable(st) {}
@@ -506,7 +509,7 @@ string X86::createLabel(bool local, string tmpl) {
   if (local) {
     s << ".__" << tmpl << "_" << c;
   } else {
-    s << "__" << tmpl << "_" << c;
+    s << "__" << tmpl << "$" << c;
   }
   c++;
   return s.str();
