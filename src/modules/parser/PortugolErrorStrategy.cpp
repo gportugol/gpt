@@ -551,7 +551,9 @@ void validateTokens(CommonTokenStream &tokens) {
       display->mapLine((int)all.back()->getLine(), file, endLine);
     } else {
       display->mapLine(next - 1, file, endLine);
-      endLine++;
+      if (!display->hasAddedLineBreak(next - 1)) {
+        endLine++;
+      }
     }
     stringstream s;
     s << "AVISO: comentário iniciado na linha " << startLine

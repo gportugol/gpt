@@ -691,16 +691,20 @@ bool GPT::parse(list<pair<string, istream *>> &istream_list) {
       buffer << it->second->rdbuf();
       string part = buffer.str();
 
-      if (!part.empty() && part[part.size() - 1] != '\n') {
-        part += '\n';
-      }
-
       GPTDisplay::self()->addFileName(it->first);
       GPTDisplay::self()->addFileRange(line, it->first);
       for (string::size_type i = 0; i < part.size(); ++i) {
         if (part[i] == '\n') {
           line++;
         }
+      }
+      // The line break keeps a file apart from the next one. The last file
+      // goes without, so that its end of file stays on its last line.
+      if (std::next(it) != istream_list.end() && !part.empty() &&
+          part[part.size() - 1] != '\n') {
+        part += '\n';
+        GPTDisplay::self()->addLineBreak(line);
+        line++;
       }
       content += part;
     }

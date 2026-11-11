@@ -23,6 +23,7 @@
 
 #include <list>
 #include <map>
+#include <set>
 #include <sstream>
 #include <stdlib.h>
 #include <string>
@@ -81,6 +82,10 @@ public:
   // Input files are concatenated before parsing; each range maps the first
   // line of a file in the concatenated input back to its name.
   void addFileRange(int firstLine, const string &file);
+  // The line break that ends line was added to keep a file that does not
+  // end in one apart from the next file.
+  void addLineBreak(int line);
+  bool hasAddedLineBreak(int line);
   void clearFileRanges();
   void mapLine(int line, string &file, int &localLine);
   // Line of its own file for a line of the concatenated input.
@@ -131,6 +136,7 @@ private:
 
   typedef list<pair<int, string>> file_ranges_t;
   file_ranges_t _file_ranges;
+  set<int> _added_line_breaks;
 };
 
 #endif
