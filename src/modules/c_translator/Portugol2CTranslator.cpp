@@ -516,17 +516,6 @@ string Portugol2CTranslator::translateBinExpr(const Production &left,
   return ret.str();
 }
 
-vector<string>
-Portugol2CTranslator::dimensoes(PortugolParser::Tipo_declContext *ctx) {
-  vector<string> dims;
-  if (auto m = dynamic_cast<PortugolParser::TipoMatrizContext *>(ctx)) {
-    for (auto d : m->tp_matriz()->dimensoes()->T_INT_LIT()) {
-      dims.push_back(d->getText());
-    }
-  }
-  return dims;
-}
-
 char Portugol2CTranslator::matrixTypeChar(int type) {
   switch (type) {
   case TIPO_INTEIRO:
@@ -600,7 +589,7 @@ void Portugol2CTranslator::variaveis(
 
   for (auto decl : decls) {
     int type = SemanticAnalyzer::tipoDecl(decl->tipo_decl());
-    vector<string> dims = dimensoes(decl->tipo_decl());
+    list<int> dims = SemanticAnalyzer::dimensoes(decl->tipo_decl());
 
     if (dims.empty()) { // primitivo
       for (auto id : decl->T_IDENTIFICADOR()) {
@@ -611,7 +600,7 @@ void Portugol2CTranslator::variaveis(
     } else { // matriz
       for (auto id : decl->T_IDENTIFICADOR()) {
         str << translateType(type) << " _" << id->getText();
-        for (auto &dim : dims) {
+        for (int dim : dims) {
           str << "[" << dim << "]";
         }
         str << ";";
@@ -621,8 +610,8 @@ void Portugol2CTranslator::variaveis(
         init << "'" << matrixTypeChar(type) << "', ";
 
         int tsize = 1;
-        for (auto &dim : dims) {
-          tsize = tsize * atoi(dim.c_str());
+        for (int dim : dims) {
+          tsize = tsize * dim;
         }
         init << tsize << ");";
         addInitStm(init.str());
@@ -1172,7 +1161,7 @@ void Portugol2CTranslator::funcDecls(PortugolParser::Func_declsContext *ctx) {
   if (ctx->fparams()) {
     for (auto param : ctx->fparams()->fparam()) {
       int type = SemanticAnalyzer::tipoDecl(param->tipo_decl());
-      vector<string> dims = dimensoes(param->tipo_decl());
+      list<int> dims = SemanticAnalyzer::dimensoes(param->tipo_decl());
       string pid = param->T_IDENTIFICADOR()->getText();
 
       if (dims.empty()) { // primitivo
@@ -1184,7 +1173,7 @@ void Portugol2CTranslator::funcDecls(PortugolParser::Func_declsContext *ctx) {
         decl << translateType(type) << " _" << pid;
 
         comma = ",";
-        for (auto &dim : dims) {
+        for (int dim : dims) {
           s << "[" << dim << "]";
           decl << "[" << dim << "]";
         }
@@ -1197,8 +1186,8 @@ void Portugol2CTranslator::funcDecls(PortugolParser::Func_declsContext *ctx) {
         cpy << "'" << matrixTypeChar(type) << "', ";
 
         int tsize = 1;
-        for (auto &dim : dims) {
-          tsize = tsize * atoi(dim.c_str());
+        for (int dim : dims) {
+          tsize = tsize * dim;
         }
         cpy << tsize << ");";
         addInitStm(cpy.str());

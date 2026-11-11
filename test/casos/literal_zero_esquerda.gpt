@@ -1,0 +1,22 @@
+algoritmo literal_zero_esquerda;
+variáveis
+  x : inteiro;
+  i : inteiro;
+  m : matriz[2][010] de inteiros;
+fim-variáveis
+início
+  x := 010;
+  imprima(x);
+  para i de 0 até 30 passo 010 faça
+    imprima(i);
+  fim-para
+  m[0][09] := 7;
+  imprima(m[0][9], " ", m[1][1]);
+  imprima(f(m));
+fim
+função f(p : matriz[2][010] de inteiros) : inteiro
+  v : matriz[0100] de inteiros;
+início
+  v[99] := p[0][9];
+  retorne v[99] + p[1][1];
+fim

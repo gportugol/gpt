@@ -223,6 +223,7 @@ representada.
 - **Inteiros**: podem ser representados em base decimal, hexadecimal, octal e
   binária. Representações decimais são formadas, opcionalmente, por um sinal
   (`+` ou `-`) seguido de um ou mais algarismos (ex. `120`, `+5` e `-2`).
+  Zeros à esquerda não mudam a base: `010` vale dez em todos os modos.
   Representações hexadecimais são representadas com o prefixo `0x` ou `0X`,
   seguido de algarismos entre `0` e `9` e letras entre `a` e `f` ou `A` e `F`
   (ex. `0xF1A5`). Representações octais são representadas com o prefixo `0c` ou
