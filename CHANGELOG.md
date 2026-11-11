@@ -36,6 +36,19 @@ Este arquivo foi consolidado a partir do ChangeLog histórico (CVS/SVN).
   Algumas mensagens mudam com a recuperação de erros do novo parser.
 - Strings aceitam qualquer caractere UTF-8; literais de caractere continuam
   limitados ao Latin-1.
+- Uma quebra de linha ou um CR crus dentro de um literal de caractere (`'`,
+  Enter e `'`) agora dão "Faltando fechar aspas.", como já acontecia nas
+  strings. A 1.4.0 aceitava esse literal, embora o C gerado por `-t` não
+  compilasse. Os escapes `'\n'` e `'\r'` dão o mesmo caractere nos três
+  modos.
+- Um `não` sem operando, como em `b := não;` ou `imprima(não, 1)`, agora é
+  erro de sintaxe (`Esperando expressão, encontrado ; após "não".`). A 1.4.0
+  aceitava o programa com o aviso `<AST>: unexpected AST node: <ASTNULL>`, e
+  o resultado dependia do modo: `b := não;` dava `verdadeiro` no
+  interpretador e `falso` no executável, `imprima(não, 1)` mostrava
+  `verdadeiro1` no interpretador e só `1` no executável, e o C gerado por
+  `-t` não compilava. `-`, `+` e `~` sem operando já eram rejeitados e
+  passam a dar a mesma mensagem.
 - `gpt -o` gera executáveis x86-64, ELF64 no GNU/Linux e PE32+ no Windows,
   no lugar de ELF32 e PE32. Os reais passam a ser `double` em SSE2, e não
   mais `float` no x87. Um executável gerado agora exige um sistema de 64

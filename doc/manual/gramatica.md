@@ -23,7 +23,7 @@ T_REAL_LIT : T_DEC_LIT+ '.' T_DEC_LIT+
 
     Regras para identificar caracteres e cadeias de caracteres
 
-T_CARAC_LIT : ''' ( ~('''|'\') |'\' . )? '''
+T_CARAC_LIT : ''' ( ~( ''' | '\' | CR | LF ) | '\' . )? '''
 
 T_STRING_LIT : '"' ( ~( '"' | '\' | CR | LF ) | '\' . )* '"'
 
