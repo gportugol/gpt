@@ -662,8 +662,8 @@ bool GPT::prologue(const list<string> &ifnames) {
        ++it) {
     ifstream fi((*it).c_str());
     if (!fi) {
-      s << PACKAGE << ": não foi possível abrir o arquivo: \"" << (*it) << "\""
-        << endl;
+      s << PACKAGE << ": não foi possível abrir o arquivo: \""
+        << GPTDisplay::printableFileName(*it) << "\"" << endl;
       GPTDisplay::self()->showError(s);
       goto bail;
     }
@@ -676,7 +676,8 @@ bool GPT::prologue(const list<string> &ifnames) {
       text.erase(0, 3);
     }
     if (!isValidUtf8(text)) {
-      s << PACKAGE << ": " << (*it) << ": o arquivo não está em UTF-8" << endl;
+      s << PACKAGE << ": " << GPTDisplay::printableFileName(*it)
+        << ": o arquivo não está em UTF-8" << endl;
       GPTDisplay::self()->showError(s);
       goto bail;
     }
@@ -866,7 +867,7 @@ bool GPT::compile(const list<string> &ifnames, bool genBinary) {
 #ifndef WIN32
       if (!makeExecutable(ofname)) {
         s << PACKAGE << ": não foi possível tornar o arquivo executável: \""
-          << ofname << "\"" << endl;
+          << GPTDisplay::printableFileName(ofname) << "\"" << endl;
         GPTDisplay::self()->showError(s);
         return false;
       }
@@ -874,8 +875,8 @@ bool GPT::compile(const list<string> &ifnames, bool genBinary) {
     } else {
       ofstream fasm(ofname.c_str());
       if (!fasm) {
-        s << PACKAGE << ": não foi possível abrir o arquivo: \"" << ofname
-          << "\"" << endl;
+        s << PACKAGE << ": não foi possível abrir o arquivo: \""
+          << GPTDisplay::printableFileName(ofname) << "\"" << endl;
         GPTDisplay::self()->showError(s);
         return false;
       }
@@ -912,8 +913,8 @@ bool GPT::translate2C(const list<string> &ifnames) {
 
     ofstream out(ofname);
     if (!out) {
-      s << PACKAGE << ": não foi possível abrir o arquivo: \"" << ofname << "\""
-        << endl;
+      s << PACKAGE << ": não foi possível abrir o arquivo: \""
+        << GPTDisplay::printableFileName(ofname) << "\"" << endl;
       GPTDisplay::self()->showError(s);
       return false;
     }

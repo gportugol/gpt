@@ -548,7 +548,8 @@ int InterpreterDBG::receiveCmd(bool nonBlocking) {
     } else if (cmd.find("breakpoint") != string::npos) {
       processBreakpointCMD(cmd);
     } else {
-      cerr << PACKAGE << ": comando desconhecido: \"" << cmd << "\"" << endl;
+      cerr << PACKAGE << ": comando desconhecido: \""
+           << GPTDisplay::printable(cmd, true) << "\"" << endl;
       return CMDStepInto;
     }
   }

@@ -57,6 +57,65 @@ string GPTDisplay::toLatin1(const string &str) {
   return ret;
 }
 
+// Length of the well-formed UTF-8 sequence (RFC 3629) at str[i], or 0.
+static string::size_type utf8Length(const string &str, string::size_type i) {
+  unsigned char b = (unsigned char)str[i];
+  string::size_type len = b >= 0xF0 ? 4 : b >= 0xE0 ? 3 : 2;
+  unsigned char lo = b == 0xE0 ? 0xA0 : b == 0xF0 ? 0x90 : 0x80;
+  unsigned char hi = b == 0xED ? 0x9F : b == 0xF4 ? 0x8F : 0xBF;
+  if (b < 0xC2 || b > 0xF4 || i + len > str.length()) {
+    return 0;
+  }
+  unsigned char second = (unsigned char)str[i + 1];
+  if (second < lo || second > hi) {
+    return 0;
+  }
+  for (string::size_type k = 2; k < len; k++) {
+    if (((unsigned char)str[i + k] & 0xC0) != 0x80) {
+      return 0;
+    }
+  }
+  return len;
+}
+
+// U+0080 to U+009F are 0xC2 followed by 0x80 to 0x9F in UTF-8. Without
+// utf8Only any other byte from 0x80 up is kept, as source text is UTF-8.
+string GPTDisplay::printable(const string &str, bool utf8Only) {
+  string ret;
+  for (string::size_type i = 0; i < str.length(); i++) {
+    unsigned char b = (unsigned char)str[i];
+    unsigned char next = i + 1 < str.length() ? (unsigned char)str[i + 1] : 0;
+    unsigned code;
+    if (b < 0x20 || b == 0x7F) {
+      code = b;
+    } else if (b == 0xC2 && next >= 0x80 && next <= 0x9F) {
+      code = next;
+      i++;
+    } else if (b < 0x80 || !utf8Only) {
+      ret += str[i];
+      continue;
+    } else if (string::size_type len = utf8Length(str, i)) {
+      ret += str.substr(i, len);
+      i += len - 1;
+      continue;
+    } else {
+      code = b;
+    }
+    ret += "\\x";
+    ret += "0123456789abcdef"[code >> 4];
+    ret += "0123456789abcdef"[code & 0xF];
+  }
+  return ret;
+}
+
+string GPTDisplay::printableFileName(const string &name) {
+#ifdef WIN32
+  return printable(name);
+#else
+  return printable(name, true);
+#endif
+}
+
 string GPTDisplay::toOEM(const string &str) {
 #ifdef WIN32
   string latin1 = toLatin1(str);
@@ -139,13 +198,14 @@ int GPTDisplay::add(const string &msg, const string &file, int line) {
 
 void GPTDisplay::showError(ErrorMsg &err) {
   stringstream s;
-  s << err.file << ":" << err.line << " - " << err.msg << "." << endl;
+  s << printableFileName(err.file) << ":" << err.line << " - "
+    << printable(err.msg) << "." << endl;
   showError(s);
 }
 
 void GPTDisplay::showTip(ErrorMsg &err) {
   stringstream s;
-  s << "\tDica: " << err.tip << "." << endl;
+  s << "\tDica: " << printable(err.tip) << "." << endl;
   showError(s);
 }
 

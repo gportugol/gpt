@@ -63,6 +63,15 @@ public:
 
   static GPTDisplay *self();
 
+  // Text with the C0 and C1 controls and DEL shown as \xNN, so that a
+  // terminal does not act on escape sequences taken from the source. With
+  // utf8Only, so is every byte from 0x80 up outside well-formed UTF-8, for
+  // text that does not come from the source.
+  static string printable(const string &str, bool utf8Only = false);
+  // printable() for a file name: utf8Only, except on Windows, where file
+  // names arrive in Latin-1.
+  static string printableFileName(const string &name);
+
   void showError(stringstream &s);
   void showError(const string &);
   void showMessage(stringstream &s);
