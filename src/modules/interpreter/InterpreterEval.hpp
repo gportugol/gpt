@@ -58,6 +58,7 @@ public:
   void setValue(string value);
   void setValue(list<string> &d, string value);
   string castVal(string value);
+  static string castVal(int type, const string &value);
 
   string name;
   int type;

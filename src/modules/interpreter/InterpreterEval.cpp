@@ -128,7 +128,9 @@ void Variable::setValue(list<string> &d, string value) {
   values[sub.str()] = castVal(value);
 }
 
-string Variable::castVal(string value) {
+string Variable::castVal(string value) { return castVal(type, value); }
+
+string Variable::castVal(int type, const string &value) {
   stringstream ss;
   switch (type) {
   case TIPO_INTEIRO:
@@ -147,7 +149,25 @@ string Variable::castVal(string value) {
 
 //------------------------------------------------------------------------
 
-void LValue::addMatrixIndex(ExprValue &e) { dims.push_back(e.value); }
+// An argument or a return value of another type converts as the native and
+// C backends convert it: a real is truncated, and only the text read by
+// leia() is parsed for the type of the slot.
+static string convertTo(int type, const ExprValue &v) {
+  if (v.type == TIPO_REAL && type != TIPO_REAL) {
+    return to_string(atoi(v.value.c_str()));
+  }
+  if (v.type != TIPO_LITERAL) {
+    return v.value;
+  }
+  if (type == TIPO_CARACTERE) {
+    return to_string((int)v.value[0]);
+  }
+  return Variable::castVal(type, v.value);
+}
+
+void LValue::addMatrixIndex(ExprValue &e) {
+  dims.push_back(to_string(atoi(e.value.c_str())));
+}
 
 string LValue::dimsToString() {
   stringstream sub;
@@ -500,6 +520,9 @@ ExprValue InterpreterEval::evaluateDiv(ExprValue &left, ExprValue &right,
   } else {
     int dividend = atoi(left.value.c_str());
     int divisor = atoi(right.value.c_str());
+    if (divisor == 0) {
+      runtimeError(line, "Divisão por 0 é ilegal");
+    }
     // INT_MIN / -1 does not fit an int and traps on x86, like idiv does
     if (divisor == -1) {
       s << (int)(0u - (unsigned)dividend);
@@ -712,7 +735,7 @@ void InterpreterEval::execAttribution(LValue &lvalue, ExprValue &v) {
     var.setValue(castLeiaChar(var, v));
   } else {
     if (var.checkBounds(lvalue.dims)) {
-      var.setValue(lvalue.dims, v.value);
+      var.setValue(lvalue.dims, castLeiaChar(var, v));
     } else {
       stringstream s;
       s << PACKAGE << ": Erro de execução próximo a linha " << currentLine
@@ -804,7 +827,8 @@ void InterpreterEval::beginFunctionCall(const string &file,
     Symbol pv = stable.getSymbol(funcname, (*pit).first);
     Variable &var = variables.get(pv.lexeme);
     if (var.isPrimitive) {
-      var.primitiveValue = (*ait).value;
+      var.primitiveValue =
+          (*ait).type == var.type ? (*ait).value : convertTo(var.type, *ait);
     } else {
       var.values = (*ait).values;
     }
@@ -853,14 +877,11 @@ void InterpreterEval::setReturnExprValue(ExprValue &v) { retExpr = v; }
 ExprValue InterpreterEval::getReturnExprValue(const string &fname) {
   Symbol func = stable.getSymbol(SymbolTable::GlobalScope, fname);
 
-  if ((func.type.primitiveType() != TIPO_REAL) && (retExpr.type == TIPO_REAL)) {
-    // trunca o valor inteiro
-    stringstream s;
-    s << atoi(retExpr.value.c_str());
-    retExpr.setValue(s);
+  int type = func.type.primitiveType();
+  if (retExpr.type != type) {
+    retExpr.value = convertTo(type, retExpr);
+    retExpr.type = type;
   }
-
-  retExpr.type = func.type.primitiveType();
   return retExpr;
 }
 
