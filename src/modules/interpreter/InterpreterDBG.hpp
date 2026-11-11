@@ -22,6 +22,7 @@
 #define NET_HPP
 #include <list>
 #include <map>
+#include <set>
 #include <sstream>
 #include <string>
 
@@ -82,7 +83,8 @@ private:
   SOCKET clientsock;
 #endif
 
-  map<string, list<int>> breakpoints;
+  map<string, set<int>> breakpoints;
+  size_t breakpointCount;
   int currentCmd;
 };
 
