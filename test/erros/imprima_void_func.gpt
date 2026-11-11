@@ -1,0 +1,11 @@
+algoritmo erro;
+início
+  imprima("a", nada(), "b");
+  imprima((nada()));
+  imprima(naodeclarada);
+  imprima(naoexiste());
+  imprima("a" + 1);
+fim
+função nada()
+início
+fim

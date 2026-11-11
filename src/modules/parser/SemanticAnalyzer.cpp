@@ -403,14 +403,20 @@ ExpressionValue SemanticAnalyzer::literal(PortugolParser::LiteralContext *ctx) {
   return type;
 }
 
+// An argument whose own evaluation reported an error (an undeclared name, a
+// bad operand) also comes back without a type, so evaluateFCall learns which
+// arguments did, to blame only a call to a function without return type.
 ExpressionValue SemanticAnalyzer::fcall(PortugolParser::FcallContext *ctx) {
   list<ExpressionValue> args;
+  list<bool> failed;
   if (ctx->fargs()) {
     for (auto e : ctx->fargs()->expr()) {
+      int errors = GPTDisplay::self()->totalErrors();
       args.push_back(expr(e));
+      failed.push_back(GPTDisplay::self()->totalErrors() > errors);
     }
   }
-  return evaluator.evaluateFCall(ref(ctx->T_IDENTIFICADOR()), args);
+  return evaluator.evaluateFCall(ref(ctx->T_IDENTIFICADOR()), args, failed);
 }
 
 ExpressionValue SemanticAnalyzer::lvalue(PortugolParser::LvalueContext *ctx) {

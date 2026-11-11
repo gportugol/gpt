@@ -575,7 +575,8 @@ void SemanticEval::declareFunction(Funcao &f) {
 }
 
 ExpressionValue SemanticEval::evaluateFCall(const TokenRef &f,
-                                            list<ExpressionValue> &args) {
+                                            list<ExpressionValue> &args,
+                                            const list<bool> &failed) {
   ExpressionValue v;
   Symbol s;
   try {
@@ -608,13 +609,21 @@ ExpressionValue SemanticEval::evaluateFCall(const TokenRef &f,
     }
     // nao permitir matrizes como argumentos de funcoes com parametros variaveis
     int count = 1;
+    list<bool>::const_iterator fit = failed.begin();
     for (list<ExpressionValue>::iterator it = args.begin(); it != args.end();
-         ++it) {
+         ++it, ++fit) {
       if (!(*it).isPrimitive()) {
         stringstream msg;
         msg << "Argumento " << count;
         msg << " da função \"" << f.getText()
             << "\" não pode ser matriz/conjunto";
+        GPTDisplay::self()->add(msg.str(), f.getLine());
+        return v;
+      }
+      if ((*it).primitiveType() == TIPO_NULO && !(*fit)) {
+        stringstream msg;
+        msg << "Argumento " << count << " da função \"" << f.getText()
+            << "\" não retorna resultado";
         GPTDisplay::self()->add(msg.str(), f.getLine());
         return v;
       }

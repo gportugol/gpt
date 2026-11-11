@@ -397,7 +397,8 @@ funções de usuário. Essas funções são discutidas nas seções a seguir.
 
 A função `imprima` tem como objetivo imprimir texto no dispositivo de saída. Ela
 recebe um número variável de argumentos (pelo menos um), onde cada argumento
-deve ser um valor primitivo, e os imprime em sequência. Ao final, é impresso um
+deve ser um valor primitivo (a chamada de uma função sem tipo de retorno não tem
+valor e é recusada), e os imprime em sequência. Ao final, é impresso um
 caractere de nova linha (LF) e a função retorna.
 
 Essa função se comporta de forma excepcional visto que não é possível declarar

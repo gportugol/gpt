@@ -288,6 +288,10 @@ void X86::writeImprimaTag(int etype) {
   case TIPO_LOGICO:
     writeTEXT("addarg 'l'");
     break;
+  default:
+    GPTDisplay::self()->showError(
+        "Erro interno: tipo nao suportado (X86::writeImprimaTag).");
+    exit(1);
   }
 }
 
