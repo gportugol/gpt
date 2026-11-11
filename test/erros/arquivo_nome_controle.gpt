@@ -1,0 +1,4 @@
+algoritmo arquivo_nome_controle;
+início
+  imprima("oi");
+fim

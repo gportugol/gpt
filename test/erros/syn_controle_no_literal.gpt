@@ -1,0 +1,8 @@
+algoritmo controle;
+variáveis
+  x: literal;
+fim-variáveis
+início
+  x := "a" "[2J[31mação1m";
+  
+fim
