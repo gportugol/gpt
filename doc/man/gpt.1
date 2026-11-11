@@ -39,6 +39,9 @@ arch
 is a simple compiler for the G-Porutol Language. It is possible to have
 a list of files to be included in the compilation setting the GPT_INCLUDE
 environment variable, wich should have a list of file paths separated with ":".
+.I gpt
+refuses to write an output file over one of the input files, whatever path
+or link leads to it.
 .SH OPTIONS
 .TP
 .BI \-v

@@ -55,6 +55,7 @@
 #include <cerrno>
 #include <climits>
 #include <cstdlib>
+#include <cstring>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -517,6 +518,73 @@ static string defaultOutputName(const string &input) {
 #endif
 }
 
+// Which file a name leads to: its device and inode, or on Windows, where the
+// C runtime's stat leaves st_ino at 0, its volume and file ID. The 64-bit ID
+// of GetFileInformationByHandle is not unique on ReFS, so FileIdInfo comes
+// first.
+struct FileId {
+  unsigned long long volume, high, low;
+  bool operator==(const FileId &o) const {
+    return volume == o.volume && high == o.high && low == o.low;
+  }
+};
+
+static bool fileId(const string &path, FileId &id) {
+#ifdef WIN32
+  HANDLE h = CreateFileA(path.c_str(), 0,
+                         FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                         NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+  if (h == INVALID_HANDLE_VALUE) {
+    return false;
+  }
+  bool ok = GetFileType(h) == FILE_TYPE_DISK;
+  FILE_ID_INFO info;
+  BY_HANDLE_FILE_INFORMATION old;
+  if (ok && GetFileInformationByHandleEx(h, FileIdInfo, &info, sizeof(info))) {
+    id.volume = info.VolumeSerialNumber;
+    memcpy(&id.high, info.FileId.Identifier, 8);
+    memcpy(&id.low, info.FileId.Identifier + 8, 8);
+  } else if (ok && GetFileInformationByHandle(h, &old)) {
+    id.volume = old.dwVolumeSerialNumber;
+    id.high = 0;
+    id.low = (unsigned long long)old.nFileIndexHigh << 32 | old.nFileIndexLow;
+  } else {
+    ok = false;
+  }
+  CloseHandle(h);
+  return ok;
+#else
+  struct stat st;
+  if (stat(path.c_str(), &st) != 0 || !S_ISREG(st.st_mode)) {
+    return false;
+  }
+  id.volume = st.st_dev;
+  id.high = 0;
+  id.low = st.st_ino;
+  return true;
+#endif
+}
+
+// Writing the output must not destroy a source, whatever name leads to it:
+// another spelling, a symbolic link or a hard link.
+static bool outputIsInput(const string &output, const list<string> &inputs) {
+  FileId out, in;
+  if (!fileId(output, out)) {
+    return false;
+  }
+  for (list<string>::const_iterator it = inputs.begin(); it != inputs.end();
+       ++it) {
+    if (fileId(*it, in) && in == out) {
+      stringstream s;
+      s << PACKAGE << ": o arquivo de saída é um dos arquivos de entrada: \""
+        << output << "\"" << endl;
+      GPTDisplay::self()->showError(s);
+      return true;
+    }
+  }
+  return false;
+}
+
 bool GPT::compile(const list<string> &ifnames, bool genBinary) {
   stringstream s;
 
@@ -542,20 +610,20 @@ bool GPT::compile(const list<string> &ifnames, bool genBinary) {
     arch = "x86-64";
   }
 
-  if (!prologue(ifnames)) {
-    return false;
-  }
-
   string ofname = _outputfile;
   string asmfile;
 
-  if (ofname.empty() && genBinary) {
+  if (ofname.empty() && genBinary && !ifnames.empty()) {
     ofname = defaultOutputName(ifnames.front());
 #ifdef WIN32
     if (arch == "x86-64") {
       ofname += ".exe";
     }
 #endif
+  }
+
+  if (outputIsInput(ofname, ifnames) || !prologue(ifnames)) {
+    return false;
   }
 
   try {
@@ -622,11 +690,11 @@ bool GPT::compile(const list<string> &ifnames, bool genBinary) {
 bool GPT::translate2C(const list<string> &ifnames) {
   stringstream s;
 
-  if (!prologue(ifnames)) {
+  string ofname = _outputfile;
+
+  if (outputIsInput(ofname, ifnames) || !prologue(ifnames)) {
     return false;
   }
-
-  string ofname = _outputfile;
 
   try {
     Portugol2CTranslator translator(_stable);

@@ -94,7 +94,10 @@ As opções são comentadas a seguir.
 O último argumento (`algoritmos...`) é uma lista de arquivos contendo o código
 fonte em G-Portugol, embora seja mais comum utilizar um arquivo apenas para cada
 algoritmo. Quando mais de um arquivo é informado, o primeiro deve ser aquele que
-contém a declaração do algoritmo e o bloco principal.
+contém a declaração do algoritmo e o bloco principal. O GPT se recusa a gravar
+a saída de `-o`, `-t` ou `-s` sobre um desses arquivos ou sobre os da variável
+`GPT_INCLUDE`, mesmo por outro caminho ou por um link, e termina com erro sem
+alterá-los.
 
 ## Tratamento de erros
 
