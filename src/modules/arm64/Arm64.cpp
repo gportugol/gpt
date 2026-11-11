@@ -373,6 +373,10 @@ void Arm64::writeImprimaTag(int etype) {
   case TIPO_LOGICO:
     writeTEXT("mov w0, #108 // 'l'");
     break;
+  default:
+    GPTDisplay::self()->showError(
+        "Erro interno: tipo nao suportado (Arm64::writeImprimaTag).");
+    exit(1);
   }
   writeTEXT("push x0");
 }

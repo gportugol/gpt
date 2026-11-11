@@ -143,7 +143,8 @@ public:
   void evaluateReturnCmd(ExpressionValue &ev, int line);
 
   void declareFunction(Funcao &f);
-  ExpressionValue evaluateFCall(const TokenRef &f, list<ExpressionValue> &args);
+  ExpressionValue evaluateFCall(const TokenRef &f, list<ExpressionValue> &args,
+                                const list<bool> &failed);
 
   void evaluatePasso(int line, const string &str);
 
