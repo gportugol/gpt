@@ -1096,6 +1096,23 @@ Portugol2CTranslator::element(PortugolParser::Expr_elementoContext *ctx,
   return p;
 }
 
+// Trigraphs are replaced before escapes are read, even inside literals,
+// under -std=c11 or -trigraphs: "??/" would become a backslash.
+static string escapeQuestionMarks(const string &text) {
+  string ret;
+  for (string::size_type i = 0; i < text.size(); ++i) {
+    if (text[i] == '\\' && i + 1 < text.size()) {
+      ret += text[i++];
+      ret += text[i];
+    } else if (text[i] == '?') {
+      ret += "\\?";
+    } else {
+      ret += text[i];
+    }
+  }
+  return ret;
+}
+
 Portugol2CTranslator::Production
 Portugol2CTranslator::literal(PortugolParser::LiteralContext *ctx) {
   Production p;
@@ -1109,7 +1126,7 @@ Portugol2CTranslator::literal(PortugolParser::LiteralContext *ctx) {
       p.second = "0";
     } else {
       p.second = "\"";
-      p.second += text;
+      p.second += escapeQuestionMarks(text);
       p.second += "\"";
     }
   } else if (auto r = dynamic_cast<PortugolParser::LitRealContext *>(ctx)) {
@@ -1121,7 +1138,7 @@ Portugol2CTranslator::literal(PortugolParser::LiteralContext *ctx) {
     p.first = TIPO_CARACTERE;
     if (text.length() > 0) {
       p.second = "'";
-      p.second += text;
+      p.second += escapeQuestionMarks(text);
       p.second += "'";
     } else {
       p.second = "0";

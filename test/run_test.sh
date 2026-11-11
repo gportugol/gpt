@@ -299,6 +299,18 @@ if [ $ON_WINDOWS -eq 0 ]; then
 			"$SCRIPT_DIR/casos/olamundo.saida" ""
 	done
 fi
+# The default gnu17 leaves trigraphs alone, but -std=c11 replaces them even
+# inside string literals.
+if [ $ON_WINDOWS -eq 0 ] && [ $HAVE_GCC -eq 1 ]; then
+	if $TIMEOUT "$GPT" -t "$TMP/trigraphs_c11.c" "$SCRIPT_DIR/casos/trigraphs.gpt" >/dev/null 2>&1 &&
+		gcc -std=c11 -w -o "$TMP/trigraphs_c11" "$TMP/trigraphs_c11.c" >/dev/null 2>&1; then
+		$TIMEOUT "$TMP/trigraphs_c11" </dev/null >"$TMP/trigraphs_c11.out" 2>&1
+		check "trigraphs (-t) com gcc -std=c11" "$TMP/trigraphs_c11.out" $? \
+			"$SCRIPT_DIR/casos/trigraphs.saida" ""
+	else
+		fail "trigraphs (-t) com gcc -std=c11: tradução ou compilação falhou"
+	fi
+fi
 echo ""
 
 echo "========================================"
