@@ -26,11 +26,25 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      # The release tarball ships this gpt without libantlr4-runtime, so
+      # link the runtime statically.
       - name: Build GPT Project
         run: |
           autoreconf -i
-          ./configure --prefix=/usr/local CXXFLAGS="-Wall -Wextra -Werror"
+          ./configure --prefix=/usr/local CXXFLAGS="-Wall -Wextra -Werror" \
+            ANTLR4_LIB="$(g++ -print-file-name=libantlr4-runtime.a)"
           make -j$(nproc)
+
+      # The suites run here, where the shared runtime is installed, so they
+      # would not notice gpt depending on it again.
+      - name: Check Static ANTLR4 Runtime
+        run: |
+          dynamic=$(readelf -d src/gpt)
+          if printf '%s\n' "$dynamic" | grep -q libantlr4-runtime; then
+            echo "src/gpt needs the shared libantlr4-runtime," \
+              "which the release tarball does not carry" >&2
+            exit 1
+          fi
 
       - name: Run Tests
         run: bash test/run_test.sh
@@ -38,11 +52,16 @@ jobs:
       - name: Run Tests for arm64 under QEMU
         run: GPT_TEST_ARCH=arm64 GPT_TEST_RUNNER=qemu-aarch64 bash test/run_test.sh
 
+      # The licenses of the ANTLR4 runtime linked into gpt ask binary copies
+      # to include their notices.
       - name: Package Linux
         run: |
           make install DESTDIR=$PWD/release
           mkdir -p dist
           mv release/usr/local/* dist/
+          mkdir -p dist/share/doc/libantlr4-runtime
+          cp /usr/share/doc/libantlr4-runtime-dev/copyright \
+            dist/share/doc/libantlr4-runtime/
 
       - name: Upload Linux Artifact
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -65,20 +84,39 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      # The release tarball ships this gpt without libantlr4-runtime, so
+      # link the runtime statically.
       - name: Build GPT Project
         run: |
           autoreconf -i
-          ./configure --prefix=/usr/local CXXFLAGS="-Wall -Wextra -Werror"
+          ./configure --prefix=/usr/local CXXFLAGS="-Wall -Wextra -Werror" \
+            ANTLR4_LIB="$(g++ -print-file-name=libantlr4-runtime.a)"
           make -j$(nproc)
+
+      # The suites run here, where the shared runtime is installed, so they
+      # would not notice gpt depending on it again.
+      - name: Check Static ANTLR4 Runtime
+        run: |
+          dynamic=$(readelf -d src/gpt)
+          if printf '%s\n' "$dynamic" | grep -q libantlr4-runtime; then
+            echo "src/gpt needs the shared libantlr4-runtime," \
+              "which the release tarball does not carry" >&2
+            exit 1
+          fi
 
       - name: Run Tests
         run: bash test/run_test.sh
 
+      # The licenses of the ANTLR4 runtime linked into gpt ask binary copies
+      # to include their notices.
       - name: Package Linux
         run: |
           make install DESTDIR=$PWD/release
           mkdir -p dist
           mv release/usr/local/* dist/
+          mkdir -p dist/share/doc/libantlr4-runtime
+          cp /usr/share/doc/libantlr4-runtime-dev/copyright \
+            dist/share/doc/libantlr4-runtime/
 
       - name: Upload Linux Artifact
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
