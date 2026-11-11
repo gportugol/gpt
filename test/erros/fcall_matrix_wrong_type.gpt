@@ -1,0 +1,11 @@
+algoritmo erro;
+variáveis
+  m : matriz[3] de inteiros;
+fim-variáveis
+início
+  f(m);
+fim
+função f(r: matriz[3] de reais)
+início
+  imprima(r[0]);
+fim

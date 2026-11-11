@@ -357,7 +357,10 @@ tipo agregado como matrizes e vetores.
 
 Tanto a passagem de argumentos quanto o retorno são feitos *por valor*, isso é,
 a cópia do valor é feita, ao invés da cópia de endereço ou passagem *por
-referência*.
+referência*. Um argumento de tipo primitivo é convertido para o tipo do
+parâmetro, mas uma matriz só pode ser passada para um parâmetro com as mesmas
+dimensões e o mesmo tipo de elemento: uma `matriz[3] de inteiros` não serve para
+um parâmetro `matriz[3] de reais`.
 
 As variáveis locais de uma função são formadas por seus parâmetros e pelas
 variáveis declaradas em seu escopo. A declaração de variáveis locais é feita

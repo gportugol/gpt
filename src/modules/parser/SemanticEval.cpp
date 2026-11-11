@@ -639,7 +639,11 @@ ExpressionValue SemanticEval::evaluateFCall(const TokenRef &f,
 
   int count = 1;
   while ((pit != pend) && (ait != aend)) {
-    if (!(*ait).isCompatibleWidth((*pit).second)) {
+    // Only a scalar argument is converted: the backends hand a matrix over as
+    // the address of its elements, laid out for its own element type.
+    bool sameElements = (*ait).isPrimitive() ||
+                        (*ait).primitiveType() == (*pit).second.primitiveType();
+    if (!(*ait).isCompatibleWidth((*pit).second) || !sameElements) {
       stringstream msg;
       msg << "Argumento " << count << " da função \"" << f.getText()
           << "\" deve ser do tipo \"" << (*pit).second.toString() << "\"";
