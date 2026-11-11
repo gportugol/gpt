@@ -834,6 +834,46 @@ fi
 echo ""
 
 echo "========================================"
+echo "Sinal durante a montagem"
+echo "========================================"
+# A gpt -o stopped by a signal while the assembler runs stops the assembler,
+# removes its temporary files from TMPDIR and dies of that same signal. The
+# slow assembler below goes first in PATH and records its pid when it
+# starts. Background jobs of a script ignore SIGINT, so it is not tried.
+if [ $CAN_EXEC_NATIVE -eq 0 ] || [ $ON_WINDOWS -eq 1 ]; then
+	echo "⚠ sinal durante a montagem: pulado (sem backend nativo ou no Windows)"
+else
+	mkdir -p "$TMP/montador_lento"
+	printf '#!/bin/sh\necho $$ >"%s"\nexec sleep 30\n' "$TMP/montador.pid" >"$TMP/montador_lento/$ASSEMBLER"
+	chmod +x "$TMP/montador_lento/$ASSEMBLER"
+	for sinal in TERM HUP; do
+		mkdir -p "$TMP/tmpdir_$sinal"
+		: >"$TMP/montador.pid"
+		PATH="$TMP/montador_lento:$PATH" TMPDIR="$TMP/tmpdir_$sinal" \
+			"$GPT" "${GPT_A[@]}" -o "$TMP/sinal.bin" casos/olamundo.gpt >/dev/null 2>&1 &
+		GPT_PID=$!
+		for _ in $(seq 100); do
+			[ -s "$TMP/montador.pid" ] && break
+			sleep 0.1
+		done
+		MONTADOR=$(cat "$TMP/montador.pid")
+		kill -"$sinal" $GPT_PID
+		# bash reports a job killed by SIGHUP on stderr
+		{ wait $GPT_PID; } 2>/dev/null
+		RESULT=$?
+		ESPERADO=$((128 + $(kill -l "$sinal")))
+		SOBRAS=$(ls -A "$TMP/tmpdir_$sinal" | tr '\n' ' ')
+		if [ -n "$MONTADOR" ] && [ $RESULT -eq $ESPERADO ] && [ -z "$SOBRAS" ] && ! kill -0 "$MONTADOR" 2>/dev/null; then
+			ok "SIG$sinal durante a montagem: montador parado e TMPDIR vazio"
+		else
+			fail "SIG$sinal durante a montagem: código $RESULT, sobras: ${SOBRAS:-nenhuma} (esperado: $ESPERADO, o montador parado e TMPDIR vazio)"
+			[ -n "$MONTADOR" ] && kill "$MONTADOR" 2>/dev/null
+		fi
+	done
+fi
+echo ""
+
+echo "========================================"
 echo "nasm ao lado do gpt"
 echo "========================================"
 # gpt -o runs the nasm in its own directory before the one in PATH. Copies of
