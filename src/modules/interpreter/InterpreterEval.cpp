@@ -582,14 +582,13 @@ ExprValue InterpreterEval::evaluateUnPos(ExprValue &v) {
 }
 
 ExprValue InterpreterEval::evaluateUnNot(ExprValue &v) {
-  v.type = TIPO_LOGICO;
-
   if (v.type == TIPO_LITERAL) {
     v.value = (v.value.length() > 0) ? "0" : "1";
   } else {
     v.value = atof(v.value.c_str()) ? "0" : "1";
   }
 
+  v.type = TIPO_LOGICO;
   return v;
 }
 

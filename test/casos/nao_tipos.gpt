@@ -1,0 +1,12 @@
+algoritmo nao_tipos;
+variáveis
+  s, t : literal;
+  x : inteiro;
+fim-variáveis
+início
+  imprima(não "", " ", não "abc");
+  s := "abc";
+  imprima(não s, " ", não t);
+  x := 3;
+  imprima(não x, " ", não 0, " ", não 'a', " ", não falso);
+fim
