@@ -57,6 +57,9 @@ jobs:
       - name: Package Linux
         run: |
           make install DESTDIR=$PWD/release
+          # Kept out of doc_DATA so that make install does not add a second
+          # copy of the license to every distribution package.
+          cp COPYING release/usr/local/share/doc/gpt/
           mkdir -p dist
           mv release/usr/local/* dist/
           mkdir -p dist/share/doc/libantlr4-runtime
@@ -112,6 +115,9 @@ jobs:
       - name: Package Linux
         run: |
           make install DESTDIR=$PWD/release
+          # Kept out of doc_DATA so that make install does not add a second
+          # copy of the license to every distribution package.
+          cp COPYING release/usr/local/share/doc/gpt/
           mkdir -p dist
           mv release/usr/local/* dist/
           mkdir -p dist/share/doc/libantlr4-runtime
@@ -251,6 +257,10 @@ jobs:
         name: Package Windows Binary
         run: |
           make install DESTDIR=$PWD/release
+          # Kept out of doc_DATA so that make install does not add a second
+          # copy of the license to every distribution package.
+          mkdir -p release/usr/local/share/licenses/gpt
+          cp COPYING release/usr/local/share/licenses/gpt/
           mkdir -p dist
           mv release/usr/local/* dist/
           # The licenses of NASM, of the ANTLR4 runtime and of winpthreads
