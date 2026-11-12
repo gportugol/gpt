@@ -1,0 +1,11 @@
+algoritmo lit_escape_literal;
+variáveis
+  s: literal;
+fim-variáveis
+início
+  s := "[\a\x41\0z]";
+  s := "\\a \\0 \e\é";
+  s := "a\	b\c";
+  s := "ééééééééééééééé\a"; s := "\q";
+  imprima(s, "\n");
+fim

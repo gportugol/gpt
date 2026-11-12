@@ -71,6 +71,14 @@ Este arquivo foi consolidado a partir do ChangeLog histórico (CVS/SVN).
   variáveis `GPT_TEST_ARCH` e `GPT_TEST_RUNNER` do `test/run_test.sh`. Os jobs
   e artefatos levam o nome da arquitetura, e os nomes dos arquivos da release
   não mudam.
+- Literais de caractere e strings só aceitam as sequências de escape `\n`,
+  `\r`, `\t`, `\\`, `\"`, `\'` e `\?`, as que dão o mesmo caractere nos três
+  modos. Qualquer outra, e uma barra invertida no fim da linha, agora é erro
+  de compilação (`Sequência de escape inválida: "\a".`). Antes cada modo
+  tratava esses escapes de um jeito: `"[\a\x41\0z]"` saía como `[ax410z]` no
+  interpretador, como `[ax41` no executável e como `[`, BEL e `A` na tradução
+  para C, e uma barra invertida no fim da linha virava quebra de linha no
+  interpretador, sumia no C e fazia o NASM falhar.
 
 ### Corrigido
 

@@ -310,16 +310,14 @@ if [ $ON_WINDOWS -eq 0 ] && [ $HAVE_GCC -eq 1 ]; then
 		fail "trigraphs (-t) com gcc -std=c11: tradução ou compilação falhou"
 	fi
 fi
-# Control bytes inside a string literal (backslash + LF, backslash + CR, a
-# raw 0x1A and others), written here so that no editor or line-end
-# conversion touches them. Windows is skipped: its C runtime stops reading
-# a text-mode file at a 0x1A byte. In C, backslash + line break joins the
-# two lines.
+# Control bytes inside a string literal (the \n and \r escapes, a raw 0x1A
+# and others), written here so that no editor or line-end conversion touches
+# them. Windows is skipped: its C runtime stops reading a text-mode file at
+# a 0x1A byte.
 if [ $ON_WINDOWS -eq 0 ]; then
-	printf 'algoritmo bytes_de_controle;\nin\303\255cio\n  imprima("a\\\nb\\\rc\032d\\\032e\001f\177g'"'"'h");\nfim\n' \
+	printf 'algoritmo bytes_de_controle;\nin\303\255cio\n  imprima("a\\nb\\rc\032d\032e\001f\177g'"'"'h");\nfim\n' \
 		>"$TMP/bytes_de_controle.gpt"
 	printf 'a\nb\rc\032d\032e\001f\177g'"'"'h\n' >"$TMP/bytes_de_controle.saida"
-	printf 'abc\032d\032e\001f\177g'"'"'h\n' >"$TMP/bytes_de_controle.saida.c"
 	run_caso "$TMP/bytes_de_controle.gpt" "$TMP/bytes_de_controle"
 fi
 echo ""

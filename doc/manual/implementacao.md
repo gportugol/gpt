@@ -235,13 +235,17 @@ representada.
 - **Reais**: são representados por, opcionalmente, um sinal (`+` ou `-`),
   seguido de algarismos separados por um `.` como `-1.2345`.
 - **Caracteres**: são representados por um único símbolo entre aspas simples.
-  Alguns caracteres especiais são representados com escape (`\`) seguido de
-  símbolo identificador. Esses caracteres são o LF (`\n`), CR (`\r`) e barra
-  invertida (`\\`). A ausência de símbolos entre as aspas simples indica um
-  caractere "nulo". Internamente, caracteres são representados como números
-  inteiros, o que permite sua compatibilidade numérica.
+  Alguns caracteres especiais são representados por uma sequência de escape:
+  uma barra invertida (`\`) seguida de um símbolo. As sequências aceitas são
+  `\n` (LF, nova linha), `\r` (CR, retorno de carro), `\t` (tabulação), `\\`
+  (barra invertida), `\'` (aspa simples), `\"` (aspa dupla) e `\?`
+  (interrogação). Qualquer outro símbolo depois da barra invertida, como em
+  `\0` ou `\a`, é erro de compilação, e uma barra invertida no fim da linha
+  também. A ausência de símbolos entre as aspas simples indica um caractere
+  "nulo". Internamente, caracteres são representados como números inteiros, o
+  que permite sua compatibilidade numérica.
 - **Literais**: são representados por um conjunto de caracteres entre aspas
-  duplas. Eles podem conter caracteres especiais como `\n` e devem ser definidos
+  duplas. Aceitam as sequências de escape dos caracteres e devem ser definidos
   em apenas uma linha de código. Valores literais são os únicos que não têm uma
   representação numérica, impedindo sua participação em expressões com
   operadores aritméticos (soma, divisão, etc). Comparações de igualdade para

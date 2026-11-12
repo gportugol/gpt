@@ -50,9 +50,11 @@ executar o programa criado, é exibido o texto "Olá mundo!" na tela.
 
 Como já deve ter assumido, comentários ao estilo C (`/* */`) e C++ (`//`) são
 permitidos e o que estiver entre aspas duplas (`"`) é tratado como uma string ou
-constante literal. Escapes são permitidos como EOL (`\n`), tabulação (`\t`)
-dentre outros. Não é permitida a concatenação em múltiplas linhas como na
-linguagem C:
+constante literal. As sequências de escape aceitas são `\n` (nova linha), `\r`
+(retorno de carro), `\t` (tabulação), `\\` (barra invertida), `\"` (aspa
+dupla), `\'` (aspa simples) e `\?` (interrogação). Qualquer outra, como `\0`
+ou `\a`, é erro de compilação, assim como uma barra invertida no fim da linha.
+Não é permitida a concatenação em múltiplas linhas como na linguagem C:
 
 ```portugol
 imprima("Isso é uma "
@@ -244,8 +246,8 @@ Alguns pontos a serem considerados:
   linha).
 - Já vimos que strings/literais constantes são denotados por texto entre aspas
   duplas (`"`). Tal qual em C, um caractere entre aspas simples (`'`) é um
-  caractere constante que, também, permite escapes para representar caracteres
-  como EOL (`'\n'`).
+  caractere constante que, também, permite as mesmas sequências de escape dos
+  literais, como EOL (`'\n'`).
 - Assim como a palavra-chave `variáveis`, `então` e `senão` devem ser
   acentuadas.
 - Parênteses ao redor da expressão da estrutura "se/então" são opcionais.
@@ -520,11 +522,11 @@ início
   r := leia();
   imprima("Digite um texto:");
   l := leia();
-  imprima("Digite um valor lógico (\"verdadeiro\" ou \"falso\"), \
-    um número ou um texto:");
+  imprima("Digite um valor lógico (\"verdadeiro\" ou \"falso\"), ",
+    "um número ou um texto:");
   z := leia();
 
-  imprima("caractere: ",c,", inteiro: ",i, ", real: ",r,", \
-    texto: ",l, ", lógico: ", z,"\n");
+  imprima("caractere: ",c,", inteiro: ",i, ", real: ",r,
+    ", texto: ",l, ", lógico: ", z,"\n");
 fim
 ```
