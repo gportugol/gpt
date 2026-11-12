@@ -1,0 +1,14 @@
+algoritmo erro;
+início
+  imprima(nada() = nada());
+  imprima(nada() <> nada());
+  imprima(nada() > nada());
+  imprima(nada() >= nada());
+  imprima(nada() < nada());
+  imprima(nada() <= nada());
+  imprima(nada() ou nada());
+  imprima(nada() e nada());
+fim
+função nada()
+início
+fim

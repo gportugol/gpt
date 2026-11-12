@@ -177,7 +177,8 @@ estouro de pilha, no Windows) ao chamar essa função.
 Por enquanto, apenas a estrutura se/então/senão é suportada. Essa e as demais
 estruturas utilizam expressões, que são avaliadas para que uma decisão seja
 tomada (repetir execução, selecionar bloco de instruções, etc). Qualquer
-expressão pode ser avaliada como expressão lógica. Expressões numéricas de valor
+expressão pode ser avaliada como expressão lógica, exceto a chamada de uma
+função sem tipo de retorno, que não tem valor. Expressões numéricas de valor
 "0" são avaliadas como falso. Demais valores numéricos são avaliados como
 verdadeiro. Valores literais nulos, da mesma forma, são avaliados como falso, e
 demais textos, como verdadeiro. Para maiores detalhes sobre expressões, veja a
