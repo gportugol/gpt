@@ -1,0 +1,11 @@
+algoritmo erro;
+início
+  f();
+fim
+função nada()
+início
+fim
+função f()
+início
+  retorne nada();
+fim

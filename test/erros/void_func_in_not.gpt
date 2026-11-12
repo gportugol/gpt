@@ -1,0 +1,13 @@
+algoritmo erro;
+variáveis
+  b : lógico;
+fim-variáveis
+início
+  imprima(não nada());
+  b := não nada();
+  b := não (nada());
+  b := não naodeclarada;
+fim
+função nada()
+início
+fim

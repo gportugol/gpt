@@ -74,6 +74,11 @@ public:
   void setID(const string &);
   string id();
 
+  // TIPO_NULO also marks an expression whose error was already reported, so
+  // a call to a function without return type is told apart by this flag.
+  void setVoidCall(bool);
+  bool isVoidCall() const;
+
 protected:
   bool matchesType(bool other_isprimitive) const;
   bool matchesDimensions(list<int> &other_dimensions) const;
@@ -83,6 +88,7 @@ protected:
   int _primitiveType;
   list<int> _dimensions; // conjunto/matriz
   string _id;
+  bool _isVoidCall;
 };
 
 class Funcao {
@@ -133,7 +139,7 @@ public:
   ExpressionValue evaluateLValue(const TokenRef &id,
                                  list<ExpressionValue> &dim);
 
-  void evaluateBooleanExpr(ExpressionValue &ev, int line);
+  void evaluateBooleanExpr(ExpressionValue &ev, int line, const string &stm);
   void evaluateParaExpr(ExpressionValue &ev, int line, const string &term);
   ExpressionValue evaluateExpr(ExpressionValue &left, ExpressionValue &right,
                                const TokenRef &op);

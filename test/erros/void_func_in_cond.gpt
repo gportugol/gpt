@@ -1,0 +1,16 @@
+algoritmo erro;
+início
+  se nada() então imprima("v"); fim-se
+  se (nada()) então imprima("v"); fim-se
+  se imprima("x") então imprima("v"); fim-se
+  enquanto nada() faça imprima("v"); fim-enquanto
+  repita
+    imprima("v");
+  até nada();
+  se não nada() então imprima("v"); fim-se
+  se nada() = nada() então imprima("v"); fim-se
+  se naodeclarada então imprima("v"); fim-se
+fim
+função nada()
+início
+fim

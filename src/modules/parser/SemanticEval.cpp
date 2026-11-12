@@ -27,10 +27,10 @@
 #include <sstream>
 
 ExpressionValue::ExpressionValue()
-    : _isPrimitive(true), _primitiveType(TIPO_NULO) {}
+    : _isPrimitive(true), _primitiveType(TIPO_NULO), _isVoidCall(false) {}
 
 ExpressionValue::ExpressionValue(int type)
-    : _isPrimitive(true), _primitiveType(type) {}
+    : _isPrimitive(true), _primitiveType(type), _isVoidCall(false) {}
 
 void ExpressionValue::setPrimitiveType(int type) {
   _primitiveType = type;
@@ -178,6 +178,10 @@ string ExpressionValue::toString() const {
 void ExpressionValue::setID(const string &id) { _id = id; }
 
 string ExpressionValue::id() { return _id; }
+
+void ExpressionValue::setVoidCall(bool val) { _isVoidCall = val; }
+
+bool ExpressionValue::isVoidCall() const { return _isVoidCall; }
 
 //******************************************************************************************//
 
@@ -350,8 +354,13 @@ ExpressionValue SemanticEval::evaluateLValue(const TokenRef &id,
   }
 }
 
-void SemanticEval::evaluateBooleanExpr(ExpressionValue & /*v*/, int /*line*/) {
-  // qualquer coisa pode ser avaliado como expressão booleana
+void SemanticEval::evaluateBooleanExpr(ExpressionValue &ev, int line,
+                                       const string &stm) {
+  if (ev.isVoidCall()) {
+    stringstream msg;
+    msg << "Condição do \"" << stm << "\" não retorna resultado";
+    GPTDisplay::self()->add(msg.str(), line);
+  }
 }
 
 void SemanticEval::evaluateParaExpr(ExpressionValue &ev, int line,
@@ -399,7 +408,8 @@ ExpressionValue SemanticEval::evaluateExpr(ExpressionValue &left,
 
   case PortugolParser::T_KW_OU:
   case PortugolParser::T_KW_E:
-    if (left.isCompatibleWidth(right)) {
+    if (!left.isVoidCall() && !right.isVoidCall() &&
+        left.isCompatibleWidth(right)) {
       ret.setPrimitiveType(TIPO_LOGICO);
       return ret;
     } else {
@@ -508,6 +518,13 @@ ExpressionValue SemanticEval::evaluateExpr(ExpressionValue &ev, UnaryOp op,
 
   // operador "not", para todos os tipos. Retorna TIPO_LOGICO
   case UN_NOT:
+    if (ev.isVoidCall()) {
+      stringstream msg;
+      msg << "Termo do operador unário \"" << unary_op.getText()
+          << "\" não retorna resultado";
+      GPTDisplay::self()->add(msg.str(), unary_op.getLine());
+      return nulo;
+    }
     ev.setPrimitiveType(TIPO_LOGICO);
     return ev;
     break;
@@ -534,7 +551,7 @@ void SemanticEval::evaluateReturnCmd(ExpressionValue &ev, int line) {
       SymbolType sctype =
           stable.getSymbol(SymbolTable::GlobalScope, currentScope).type;
 
-      if (!ev.isCompatibleWidth(sctype)) {
+      if (ev.isVoidCall() || !ev.isCompatibleWidth(sctype)) {
         stringstream msg;
         if (sctype.primitiveType() == TIPO_NULO) {
           msg << "Função não tem tipo de retorno";
@@ -594,6 +611,8 @@ ExpressionValue SemanticEval::evaluateFCall(const TokenRef &f,
     GPTDisplay::self()->add(msg.str(), f.getLine());
     return v;
   }
+
+  v.setVoidCall(s.type.primitiveType() == TIPO_NULO);
 
   ParameterSig params = s.param;
 

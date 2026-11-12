@@ -230,8 +230,8 @@ void SemanticAnalyzer::stm(PortugolParser::StmContext *ctx) {
                  dynamic_cast<PortugolParser::StmCondicionalContext *>(ctx)) {
     auto se = s->stm_se();
     ExpressionValue etype = expr(se->expr());
-    evaluator.evaluateBooleanExpr(etype,
-                                  (int)se->T_KW_SE()->getSymbol()->getLine());
+    evaluator.evaluateBooleanExpr(
+        etype, (int)se->T_KW_SE()->getSymbol()->getLine(), "se");
     stmList(se->stm_list());
     if (se->senao_part()) {
       stmList(se->senao_part()->stm_list());
@@ -241,7 +241,7 @@ void SemanticAnalyzer::stm(PortugolParser::StmContext *ctx) {
     auto enq = s->stm_enquanto();
     ExpressionValue etype = expr(enq->expr());
     evaluator.evaluateBooleanExpr(
-        etype, (int)enq->T_KW_ENQUANTO()->getSymbol()->getLine());
+        etype, (int)enq->T_KW_ENQUANTO()->getSymbol()->getLine(), "enquanto");
     stmList(enq->stm_list());
 
   } else if (auto s = dynamic_cast<PortugolParser::StmRepitaContext *>(ctx)) {
@@ -249,7 +249,7 @@ void SemanticAnalyzer::stm(PortugolParser::StmContext *ctx) {
     stmList(rep->stm_list());
     ExpressionValue etype = expr(rep->expr());
     evaluator.evaluateBooleanExpr(
-        etype, (int)rep->T_KW_REPITA()->getSymbol()->getLine());
+        etype, (int)rep->T_KW_ATE()->getSymbol()->getLine(), "repita");
 
   } else if (auto s = dynamic_cast<PortugolParser::StmParaContext *>(ctx)) {
     auto para = s->stm_para();

@@ -215,7 +215,9 @@ Expressões são operações que sintetizam, ao final, um valor. Em geral consti
 valores ou operações aritméticas com um ou mais termos que podem ser variáveis,
 constantes ou chamadas a funções e são usadas em atribuições, estruturas de
 controle e subscritos de matrizes e vetores. Enunciados (como atribuições) não
-podem ser avaliados como expressões.
+podem ser avaliados como expressões. Da mesma forma, a chamada de uma função sem
+tipo de retorno não tem valor e não pode ser usada como termo de uma expressão
+nem como condição de uma estrutura de controle.
 
 Constantes são valores *inline*, e cada tipo de dado tem uma forma de ser
 representada.
