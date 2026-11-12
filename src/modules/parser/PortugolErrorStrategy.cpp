@@ -508,6 +508,76 @@ static bool validDigits(const string &text, int base) {
   return true;
 }
 
+// The lexer takes a backslash before any character, but only these escapes
+// mean the same in the interpreter, in the native code and in C. The others
+// gave a different string in each mode, or relied on how gcc reads an escape
+// that C does not define.
+static bool validEscape(char c) {
+  switch (c) {
+  case 'n':
+  case 'r':
+  case 't':
+  case '\\':
+  case '"':
+  case '\'':
+  case '?':
+    return true;
+  }
+  return false;
+}
+
+// The escape whose backslash is at text[i - 1], as the message shows it: a
+// control character is named in the \xNN form instead of being printed.
+static string escapeName(const string &text, string::size_type i) {
+  unsigned char c = (unsigned char)text[i];
+  unsigned char next = i + 1 < text.size() ? (unsigned char)text[i + 1] : 0;
+  if (c == '\n' || c == '\r') {
+    return "\"\\\" no fim da linha";
+  }
+  bool c1 = c == 0xC2 && next >= 0x80 && next <= 0x9F;
+  if (c < 0x20 || c == 0x7F || c1) {
+    unsigned code = c1 ? next : c;
+    string name = "\"\\\" seguido do caractere de controle \\x";
+    name += "0123456789abcdef"[code >> 4];
+    name += "0123456789abcdef"[code & 0xF];
+    return name;
+  }
+  size_t len = (c < 0x80) ? 1 : (c >> 5) == 0x6 ? 2 : (c >> 4) == 0xE ? 3 : 4;
+  return "\"\\" + text.substr(i, len) + "\"";
+}
+
+// A literal reaches the next line only through a backslash followed by a line
+// break, which is itself reported, so that is where the line count advances.
+// Columns count code points, as the lexer's do: text[counted] is at column.
+static bool checkEscapes(Token *t, vector<LexicalError> &errors) {
+  const string &text = t->getText();
+  size_t line = t->getLine();
+  size_t column = t->getCharPositionInLine();
+  string::size_type counted = 0;
+  bool valid = true;
+  for (string::size_type i = 1; i + 1 < text.size(); ++i) {
+    if (text[i] != '\\') {
+      continue;
+    }
+    ++i;
+    if (validEscape(text[i])) {
+      continue;
+    }
+    for (; counted + 1 < i; ++counted) {
+      column += ((unsigned char)text[counted] & 0xC0) != 0x80;
+    }
+    errors.push_back(
+        {line, column, "Sequência de escape inválida: " + escapeName(text, i)});
+    valid = false;
+    if (text[i] == '\n') {
+      line++;
+      column = 0;
+      counted = i + 1;
+    }
+  }
+  return valid;
+}
+
 void validateTokens(CommonTokenStream &tokens) {
   tokens.fill();
   const vector<Token *> &all = tokens.getTokens();
@@ -600,7 +670,14 @@ void validateTokens(CommonTokenStream &tokens) {
       }
       continue;
     }
+    if (t->getType() == PortugolParser::T_STRING_LIT) {
+      checkEscapes(t, errors);
+      continue;
+    }
     if (t->getType() == PortugolParser::T_CARAC_LIT) {
+      if (!checkEscapes(t, errors)) {
+        continue;
+      }
       // A caractere holds one byte, so only Latin-1 (U+00C2 and U+00C3 lead
       // bytes included) fits; the ANTLR2 lexer rejected the rest.
       const string &text = t->getText();

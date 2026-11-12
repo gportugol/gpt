@@ -1,0 +1,10 @@
+algoritmo lit_escape_caractere;
+variáveis
+  c: caractere;
+fim-variáveis
+início
+  c := '\0';
+  c := '\a';
+  c := '\é';
+  c := '\n';
+fim

@@ -1,0 +1,11 @@
+algoritmo lit_escape_quebra_linha;
+variáveis
+  c: caractere;
+fim-variáveis
+início
+  c := '\
+';
+  imprima("a\
+b\
+c\a", c);
+fim

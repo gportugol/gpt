@@ -1,0 +1,17 @@
+algoritmo escapes;
+variáveis
+  c : caractere;
+  i : inteiro;
+fim-variáveis
+início
+  imprima("[\n] [\r] [\t] [\\] [\"] [\'] [\?]");
+  imprima("\\n \\0 \\\\ \\\" \\? \"\'?\\");
+  c := '\n'; i := c; imprima(i);
+  c := '\r'; i := c; imprima(i);
+  c := '\t'; i := c; imprima(i, " [", c, "]");
+  c := '\\'; i := c; imprima(i, " ", c);
+  c := '\"'; i := c; imprima(i, " ", c);
+  c := '\''; i := c; imprima(i, " ", c);
+  c := '\?'; i := c; imprima(i, " ", c);
+  imprima('\\', '\"', '\'', '\?', '\t', "|");
+fim

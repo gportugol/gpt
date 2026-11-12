@@ -1,0 +1,5 @@
+algoritmo lit_escape_fim_arquivo;
+início
+  imprima("ok");
+fim
+"\
