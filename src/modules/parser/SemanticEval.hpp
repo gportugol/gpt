@@ -159,6 +159,7 @@ protected:
   void evalMatrixSize(const list<int> &dims, int line);
   ExpressionValue evaluateNumTypes(ExpressionValue &left,
                                    ExpressionValue &right);
+  bool evalMissingSubscript(ExpressionValue &ev, int line);
 
   SymbolTable &stable;
   string currentScope;

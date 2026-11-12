@@ -1,0 +1,9 @@
+matrix_in_compare.gpt:7 - Operador "=" não pode ser usado em expressões no formato 'inteiro[] = inteiro[]'.
+matrix_in_compare.gpt:8 - Operador "<>" não pode ser usado em expressões no formato 'inteiro[] <> inteiro[]'.
+matrix_in_compare.gpt:9 - Operador ">" não pode ser usado em expressões no formato 'inteiro[] > inteiro[]'.
+matrix_in_compare.gpt:10 - Operador ">=" não pode ser usado em expressões no formato 'inteiro[] >= inteiro[]'.
+matrix_in_compare.gpt:11 - Operador "<" não pode ser usado em expressões no formato 'inteiro[] < inteiro[]'.
+matrix_in_compare.gpt:12 - Operador "<=" não pode ser usado em expressões no formato 'inteiro[] <= inteiro[]'.
+matrix_in_compare.gpt:13 - Operador "=" não pode ser usado em expressões no formato 'inteiro[] = real[]'.
+matrix_in_compare.gpt:14 - Operador "e" não pode ser usado em expressões no formato 'inteiro[] e inteiro[]'.
+matrix_in_compare.gpt:15 - Operador "ou" não pode ser usado em expressões no formato 'inteiro[] ou inteiro[]'.

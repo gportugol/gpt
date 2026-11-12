@@ -1,0 +1,21 @@
+algoritmo erro;
+variáveis
+  m : matriz[3] de inteiros;
+  l : matriz[2][2] de literais;
+fim-variáveis
+início
+  se m então imprima("v"); fim-se
+  se (m) então imprima("v"); fim-se
+  se l então imprima("v"); fim-se
+  enquanto m faça imprima("v"); fim-enquanto
+  repita
+    imprima("v");
+  até m;
+  se m[0] então imprima("v"); fim-se
+  f(m);
+fim
+função f(p : matriz[3] de inteiros)
+início
+  se p então imprima("v"); fim-se
+  se m() então imprima("v"); fim-se
+fim
