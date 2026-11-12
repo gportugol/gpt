@@ -88,6 +88,14 @@ erro com `test/erros/`:
 bash test/run_test.sh
 ```
 
+Os testes do depurador (`gpt -i -H`) usam o `python3` no papel do depurador
+que recebe a conexão, e a suíte os pula quando ele não está instalado. O CI o
+instala em todos os jobs Linux:
+
+```shell
+sudo apt install -y python3
+```
+
 Numa máquina x86-64, o backend arm64 pode ser testado com o binutils cruzado e
 o QEMU, como faz o CI. O QEMU não acusa o `sp` desalinhado que o hardware
 rejeita, então só o job no runner arm64 prova o alinhamento da pilha:

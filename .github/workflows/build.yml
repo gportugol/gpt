@@ -21,7 +21,7 @@ jobs:
           apt-get update
           apt-get install -y build-essential autoconf automake libtool \
             pkg-config antlr4 libantlr4-runtime-dev libpcre2-dev nasm git \
-            binutils-aarch64-linux-gnu qemu-user
+            binutils-aarch64-linux-gnu qemu-user python3
 
       - name: Checkout Repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -82,7 +82,7 @@ jobs:
         run: |
           apt-get update
           apt-get install -y build-essential autoconf automake libtool \
-            pkg-config antlr4 libantlr4-runtime-dev libpcre2-dev git
+            pkg-config antlr4 libantlr4-runtime-dev libpcre2-dev git python3
 
       - name: Checkout Repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -152,7 +152,7 @@ jobs:
           docker exec i386 apt-get update
           docker exec i386 apt-get install -y build-essential autoconf \
             automake libtool pkg-config antlr4 libantlr4-runtime-dev \
-            libpcre2-dev nasm
+            libpcre2-dev nasm python3
 
       - name: Build GPT Project
         run: >-
