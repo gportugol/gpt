@@ -1,0 +1,16 @@
+algoritmo erro;
+variáveis
+  m, n : matriz[3] de inteiros;
+  r : matriz[3] de reais;
+fim-variáveis
+início
+  imprima(m = m);
+  imprima(m <> n);
+  imprima(m > n);
+  imprima(m >= n);
+  imprima(m < n);
+  imprima(m <= n);
+  imprima(m = r);
+  imprima(m e n);
+  imprima(m ou n);
+fim

@@ -1,0 +1,12 @@
+algoritmo erro;
+variáveis
+  m : matriz[3] de inteiros;
+  i : inteiro;
+fim-variáveis
+início
+  para i de m até 3 faça imprima(i); fim-para
+  para i de 1 até (m) faça imprima(i); fim-para
+  para m de 1 até 3 faça imprima(i); fim-para
+  para i de 1 até m[2] faça imprima(i); fim-para
+  para i de m() até 3 faça imprima(i); fim-para
+fim

@@ -1,0 +1,14 @@
+algoritmo erro;
+variáveis
+  m, v : matriz[3] de inteiros;
+  b : lógico;
+  i : inteiro;
+fim-variáveis
+início
+  imprima(não m);
+  b := não m;
+  se não m então imprima("v"); fim-se
+  i := v[não m];
+  b := não m[0];
+  imprima(não m());
+fim

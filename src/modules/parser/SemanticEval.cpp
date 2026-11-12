@@ -363,20 +363,18 @@ void SemanticEval::evaluateBooleanExpr(ExpressionValue &ev, int line,
     msg << "Condição do \"" << stm << "\" não retorna resultado";
     GPTDisplay::self()->add(msg.str(), line);
   }
+  evalMissingSubscript(ev, line);
 }
 
 void SemanticEval::evaluateParaExpr(ExpressionValue &ev, int line,
                                     const string &term) {
-  stringstream err;
-  if (!ev.isPrimitive()) {
-    err << "Faltando indicar subscritos da matriz/conjunto \"" << ev.id()
-        << "\"";
+  if (evalMissingSubscript(ev, line)) {
+    return;
+  }
+  if (ev.primitiveType() != TIPO_INTEIRO) {
+    stringstream err;
+    err << "Expressão \"" << term << "\" deve ser do tipo inteiro";
     GPTDisplay::self()->add(err.str(), line);
-  } else {
-    if (ev.primitiveType() != TIPO_INTEIRO) {
-      err << "Expressão \"" << term << "\" deve ser do tipo inteiro";
-      GPTDisplay::self()->add(err.str(), line);
-    }
   }
 }
 
@@ -410,7 +408,7 @@ ExpressionValue SemanticEval::evaluateExpr(ExpressionValue &left,
 
   case PortugolParser::T_KW_OU:
   case PortugolParser::T_KW_E:
-    if (!left.isVoidCall() && !right.isVoidCall() &&
+    if (!left.isVoidCall() && !right.isVoidCall() && left.isPrimitive() &&
         left.isCompatibleWidth(right)) {
       ret.setPrimitiveType(TIPO_LOGICO);
       return ret;
@@ -527,6 +525,9 @@ ExpressionValue SemanticEval::evaluateExpr(ExpressionValue &ev, UnaryOp op,
       GPTDisplay::self()->add(msg.str(), unary_op.getLine());
       return nulo;
     }
+    if (evalMissingSubscript(ev, unary_op.getLine())) {
+      return nulo;
+    }
     ev.setPrimitiveType(TIPO_LOGICO);
     return ev;
     break;
@@ -541,7 +542,7 @@ ExpressionValue SemanticEval::evaluateExpr(ExpressionValue &ev, UnaryOp op,
 void SemanticEval::evaluateReturnCmd(ExpressionValue &ev, int line) {
   bool isGlobalEscope = currentScope == SymbolTable::GlobalScope;
   if (isGlobalEscope) {
-    if (ev.primitiveType() != TIPO_INTEIRO) {
+    if (!ev.isPrimitive() || ev.primitiveType() != TIPO_INTEIRO) {
       stringstream msg;
       msg << "Valor de retorno do bloco principal deve ser compatível com o "
              "tipo inteiro";
@@ -766,4 +767,19 @@ ExpressionValue SemanticEval::evaluateNumTypes(ExpressionValue &left,
   }
 
   return ret; // no number here...
+}
+
+bool SemanticEval::evalMissingSubscript(ExpressionValue &ev, int line) {
+  if (ev.isPrimitive()) {
+    return false;
+  }
+  // A matrix called as a function comes back with the type of the matrix but
+  // without its name, and that call was already reported as an error.
+  if (!ev.id().empty()) {
+    stringstream err;
+    err << "Faltando indicar subscritos da matriz/conjunto \"" << ev.id()
+        << "\"";
+    GPTDisplay::self()->add(err.str(), line);
+  }
+  return true;
 }

@@ -344,6 +344,12 @@ início
 fim
 ```
 
+Além disso, uma matriz sem subscritos não tem um valor que possa ser usado em
+expressões: ela não pode ser termo de um operador, subscrito, condição de `se`,
+`enquanto` ou `repita`, limite de `para` nem valor de `retorne`. Seu único uso é
+como argumento de uma função cujo parâmetro é uma matriz de mesmas dimensões e
+de tipo de elemento compatível.
+
 ## Funções
 
 Funções são os subprogramas de G-Portugol. São definidas após o bloco principal

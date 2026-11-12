@@ -1,0 +1,7 @@
+algoritmo erro;
+variáveis
+  m : matriz[3] de inteiros;
+fim-variáveis
+início
+  retorne m;
+fim
