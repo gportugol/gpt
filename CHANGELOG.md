@@ -148,6 +148,14 @@ Este arquivo foi consolidado a partir do ChangeLog histórico (CVS/SVN).
   vez de `verdadeiro` ou `falso`. No interpretador, `não "abc"` dava
   `verdadeiro`, e no C, `falso`. Agora os três modos dão `falso` para um
   literal não vazio e `verdadeiro` para o vazio.
+- Um número convertido para lógico é `verdadeiro` quando é diferente de
+  zero, em qualquer contexto e nos três modos. Antes `se 0.5 então` seguia o
+  `então`, mas `b := 0.5` guardava `falso` numa variável lógica no
+  executável e no C, e um real passado a um parâmetro lógico ou devolvido
+  por uma função lógica virava `falso` nos três modos. Depois de `b := 2`,
+  `b = verdadeiro` dava `verdadeiro` no interpretador e `falso` no
+  executável e no C; agora um inteiro ou caractere guardado num lógico vira
+  `verdadeiro` ou `falso`.
 - O interpretador só convertia um valor na atribuição a uma variável, e
   argumentos, valores de retorno, subscritos e elementos de matriz
   guardavam o texto de `leia()` ou de um real. Um parâmetro inteiro podia

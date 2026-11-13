@@ -256,7 +256,10 @@ representada.
   como verdadeira.
 - **Lógicos**: são representados pelas palavras `verdadeiro` e `falso`.
   Numericamente, qualquer valor diferente de "0" representa o valor verdadeiro e
-  "0" representa o valor falso.
+  "0" representa o valor falso. Isso vale também para reais: `0.5`, `-0.5`,
+  `inf` e `nan` são verdadeiros, e `0.0` e `-0.0` são falsos, tanto numa
+  condição ou num operando de `não`, `e` e `ou` quanto num número convertido
+  para lógico.
 
 A precedência de operadores é mostrada na {numref}`tb-precedencia-op` (da menor
 precedência para a maior) e pode ser explicitamente modificada com o uso de
@@ -327,6 +330,12 @@ expressão é de um tipo diferente (mas compatível) do tipo de *lvalue*. É
 possível que dados sejam comprometidos, por exemplo, tendo uma expressão
 avaliada como real sendo atribuída a uma variável de tipo inteiro (o valor será
 truncado).
+
+Um número atribuído a uma variável lógica não é truncado: ela recebe
+`verdadeiro` quando o número é diferente de zero e `falso` quando é zero. Assim,
+`b := 0.5` e `b := 2` guardam `verdadeiro`, e `b = verdadeiro` é verdadeiro
+nos dois casos. A mesma conversão vale para um argumento passado a um parâmetro
+lógico e para o valor de retorno de uma função lógica.
 
 Matrizes não são aceitas como *lvalue*, como pode ser visto no
 {numref}`bad-matrix`.

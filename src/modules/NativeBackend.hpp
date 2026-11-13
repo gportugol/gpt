@@ -109,6 +109,7 @@ public:
   virtual void writeModExpr(int line) = 0;
   virtual void writeUnaryNeg(int etype) = 0;
   virtual void writeUnaryNot() = 0;
+  virtual void writeRealToLogical() = 0;
   virtual void writeUnaryBitNotExpr() = 0;
   virtual void writeLiteralExpr(int type, const string &src) = 0;
   virtual void writeLValueExpr(pair<pair<int, bool>, string> &) = 0;

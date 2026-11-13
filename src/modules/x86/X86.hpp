@@ -143,6 +143,7 @@ public:
   void writeModExpr(int line);
   void writeUnaryNeg(int etype);
   void writeUnaryNot();
+  void writeRealToLogical();
   void writeUnaryBitNotExpr();
   void writeLiteralExpr(int type, const string &src);
   void writeIndexCheck(const string &name, int line, int size);
@@ -153,6 +154,7 @@ public:
 
 private:
   string toNasmString(string str);
+  void writeLogicalOf(int type);
   void writeLoadReals(int e1, int e2);
   void writeOrderExpr(int e1, int e2, const string &intSet,
                       const string &realSet, bool swapReals);

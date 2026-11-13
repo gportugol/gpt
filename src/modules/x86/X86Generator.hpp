@@ -94,6 +94,7 @@ private:
   template <typename Ctx, typename Fn>
   int binaryChain(Ctx *ctx, int expecting_type, Fn operand);
 
+  void logicalOperand(int etype);
   void writeBinaryExpr(antlr4::Token *op, int e1, int e2);
   static int evalType(int e1, int e2, size_t op);
 

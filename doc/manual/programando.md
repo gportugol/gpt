@@ -192,6 +192,7 @@ enquanto x faça                   //depende do valor de x
 enquanto "nome" = "nome" faça     //avalia como verdadeiro
 enquanto verdadeiro faça          //avalia como verdadeiro
 enquanto 3+5 faça                 //avalia 8 como verdadeiro
+enquanto 0.5 faça                 //avalia 0.5 como verdadeiro
 enquanto "nome" faça              //avalia como verdadeiro
 enquanto 0 faça                   //avalia 0 como falso
 enquanto "" faça                  //avalia como falso

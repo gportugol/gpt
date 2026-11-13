@@ -22,6 +22,8 @@ foco em funcionalidades e correções relevantes para os usuários.
 - A função `arredonda` da biblioteca padrão passa a devolver o valor
   arredondado.
 - Um NaN sai como `nan` nos três modos, em qualquer processador.
+- Um número convertido para lógico é `verdadeiro` quando é diferente de
+  zero, em qualquer contexto e nos três modos.
 - Programas que cada modo executava de um jeito diferente passam a ser
   recusados na compilação: escapes além de `\n`, `\r`, `\t`, `\\`, `\"`,
   `\'` e `\?`, uma chamada de função sem tipo de retorno ou uma matriz sem

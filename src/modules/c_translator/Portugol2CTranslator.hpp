@@ -132,6 +132,7 @@ private:
                      antlr4::Token *op);
 
   static int binaryType(int left, int right, size_t optoken);
+  static Production convertTo(int type, const Production &e);
   static char matrixTypeChar(int type);
 };
 
