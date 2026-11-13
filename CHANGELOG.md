@@ -180,6 +180,12 @@ Este arquivo foi consolidado a partir do ChangeLog histórico (CVS/SVN).
   `-o` (`gpt x.gpt x`). Agora o `gpt` compara a saída com cada entrada pela
   identidade do arquivo, recusa com `o arquivo de saída é um dos arquivos de
   entrada` e código 1, e não toca em nenhum arquivo.
+- Com três ou mais arquivos em `GPT_INCLUDE`, o `gpt` cortava a lista no
+  lugar errado: `GPT_INCLUDE=a.gpt:b.gpt:c.gpt` dava `não foi possível abrir
+  o arquivo: "b.gpt:c.gpt"`, e um separador no começo, no fim ou dobrado
+  falhava do mesmo jeito já com dois arquivos (`:a.gpt:b.gpt` tentava abrir
+  `"a.gpt:"`). Agora cada entrada da lista é um arquivo, e as vazias são
+  ignoradas.
 - Um SIGINT, SIGTERM ou SIGHUP durante a montagem deixava o assembly
   temporário (e, no arm64, o objeto) no `TMPDIR`, e um SIGTERM mandado só
   ao `gpt` deixava o montador rodando. Agora, fora do Windows, o `gpt -o`
