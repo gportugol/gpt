@@ -1165,6 +1165,40 @@ done
 echo ""
 
 echo "========================================"
+echo "Lista do GPT_INCLUDE"
+echo "========================================"
+# Each entry of the list is one file, empty entries are skipped, and an
+# entry that cannot be opened is the only name in the error.
+SEP=":"
+[ $ON_WINDOWS -eq 1 ] && SEP=";"
+for f in a b c; do
+	printf 'função f%s(): inteiro\ninício\n  retorne 1;\nfim\n' "$f" >"$TMP/inc_$f.gpt"
+done
+printf 'algoritmo inclui;\ninício\n  imprima(fa() + fb() + fc());\nfim\n' >"$TMP/inclui.gpt"
+for lista in "inc_a.gpt${SEP}inc_b.gpt${SEP}inc_c.gpt" \
+	"${SEP}inc_a.gpt${SEP}${SEP}inc_b.gpt${SEP}inc_c.gpt${SEP}"; do
+	SAIDA=$(cd "$TMP" && GPT_INCLUDE="$lista" $TIMEOUT "$GPT" -i inclui.gpt 2>&1)
+	RESULT=$?
+	if [ $RESULT -eq 0 ] && [ "$SAIDA" = "3" ]; then
+		ok "GPT_INCLUDE=\"$lista\""
+	else
+		fail "GPT_INCLUDE=\"$lista\": código $RESULT (esperado: 0 e a saída 3)"
+		echo "$SAIDA"
+	fi
+done
+lista="inc_a.gpt${SEP}inc_ausente.gpt${SEP}inc_c.gpt"
+ERRO=$(cd "$TMP" && GPT_INCLUDE="$lista" $TIMEOUT "$GPT" -i inclui.gpt 2>&1 >/dev/null)
+RESULT=$?
+if [ $RESULT -eq 1 ] && [ "$(wc -l <<<"$ERRO")" -eq 1 ] &&
+	grep -q 'arquivo: "inc_ausente.gpt"$' <<<"$ERRO"; then
+	ok "GPT_INCLUDE=\"$lista\": erro só da entrada ausente"
+else
+	fail "GPT_INCLUDE=\"$lista\": código $RESULT (esperado: 1 e o erro de inc_ausente.gpt)"
+	echo "$ERRO"
+fi
+echo ""
+
+echo "========================================"
 echo "Variáveis globais"
 echo "========================================"
 # Global variables start zeroed, so they take no room in the executable,

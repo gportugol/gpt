@@ -217,7 +217,7 @@ static void appendDefaultFiles() {
 #else
   while ((c = inc.find(":", b)) != string::npos) {
 #endif
-    filename = inc.substr(b, c);
+    filename = inc.substr(b, c - b);
     if (filename.length()) {
       _ifilenames.push_back(filename);
     }
