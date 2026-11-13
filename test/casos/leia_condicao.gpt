@@ -1,0 +1,33 @@
+algoritmo leia_condicao;
+variáveis
+  i : inteiro;
+  s : literal;
+fim-variáveis
+início
+  para i de 1 até 6 faça
+    se leia() então
+      imprima("se: então");
+    senão
+      imprima("se: senão");
+    fim-se
+  fim-para
+  se (leia()) então
+    imprima("parênteses: então");
+  senão
+    imprima("parênteses: senão");
+  fim-se
+  i := 0;
+  enquanto leia() faça
+    i := i + 1;
+  fim-enquanto
+  imprima("enquanto: ", i);
+  i := 0;
+  repita
+    i := i + 1;
+  até leia();
+  imprima("repita: ", i);
+  s := "falso";
+  se s então
+    imprima("literal: então");
+  fim-se
+fim

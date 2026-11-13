@@ -57,6 +57,7 @@ private:
   void stmRepita(PortugolParser::Stm_repitaContext *ctx);
   void stmPara(PortugolParser::Stm_paraContext *ctx);
   int passo(PortugolParser::PassoContext *ctx);
+  bool condition(PortugolParser::ExprContext *ctx);
   void funcDecls(PortugolParser::Func_declsContext *ctx,
                  std::list<ExprValue> &args, int line);
 
@@ -85,6 +86,7 @@ private:
   int stmLine(PortugolParser::StmContext *ctx);
 
   InterpreterEval interpreter;
+  SymbolTable &_stable;
   bool _returning;
 
   std::map<std::string, PortugolParser::Func_declsContext *> _functions;

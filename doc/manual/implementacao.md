@@ -458,9 +458,10 @@ absoluto (*overloaded*, depende do tipo de *lvalue*) e, no momento, é restrita 
 expressões isentas de operadores. Isso é, não é permitido aplicá-la como um
 termo em uma expressão com múltiplos operandos (ex. `x := y + leia()`), embora
 seja possível utilizá-la em subscritos de vetores e matrizes, assim como em
-expressões de estruturas de controle. Onde nenhum tipo é esperado, como num
-argumento de `imprima` ou num `leia();` isolado, ela lê a linha inteira como
-literal.
+expressões de estruturas de controle. Como condição de `se`, `enquanto` ou
+`repita`, ela lê um valor lógico, convertido como na tabela acima. Onde nenhum
+tipo é esperado, como num argumento de `imprima` ou num `leia();` isolado, ela
+lê a linha inteira como literal.
 
 Em princípio, pode-se levar em conta duas formas de implementar uma função de
 leitura em alto nível. A primeira, e mais simples, é o uso de funções

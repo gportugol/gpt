@@ -24,6 +24,7 @@
 
 #include "GPTDisplay.hpp"
 #include "PortugolErrorStrategy.hpp"
+#include "SemanticAnalyzer.hpp"
 #include "config.h" // after the ANTLR4 headers, which also define VERSION
 
 #include <sstream>
@@ -33,7 +34,7 @@ using antlr4::ParserRuleContext;
 using antlr4::tree::TerminalNode;
 
 Interpreter::Interpreter(SymbolTable &st, const std::string &host, int port)
-    : interpreter(st, host, port), _returning(false) {}
+    : interpreter(st, host, port), _stable(st), _returning(false) {}
 
 std::string Interpreter::parseLiteral(std::string str) {
   std::string::size_type idx = 0;
@@ -204,9 +205,18 @@ void Interpreter::stmList(PortugolParser::Stm_listContext *ctx) {
   }
 }
 
+// TIPO_ALL is leia(), which reads a lógico in a condition, as in the native
+// and C code.
+bool Interpreter::condition(PortugolParser::ExprContext *ctx) {
+  ExprValue e = expr(ctx);
+  if (SemanticAnalyzer::chainEvalType(_stable, ctx) == TIPO_ALL) {
+    return Variable::castVal(TIPO_LOGICO, e.value) == "1";
+  }
+  return e.ifTrue();
+}
+
 void Interpreter::stmSe(PortugolParser::Stm_seContext *ctx) {
-  ExprValue e = expr(ctx->expr());
-  bool exec = e.ifTrue();
+  bool exec = condition(ctx->expr());
 
   if (exec) {
     stmList(ctx->stm_list());
@@ -216,14 +226,14 @@ void Interpreter::stmSe(PortugolParser::Stm_seContext *ctx) {
 }
 
 void Interpreter::stmEnquanto(PortugolParser::Stm_enquantoContext *ctx) {
-  bool exec = expr(ctx->expr()).ifTrue();
+  bool exec = condition(ctx->expr());
 
   while (exec && !_returning) {
     stmList(ctx->stm_list());
     if (_returning) {
       return;
     }
-    exec = expr(ctx->expr()).ifTrue();
+    exec = condition(ctx->expr());
   }
 }
 
@@ -234,7 +244,7 @@ void Interpreter::stmRepita(PortugolParser::Stm_repitaContext *ctx) {
     if (_returning) {
       return;
     }
-    exec = expr(ctx->expr()).ifTrue();
+    exec = condition(ctx->expr());
   } while (!exec);
 }
 
