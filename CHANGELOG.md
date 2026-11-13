@@ -175,6 +175,12 @@ Este arquivo foi consolidado a partir do ChangeLog histórico (CVS/SVN).
   já fazia. Antes a tradução para C lia um inteiro e o passava a um `%s`
   (falha de segmentação com a entrada `12345`), e o executável nativo não
   compilava (`Erro interno: tipo nao suportado`).
+- Na tradução para C, ler um caractere, um lógico, um real ou um inteiro
+  deixava o resto da linha para a leitura seguinte: depois de ler o
+  caractere `x` da linha `xyz`, o próximo `leia()` de caractere dava `y`, e
+  um real ou inteiro lido em seguida podia dar 0. Agora cada uma dessas
+  leituras consome uma linha inteira, como no interpretador e no executável
+  nativo.
 - No executável x86, um parâmetro matriz `x` e um parâmetro `p__x` da
   mesma função tinham o mesmo nome no assembly, e um lia o valor do outro
   como endereço. Uma variável global chamada `_str_0` impedia a montagem
