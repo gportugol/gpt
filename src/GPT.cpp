@@ -479,7 +479,11 @@ static bool makeExecutable(const string &path) {
     mode_t mask = umask(0);
     umask(mask);
     mode_t exec = (S_IXUSR | S_IXGRP | S_IXOTH) & ~mask;
-    ok = fchmod(fd, st.st_mode | exec) == 0;
+    // An output owned by someone else can be written but not changed with
+    // fchmod, and is enough if the user can already run it.
+    mode_t mode = st.st_mode | exec;
+    ok = mode == st.st_mode || fchmod(fd, mode) == 0 ||
+         (errno == EPERM && access(path.c_str(), X_OK) == 0);
   }
   close(fd);
   return ok;

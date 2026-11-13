@@ -247,7 +247,10 @@ Este arquivo foi consolidado a partir do ChangeLog histórico (CVS/SVN).
   `chmod` pelo nome: como root, `gpt -o /dev/null` mudava o `/dev/null` de
   666 para 777, e como outro usuário o comando falhava. Agora só um arquivo
   regular recebe a permissão, e `gpt -o /dev/null` funciona. Um link
-  simbólico na saída continua sendo seguido.
+  simbólico na saída continua sendo seguido. Um arquivo de outro dono em que
+  o usuário pode escrever recebia o programa, mas o `gpt -o` saía com `não
+  foi possível tornar o arquivo executável`, mesmo com o arquivo já
+  executável. Agora essa saída é aceita quando o usuário pode executá-la.
 - O depurador guardava cada breakpoint pedido pelo host, repetidos
   inclusive, e um pedido de remoção para um arquivo desconhecido criava uma
   entrada, então o host podia fazer o `gpt` crescer sem limite e deixar o
