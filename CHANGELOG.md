@@ -126,6 +126,15 @@ Este arquivo foi consolidado a partir do ChangeLog histórico (CVS/SVN).
 - A função `arredonda` da biblioteca padrão não tinha `retorne` e devolvia
   um valor indefinido, que mudava com o modo e com as chamadas anteriores.
   Agora `arredonda(2.6)` dá `3.00` nos três modos.
+- A tradução para C deixava ao compilador a ordem de avaliação: em `f(a(),
+  b())`, o `gcc` chamava `b()` antes de `a()`, e `dif(leia(), leia())` lia
+  os dois números na ordem inversa. Além disso, `e` e `ou` paravam no
+  primeiro operando que decidia o resultado, enquanto o interpretador e o
+  executável nativo avaliam os dois lados, então `se i < 3 e v[i] > 0`, com
+  `i` igual a 3, seguia o `senão` no C e parava com o erro de índice nos
+  outros modos. Agora o C avalia as chamadas, as leituras e os operandos que
+  elas podem afetar da esquerda para a direita, e `e` e `ou` avaliam os dois
+  lados.
 - No executável nativo, os reais tinham precisão simples, então
   `12345678.9` saía como `12345679.00` e `123456789012.0` como `28.74`. Ele
   também imprimia `-0.5` como `0.50` e `99.999` como `99.010`, escrevia `t`

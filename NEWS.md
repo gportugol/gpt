@@ -29,6 +29,8 @@ foco em funcionalidades e correções relevantes para os usuários.
   `\'` e `\?`, uma chamada de função sem tipo de retorno ou uma matriz sem
   subscritos onde se espera um valor, e uma matriz de outro tipo de
   elemento como argumento.
+- A tradução para C avalia chamadas e operandos da esquerda para a direita,
+  e `e` e `ou` avaliam os dois lados, como nos outros modos.
 - Matrizes com dimensão negativa ou com mais de 67108864 elementos e
   programas com mais de 100 níveis de aninhamento são recusados, em vez de
   corromper a memória do executável ou derrubar o `gpt`.
