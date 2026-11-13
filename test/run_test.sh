@@ -1352,6 +1352,59 @@ else
 			echo "$ERRO"
 		fi
 	fi
+
+	# An output owned by another user can be written but not changed with
+	# fchmod. As root, the suite runs gpt as nobody over files root owns, in
+	# a directory of its own, since $TMP is closed to other users.
+	COMO_OUTRO=()
+	if [ "$(id -u)" = 0 ] && command -v setpriv &>/dev/null; then
+		OUTRO=$(mktemp -d "${TMPDIR:-/tmp}/gpt_dono.XXXXXX") || exit 1
+		trap 'rm -rf "$TMP" "$OUTRO"' EXIT
+		chmod 777 "$OUTRO"
+		cp casos/olamundo.gpt "$OUTRO/"
+		chmod 644 "$OUTRO/olamundo.gpt"
+		COMO_OUTRO=(setpriv --reuid=65534 --regid=65534 --clear-groups env TMPDIR="$OUTRO")
+		"${COMO_OUTRO[@]}" "$GPT" -v >/dev/null 2>&1 || COMO_OUTRO=()
+	fi
+	if [ ${#COMO_OUTRO[@]} -eq 0 ]; then
+		echo "⚠ -o sobre um arquivo de outro dono: pulado (requer root, setpriv e o gpt acessível ao usuário nobody)"
+	else
+		: >"$OUTRO/modo777"
+		chmod 777 "$OUTRO/modo777"
+		ERRO=$($TIMEOUT "${COMO_OUTRO[@]}" "$GPT" "${GPT_A[@]}" -o "$OUTRO/modo777" "$OUTRO/olamundo.gpt" 2>&1 >/dev/null)
+		RESULT=$?
+		if [ $RESULT -eq 0 ] && "${RUNNER[@]}" "$OUTRO/modo777" | grep -q "Mundo"; then
+			ok "-o sobre um arquivo executável de outro dono"
+		else
+			fail "-o sobre um arquivo executável de outro dono: código $RESULT (esperado: 0 e o programa executável)"
+			echo "$ERRO"
+		fi
+
+		# Executable for its group only: gpt cannot add the other bits, and
+		# the program still runs for nobody, who is in that group.
+		: >"$OUTRO/modo774"
+		chown 0:65534 "$OUTRO/modo774"
+		chmod 774 "$OUTRO/modo774"
+		ERRO=$($TIMEOUT "${COMO_OUTRO[@]}" "$GPT" "${GPT_A[@]}" -o "$OUTRO/modo774" "$OUTRO/olamundo.gpt" 2>&1 >/dev/null)
+		RESULT=$?
+		if [ $RESULT -eq 0 ] && "${COMO_OUTRO[@]}" "${RUNNER[@]}" "$OUTRO/modo774" | grep -q "Mundo"; then
+			ok "-o sobre um arquivo de outro dono executável pelo grupo"
+		else
+			fail "-o sobre um arquivo de outro dono executável pelo grupo: código $RESULT (esperado: 0 e o programa executável)"
+			echo "$ERRO"
+		fi
+
+		: >"$OUTRO/modo666"
+		chmod 666 "$OUTRO/modo666"
+		ERRO=$($TIMEOUT "${COMO_OUTRO[@]}" "$GPT" "${GPT_A[@]}" -o "$OUTRO/modo666" "$OUTRO/olamundo.gpt" 2>&1 >/dev/null)
+		RESULT=$?
+		if [ $RESULT -eq 1 ] && [[ "$ERRO" == *"não foi possível tornar o arquivo executável"* ]]; then
+			ok "-o sobre um arquivo não executável de outro dono termina com erro"
+		else
+			fail "-o sobre um arquivo não executável de outro dono: código $RESULT (esperado: 1 e o erro de permissão)"
+			echo "$ERRO"
+		fi
+	fi
 fi
 echo ""
 
