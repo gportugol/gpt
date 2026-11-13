@@ -197,6 +197,13 @@ Este arquivo foi consolidado a partir do ChangeLog histórico (CVS/SVN).
   `matriz[20000000] de inteiros` global gerava um arquivo de 80 MB na 1.4.0
   (160 MB no x86-64). Agora as globais ficam na seção `.bss`, e o mesmo
   programa gera um ELF de 4 KB e um PE32+ de 12 KB.
+- O executável nativo guardava os literais numa área fixa de 1 MiB, e nada
+  do que ela guarda é liberado, então um programa que lia 200000 linhas de
+  40 caracteres terminava em `Não foi possível alocar memória.`, enquanto o
+  interpretador e o C iam até o fim. Agora a área cresce em blocos pedidos
+  ao sistema (`mmap` no GNU/Linux, `VirtualAlloc` no Windows), e a mensagem
+  só aparece quando o sistema recusa memória. Como nada é liberado, um laço
+  sem fim que gera literais cresce até esse ponto.
 - `gpt -s x.gpt x.gpt`, e o mesmo com `-t` ou `-o`, substituía o fonte pelo
   código gerado e saía com 0. O mesmo acontecia por um link, por outra
   grafia do caminho, por um arquivo de `GPT_INCLUDE` ou pelo nome padrão de

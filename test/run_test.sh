@@ -320,6 +320,18 @@ if [ $ON_WINDOWS -eq 0 ]; then
 	printf 'a\nb\rc\032d\032e\001f\177g'"'"'h\n' >"$TMP/bytes_de_controle.saida"
 	run_caso "$TMP/bytes_de_controle.gpt" "$TMP/bytes_de_controle"
 fi
+# A literal longer than the 1 MiB the native heap grows by gets a chunk of
+# its own size. Written here: a file this large is refused by pre-commit.
+{
+	printf 'algoritmo literal_grande;\nvari\303\241veis\n  s, t, u : literal;\nfim-vari\303\241veis\nin\303\255cio\n'
+	printf '  t := leia();\n  s := longo();\n  u := leia();\n  imprima(s = longo(), " ", t, " ", u);\nfim\n'
+	printf 'fun\303\247\303\243o longo() : literal\nin\303\255cio\n  retorne "'
+	head -c 1200000 /dev/zero | tr '\0' x
+	printf '";\nfim\n'
+} >"$TMP/literal_grande.gpt"
+printf 'um\ndois\n' >"$TMP/literal_grande.entrada"
+printf 'verdadeiro um dois\n' >"$TMP/literal_grande.saida"
+run_caso "$TMP/literal_grande.gpt" "$TMP/literal_grande"
 echo ""
 
 echo "========================================"

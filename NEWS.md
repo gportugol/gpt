@@ -28,6 +28,8 @@ foco em funcionalidades e correções relevantes para os usuários.
 - Matrizes com dimensão negativa ou com mais de 67108864 elementos e
   programas com mais de 100 níveis de aninhamento são recusados, em vez de
   corromper a memória do executável ou derrubar o `gpt`.
+- O executável nativo não para mais em 1 MiB de literais: a memória cresce
+  enquanto o sistema a fornecer.
 - Uma função com tipo que termina sem `retorne` devolve o valor zero do tipo
   nos três modos, e o interpretador converte argumentos e valores de retorno
   para o tipo declarado.
