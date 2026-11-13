@@ -1,0 +1,37 @@
+algoritmo ordem_conversao;
+variáveis
+  x : inteiro;
+fim-variáveis
+início
+  x := 0;
+  imprima(f(x, g()));
+  imprima(h(a(), b()));
+fim
+
+função g() : inteiro
+início
+  x := 1;
+  retorne 0;
+fim
+
+função f(p : lógico, q : inteiro) : lógico
+início
+  retorne p;
+fim
+
+função a() : real
+início
+  imprima("a");
+  retorne 0.5;
+fim
+
+função b() : real
+início
+  imprima("b");
+  retorne 0.0;
+fim
+
+função h(p : lógico, q : lógico) : lógico
+início
+  retorne p e não q;
+fim

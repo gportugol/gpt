@@ -1,0 +1,88 @@
+algoritmo ordem_avaliacao;
+variáveis
+  x : inteiro;
+  i : inteiro;
+  l : lógico;
+  v : matriz[3] de inteiros;
+  m : matriz[3][3] de inteiros;
+fim-variáveis
+início
+  imprima(leia(), "-", leia());
+  imprima(dif(leia(), leia()));
+  x := a() / b();
+  x := a() % b();
+  x := -a() + b();
+  l := sa() = sb();
+  x := 1;
+  imprima(x, " ", muda());
+  x := 1;
+  imprima(x < muda());
+  l := fa() e tb();
+  l := ta() ou tb();
+  x := m[a()][b()];
+  m[a()][b()] := c();
+  x := dif(a(), dif(b(), c()));
+  i := 3;
+  se i < 3 e v[i] > 0 então
+    imprima("não chega aqui");
+  fim-se
+fim
+
+função a() : inteiro
+início
+  imprima("a");
+  retorne 1;
+fim
+
+função b() : inteiro
+início
+  imprima("b");
+  retorne 2;
+fim
+
+função c() : inteiro
+início
+  imprima("c");
+  retorne 1;
+fim
+
+função ta() : lógico
+início
+  imprima("ta");
+  retorne verdadeiro;
+fim
+
+função tb() : lógico
+início
+  imprima("tb");
+  retorne verdadeiro;
+fim
+
+função fa() : lógico
+início
+  imprima("fa");
+  retorne falso;
+fim
+
+função sa() : literal
+início
+  imprima("sa");
+  retorne "x";
+fim
+
+função sb() : literal
+início
+  imprima("sb");
+  retorne "y";
+fim
+
+função muda() : inteiro
+início
+  x := 100;
+  retorne 5;
+fim
+
+função dif(p : inteiro, q : inteiro) : inteiro
+início
+  retorne p - q;
+fim

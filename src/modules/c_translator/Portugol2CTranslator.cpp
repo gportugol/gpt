@@ -42,7 +42,7 @@ static string matrixParamName(const string &id) { return "p_" + id; }
 
 Portugol2CTranslator::Portugol2CTranslator(SymbolTable &st)
     : _stable(st), _currentScopeType(-1),
-      _currentScope(SymbolTable::GlobalScope), _indexTemps(0) {}
+      _currentScope(SymbolTable::GlobalScope), _indexTemps(0), _valueTemps(0) {}
 
 void Portugol2CTranslator::indent() { _indent += "   "; }
 
@@ -370,6 +370,86 @@ void Portugol2CTranslator::writeChecks(const list<string> &checks) {
   }
 }
 
+// int also holds caractere and lógico values: an expression of those types
+// can be wider than char or boolean in C, and the temporary must not change
+// the value the expression had in place.
+string Portugol2CTranslator::nextValueTemp(int type) {
+  stringstream s;
+  s << "gpt_val" << _valueTemps++;
+  string ctype = "int";
+  if (type == TIPO_REAL) {
+    ctype = "double";
+  } else if (type == TIPO_LITERAL || type == TIPO_ALL) {
+    ctype = "char*";
+  }
+  _valueTempDecls.push_back(ctype + " " + s.str() + ";");
+  return s.str();
+}
+
+// The body of a C function is written to a _txt of its own, so that the
+// temporaries it needs can be declared before it once it is complete.
+void Portugol2CTranslator::beginBody(stringstream &outer) { outer.swap(_txt); }
+
+void Portugol2CTranslator::endBody(stringstream &outer) {
+  string body = _txt.str();
+  _txt.swap(outer);
+  for (const string &d : _valueTempDecls) {
+    _txt << "   " << d << "\n";
+  }
+  _valueTempDecls.clear();
+  _txt << body;
+}
+
+// C leaves unspecified the order in which it evaluates operands and
+// arguments (GCC evaluates arguments right to left), while the interpreter
+// and the native code go left to right. When an operand calls a function,
+// every operand whose evaluation it can see or change, except the last,
+// goes first into a temporary through the comma operator; with all, the
+// last one too. Returns the assignments to put before the expression.
+string Portugol2CTranslator::sequence(const vector<Production *> &operands,
+                                      bool all) {
+  bool calls = false;
+  int unstable = 0;
+  size_t last = 0;
+  for (size_t i = 0; i < operands.size(); ++i) {
+    calls = calls || operands[i]->calls;
+    if (!operands[i]->stable()) {
+      ++unstable;
+      last = i;
+    }
+  }
+  if (!all && (!calls || unstable < 2)) {
+    return "";
+  }
+
+  string prefix;
+  for (size_t i = 0; i < operands.size(); ++i) {
+    Production *p = operands[i];
+    if (p->stable() || (i == last && !all)) {
+      continue;
+    }
+    string temp = nextValueTemp(p->first);
+    prefix += temp + " = " + p->second + ", ";
+    p->second = temp;
+  }
+  return prefix;
+}
+
+// The type of the leia_* function translateFunctionName picks.
+static int leiaType(int expected) {
+  switch (expected) {
+  case TIPO_REAL:
+  case TIPO_CARACTERE:
+  case TIPO_LOGICO:
+    return expected;
+  case TIPO_LITERAL:
+  case TIPO_ALL:
+    return TIPO_LITERAL;
+  default:
+    return TIPO_INTEIRO;
+  }
+}
+
 string Portugol2CTranslator::translateFunctionName(const string &id, int type) {
   Symbol s = _stable.getSymbol(SymbolTable::GlobalScope, id);
   if (s.isBuiltin) {
@@ -578,6 +658,8 @@ string Portugol2CTranslator::translate(PortugolParser::AlgoritmoContext *tree) {
   _indent = "";
   _currentScopeType = -1;
   _indexTemps = 0;
+  _valueTemps = 0;
+  _valueTempDecls.clear();
 
   init(tree->declaracao_algoritmo()->T_IDENTIFICADOR()->getText());
 
@@ -637,12 +719,15 @@ void Portugol2CTranslator::variaveis(
 void Portugol2CTranslator::principal(PortugolParser::Stm_blockContext *ctx) {
   writeln("\nint main(void) {");
   indent();
+  stringstream outer;
+  beginBody(outer);
 
   stmBlock(ctx);
 
   writeln("cleanup();");
   writeln("return EXIT_SUCCESS;\n}");
   unindent();
+  endBody(outer);
 }
 
 void Portugol2CTranslator::stmBlock(PortugolParser::Stm_blockContext *ctx) {
@@ -710,26 +795,48 @@ Portugol2CTranslator::lvalue(PortugolParser::LvalueContext *ctx, bool hoist) {
   list<int> dims = symb.type.dimensions();
   list<int>::iterator dim = dims.begin();
   s << varName(id->getText());
+  // A whole matrix is passed by address and cannot wait in a temporary.
+  bool wholeMatrix = !dims.empty() && ctx->array_sub()->expr().empty();
+  lv.value.reads = symb.scope == SymbolTable::GlobalScope && !wholeMatrix;
 
+  string prefix;
   if (ctx->array_sub()) {
     int line = GPTDisplay::self()->sourceLine((int)id->getLine());
+    vector<Production> subs;
     for (auto e : ctx->array_sub()->expr()) {
       Production sub = expr(e, TIPO_INTEIRO);
       stringstream check;
       check << "check_index(" << sub.second << ", " << *dim << ", " << line
             << ", \"" << id->getText() << "\")";
-      if (hoist) {
-        string temp = nextIndexTemp();
-        lv.checks.push_back("int " + temp + " = " + check.str() + ";");
-        s << "[" << temp << "]";
-      } else {
-        s << "[" << check.str() << "]";
-      }
+      sub.first = TIPO_INTEIRO;
+      sub.second = check.str();
+      sub.traps = true;
+      subs.push_back(sub);
       ++dim;
+    }
+    if (hoist) {
+      for (const Production &sub : subs) {
+        string temp = nextIndexTemp();
+        lv.checks.push_back("int " + temp + " = " + sub.second + ";");
+        s << "[" << temp << "]";
+      }
+    } else {
+      vector<Production *> operands;
+      for (Production &sub : subs) {
+        operands.push_back(&sub);
+        lv.value.merge(sub);
+      }
+      prefix = sequence(operands, false);
+      for (const Production &sub : subs) {
+        s << "[" << sub.second << "]";
+      }
     }
   }
 
   lv.value.second = s.str();
+  if (!prefix.empty()) {
+    lv.value.second = "(" + prefix + lv.value.second + ")";
+  }
   return lv;
 }
 
@@ -746,16 +853,28 @@ Portugol2CTranslator::fcall(PortugolParser::FcallContext *ctx, int expct_type) {
   p.first = f.type.primitiveType();
   int type = f.param.paramType(count++);
 
+  if (f.isBuiltin && id == "leia") {
+    p.first = leiaType(expct_type);
+  }
+  p.calls = true;
+
+  vector<Production *> args;
   if (ctx->fargs()) {
     for (auto e : ctx->fargs()->expr()) {
       lp.push_back(convertTo(type, expr(e, type)));
+      args.push_back(&lp.back());
+      p.merge(lp.back());
       type = f.param.paramType(count++);
     }
   }
+  string prefix = sequence(args, false);
 
   p.second += "(";
   p.second += translateFunctionParams(id, lp);
   p.second += ")";
+  if (!prefix.empty()) {
+    p.second = "(" + prefix + p.second + ")";
+  }
   return p;
 }
 
@@ -901,17 +1020,36 @@ Portugol2CTranslator::convertTo(int type, const Production &e) {
   if ((type == TIPO_LOGICO) &&
       ((e.first == TIPO_REAL) || (e.first == TIPO_INTEIRO) ||
        (e.first == TIPO_CARACTERE))) {
-    return Production(TIPO_LOGICO, "(" + e.second + " != 0)");
+    Production p = e;
+    p.first = TIPO_LOGICO;
+    p.second = "(" + e.second + " != 0)";
+    return p;
   }
   return e;
 }
 
 Portugol2CTranslator::Production
-Portugol2CTranslator::combine(const Production &left, const Production &right,
+Portugol2CTranslator::combine(Production left, Production right,
                               antlr4::Token *op) {
   Production p;
   size_t optoken = op->getType();
   p.first = binaryType(left.first, right.first, optoken);
+  p.merge(left);
+  p.merge(right);
+  p.traps = p.traps || optoken == PortugolParser::T_DIV ||
+            optoken == PortugolParser::T_MOD;
+
+  // The interpreter evaluates both sides of "e" and "ou", where C's && and
+  // || would skip the right one.
+  string prefix;
+  if (optoken == PortugolParser::T_KW_OU || optoken == PortugolParser::T_KW_E) {
+    if (right.calls || right.traps) {
+      prefix = sequence({&left, &right}, true);
+    }
+  } else {
+    prefix = sequence({&left, &right}, false);
+  }
+
   stringstream call;
   switch (optoken) {
   case PortugolParser::T_KW_OU:
@@ -960,6 +1098,9 @@ Portugol2CTranslator::combine(const Production &left, const Production &right,
   default:
     cerr << "Erro interno: op nao suportado (pt2c::combine)." << endl;
     exit(1);
+  }
+  if (!prefix.empty()) {
+    p.second = "(" + prefix + p.second + ")";
   }
   return p;
 }
@@ -1072,22 +1213,26 @@ Portugol2CTranslator::exprUnario(PortugolParser::Expr_unarioContext *ctx,
     p.second = "(-";
     p.second += right.second + ")";
     p.first = _stable.getEvalType(ctx);
+    p.merge(right);
   } else if (auto u =
                  dynamic_cast<PortugolParser::ExprPositivaContext *>(ctx)) {
     right = element(u->expr_elemento(), expct_type);
     p.second = "(+";
     p.second += right.second + ")";
     p.first = _stable.getEvalType(ctx);
+    p.merge(right);
   } else if (auto u = dynamic_cast<PortugolParser::ExprNotContext *>(ctx)) {
     right = element(u->expr_elemento(), expct_type);
     p.second = "(!";
     p.second += right.second + ")";
     p.first = _stable.getEvalType(ctx);
+    p.merge(right);
   } else if (auto u = dynamic_cast<PortugolParser::ExprBitNotContext *>(ctx)) {
     right = element(u->expr_elemento(), expct_type);
     p.second = "(~";
     p.second += right.second + ")";
     p.first = _stable.getEvalType(ctx);
+    p.merge(right);
   }
   return p;
 }
@@ -1230,6 +1375,8 @@ void Portugol2CTranslator::funcDecls(PortugolParser::Func_declsContext *ctx) {
   str << " {";
   writeln(str.str());
   indent();
+  stringstream outer;
+  beginBody(outer);
 
   if (auto vars = dynamic_cast<PortugolParser::FvarDeclComVarsContext *>(
           ctx->fvar_decl())) {
@@ -1244,6 +1391,7 @@ void Portugol2CTranslator::funcDecls(PortugolParser::Func_declsContext *ctx) {
 
   unindent();
   writeln("}");
+  endBody(outer);
   setScope(SymbolTable::GlobalScope);
   _currentScopeType = -1;
 }

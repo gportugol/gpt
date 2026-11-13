@@ -293,6 +293,13 @@ parênteses.
   - operadores unários positivo, negativo, NOT binário, NOT lógico, parênteses
 ```
 
+Os termos de uma expressão, os subscritos de uma matriz e os argumentos de uma
+chamada de função são avaliados da esquerda para a direita. Os operadores `e` e
+`ou` avaliam sempre os dois termos, mesmo quando o primeiro já decide o
+resultado: em `se i < 10 e v[i] > 0 então`, o subscrito de `v[i]` é conferido
+mesmo quando `i` vale 10, e o programa termina com erro se ele estiver fora dos
+limites da matriz.
+
 Em G-Portugol, não há coerção ou *casting* de tipos explicitamente. Todos os
 tipos numéricos (inteiro, real, lógico e caractere) são compatíveis entre si. É
 importante ressaltar que expressões envolvendo igualdade ou diferença de valores

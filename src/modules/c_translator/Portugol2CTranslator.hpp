@@ -29,7 +29,6 @@
 #include <list>
 #include <sstream>
 #include <string>
-#include <utility>
 #include <vector>
 
 /*
@@ -48,8 +47,27 @@ public:
   std::string translate(PortugolParser::AlgoritmoContext *tree);
 
 private:
-  // pair<type, C text>, the "production" struct of pt2c.g
-  typedef std::pair<int, std::string> Production;
+  // <type, C text>, the "production" struct of pt2c.g, plus what running
+  // the text can do, which decides whether the order in which C evaluates
+  // it among other operands can be seen.
+  struct Production {
+    int first;
+    std::string second;
+    bool calls; // calls a function of the program or leia
+    bool traps; // may abort: subscript check, division or modulo
+    bool reads; // reads a global variable, which a call may change
+
+    Production() : first(0), calls(false), traps(false), reads(false) {}
+    Production(int type, const std::string &text)
+        : first(type), second(text), calls(false), traps(false), reads(false) {}
+
+    bool stable() const { return !calls && !traps && !reads; }
+    void merge(const Production &p) {
+      calls = calls || p.calls;
+      traps = traps || p.traps;
+      reads = reads || p.reads;
+    }
+  };
 
   struct LValue {
     Production value;
@@ -64,6 +82,8 @@ private:
   std::string _indent;
 
   int _indexTemps;
+  int _valueTemps;
+  std::vector<std::string> _valueTempDecls;
 
   std::stringstream _scope_init_stms;
   std::stringstream _txt;
@@ -80,6 +100,10 @@ private:
   void addInitStm(const std::string &s);
   std::string nextIndexTemp();
   void writeChecks(const std::list<std::string> &checks);
+  std::string nextValueTemp(int type);
+  void beginBody(std::stringstream &outer);
+  void endBody(std::stringstream &outer);
+  std::string sequence(const std::vector<Production *> &operands, bool all);
 
   std::string translateFunctionName(const std::string &id, int type);
   std::string translateFunctionParams(const std::string &id,
@@ -128,8 +152,7 @@ private:
   template <typename Ctx, typename Fn>
   Production binaryChain(Ctx *ctx, int expct_type, Fn operand);
 
-  Production combine(const Production &left, const Production &right,
-                     antlr4::Token *op);
+  Production combine(Production left, Production right, antlr4::Token *op);
 
   static int binaryType(int left, int right, size_t optoken);
   static Production convertTo(int type, const Production &e);
