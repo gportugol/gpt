@@ -18,6 +18,12 @@ Este arquivo foi consolidado a partir do ChangeLog histórico (CVS/SVN).
   descrevem a opção e as ferramentas que cada arquitetura usa.
 - Cada release publica também `gpt-linux-aarch64.tar.gz`, compilado e
   testado no CI num runner arm64.
+- O `configure` acrescenta as flags de proteção que o compilador aceitar:
+  `-D_FORTIFY_SOURCE=2` (se o compilador ou o `CPPFLAGS` ainda não definem
+  um nível), `-D_GLIBCXX_ASSERTIONS`, `-fstack-protector-strong`,
+  `-fstack-clash-protection`, `-fcf-protection` (no arm64,
+  `-mbranch-protection=standard`), `-Wl,-z,relro` e `-Wl,-z,now`. As flags
+  do usuário vêm depois e prevalecem, e `--disable-hardening` desliga todas.
 
 ### Alterado
 
@@ -30,7 +36,10 @@ Este arquivo foi consolidado a partir do ChangeLog histórico (CVS/SVN).
   exige um compilador C++17 e um runtime 4.9 ou mais novo da mesma versão
   4.x da ferramenta (com o runtime 4.9, a ferramenta pode ser de 4.7 a 4.9).
   O `configure` recusa outras combinações, como a ferramenta 4.9.2 com o
-  runtime 4.10 do Ubuntu 24.04, cujo parser gerado não compila.
+  runtime 4.10 do Ubuntu 24.04, cujo parser gerado não compila. Como o da
+  1.4.0, o `gpt` dos tarballs Linux da release não depende do runtime do
+  ANTLR: ele vai ligado estaticamente, com o aviso de licença em
+  `share/doc/libantlr4-runtime`.
 - Mensagens de erro sintático e léxico mantêm o formato
   `arquivo:linha - Esperando X, encontrado Y` e as dicas da opção `-d`.
   Algumas mensagens mudam com a recuperação de erros do novo parser.
@@ -53,9 +62,12 @@ Este arquivo foi consolidado a partir do ChangeLog histórico (CVS/SVN).
   no lugar de ELF32 e PE32. Os reais passam a ser `double` em SSE2, e não
   mais `float` no x87. Um executável gerado agora exige um sistema de 64
   bits.
-- No Windows, qualquer NASM 2.x monta o código gerado, e o zip da release
-  traz o NASM do MSYS2. Antes o template PE32 dependia de um pacote de macros
-  que só o NASM 0.99.05 aceitava.
+- No Windows, qualquer NASM 2.x ou mais novo monta o código gerado, e o zip
+  da release traz o `nasm.exe` do MSYS2 com as DLLs de que ele depende, as
+  licenças de cada pacote em `share/licenses` e, em
+  `share/doc/nasm/VERSION`, o pacote, a versão e o SHA-256 do `nasm.exe`.
+  Antes o template PE32 dependia de um pacote de macros que só o NASM
+  0.99.05 aceitava.
 - Sem `-a`, `gpt -o` recusa gerar executável numa máquina que não é x86-64
   nem arm64 e sugere `-t`. A exceção é o GNU/Linux x86 de 32 bits com kernel
   de 64 bits, como o i386 do Debian 13, que não tem mais kernel de 32 bits:
@@ -70,7 +82,8 @@ Este arquivo foi consolidado a partir do ChangeLog histórico (CVS/SVN).
   i386, e o job x86-64 roda a suíte para arm64 sob `qemu-aarch64`, com as
   variáveis `GPT_TEST_ARCH` e `GPT_TEST_RUNNER` do `test/run_test.sh`. Os jobs
   e artefatos levam o nome da arquitetura, e os nomes dos arquivos da release
-  não mudam.
+  não mudam. Os jobs Linux instalam o `python3`, de que os testes do
+  depurador da suíte precisam.
 - Literais de caractere e strings só aceitam as sequências de escape `\n`,
   `\r`, `\t`, `\\`, `\"`, `\'` e `\?`, as que dão o mesmo caractere nos três
   modos. Qualquer outra, e uma barra invertida no fim da linha, agora é erro
@@ -79,6 +92,34 @@ Este arquivo foi consolidado a partir do ChangeLog histórico (CVS/SVN).
   interpretador, como `[ax41` no executável e como `[`, BEL e `A` na tradução
   para C, e uma barra invertida no fim da linha virava quebra de linha no
   interpretador, sumia no C e fazia o NASM falhar.
+- Uma matriz passada inteira como argumento precisa ter o mesmo tipo de
+  elemento do parâmetro, e não só as mesmas dimensões, e o erro é o de
+  dimensão errada (`Argumento 1 da função "f" deve ser do tipo "real[3]".`).
+  Antes uma matriz de inteiros, reais, caracteres ou lógicos servia para um
+  parâmetro matriz de qualquer um desses tipos: o interpretador convertia
+  cada elemento, o executável nativo caía com falha de segmentação quando um
+  dos lados era real, e o C gerado não compilava com o GCC 14.
+- Uma chamada de função sem tipo de retorno é recusada como operando de
+  `não`, nos dois lados de uma comparação ou de `e`/`ou`, como condição de
+  `se`, `enquanto` e `repita` e depois de `retorne` numa função sem tipo de
+  retorno (`Condição do "se" não retorna resultado.`). Antes, nos três
+  primeiros casos, o C gerado não compilava, o interpretador lia o valor
+  ausente como falso, então `não nada()` dava `verdadeiro`, e o executável
+  nativo usava o que a chamada deixava no registrador de retorno.
+- Uma matriz sem subscritos é recusada como condição de `se`, `enquanto` e
+  `repita`, como operando de `não`, numa comparação ou num `e`/`ou` entre
+  duas matrizes e como valor de `retorne` no bloco principal
+  (`Faltando indicar subscritos da matriz/conjunto "m".`, o erro de tipo do
+  operador ou o do valor de retorno do bloco principal). Antes `se m então`
+  seguia o `senão` no interpretador e testava o endereço dos elementos no
+  executável e no C, `m = n` comparava endereços, e `retorne m` não
+  compilava em C com o GCC 14.
+- Um programa com mais de 100 níveis de comandos e expressões aninhados é
+  recusado com `Aninhamento muito profundo: mais de 100 níveis de comandos e
+  expressões.` A 1.4.0 compilava alguns milhares de níveis e caía com falha
+  de segmentação acima disso, e uma chamada recursiva dentro de milhares de
+  `se` aninhados derrubava o interpretador em vez de parar com a mensagem de
+  pilha esgotada. O manual explica como os níveis se somam.
 
 ### Corrigido
 
@@ -95,6 +136,139 @@ Este arquivo foi consolidado a partir do ChangeLog histórico (CVS/SVN).
   `inf - inf` saía como `-nan` no x86 e como `nan` no ARM. Agora sai como
   `nan` nos três modos e em qualquer processador, e o manual explica como
   `inf` e `nan` são impressos.
+- No executável nativo, `não` tinha o tipo do operando, então
+  `imprima(não "abc")` mostrava `(nulo)`, `imprima(não "")` caía com falha
+  de segmentação e `imprima(não x)`, com `x` inteiro, mostrava 1 ou 0 em
+  vez de `verdadeiro` ou `falso`. No interpretador, `não "abc"` dava
+  `verdadeiro`, e no C, `falso`. Agora os três modos dão `falso` para um
+  literal não vazio e `verdadeiro` para o vazio.
+- O interpretador só convertia um valor na atribuição a uma variável, e
+  argumentos, valores de retorno, subscritos e elementos de matriz
+  guardavam o texto de `leia()` ou de um real. Um parâmetro inteiro podia
+  valer `0.5`: dividir por ele matava o interpretador com SIGFPE em vez de
+  dar a mensagem de divisão por zero, e `x * 1.5` usava 0.5. Além disso,
+  `v[leia()]` com a entrada `01` não gravava em `v[1]`, e um caractere lido
+  com `leia()` saía como byte NUL quando passado como argumento, devolvido
+  ou guardado numa matriz. Agora esses valores são convertidos como no
+  executável nativo e no C: um real é truncado, e o texto de `leia()` é lido
+  no tipo de destino.
+- Uma função com tipo de retorno que terminava sem executar `retorne`
+  devolvia um valor indefinido. O executável nativo devolvia o que estava no
+  registrador, e uma função literal podia imprimir a memória num endereço
+  vindo do chamador; o C gerado caía do fim da função; e o interpretador
+  devolvia o valor do último `retorne` executado em qualquer ponto do
+  programa. Agora os três modos devolvem o valor zero do tipo: 0, 0.00,
+  `falso`, o caractere de código 0 ou o literal nulo, que `imprima` mostra
+  como `(nulo)`.
+- `imprima(..., leia(), ...)` e um `leia();` sozinho, onde nada indica o
+  tipo a ler, leem a linha como literal nos três modos, como o interpretador
+  já fazia. Antes a tradução para C lia um inteiro e o passava a um `%s`
+  (falha de segmentação com a entrada `12345`), e o executável nativo não
+  compilava (`Erro interno: tipo nao suportado`).
+- No executável x86, um parâmetro matriz `x` e um parâmetro `p__x` da
+  mesma função tinham o mesmo nome no assembly, e um lia o valor do outro
+  como endereço. Uma variável global chamada `_str_0` impedia a montagem
+  nos dois backends nativos. Os nomes gerados agora levam um `$`, que um
+  identificador não pode conter.
+- O executável x86 gravava no arquivo os zeros das variáveis globais: uma
+  `matriz[20000000] de inteiros` global gerava um arquivo de 80 MB na 1.4.0
+  (160 MB no x86-64). Agora as globais ficam na seção `.bss`, e o mesmo
+  programa gera um ELF de 4 KB e um PE32+ de 12 KB.
+- `gpt -s x.gpt x.gpt`, e o mesmo com `-t` ou `-o`, substituía o fonte pelo
+  código gerado e saía com 0. O mesmo acontecia por um link, por outra
+  grafia do caminho, por um arquivo de `GPT_INCLUDE` ou pelo nome padrão de
+  `-o` (`gpt x.gpt x`). Agora o `gpt` compara a saída com cada entrada pela
+  identidade do arquivo, recusa com `o arquivo de saída é um dos arquivos de
+  entrada` e código 1, e não toca em nenhum arquivo.
+- Um SIGINT, SIGTERM ou SIGHUP durante a montagem deixava o assembly
+  temporário (e, no arm64, o objeto) no `TMPDIR`, e um SIGTERM mandado só
+  ao `gpt` deixava o montador rodando. Agora, fora do Windows, o `gpt -o`
+  encerra a ferramenta com o mesmo sinal, apaga os temporários e termina
+  pelo sinal recebido. Um sinal ignorado na partida, como o SIGHUP sob
+  `nohup`, continua ignorado.
+- Os pacotes binários da release não traziam o texto da GPL-2.0, que só
+  vinha no tarball do código-fonte. Agora o `COPYING` vai em
+  `share/doc/gpt` nos tarballs Linux e em `share/licenses/gpt` no zip do
+  Windows.
+
+### Segurança
+
+- No Windows, sem um `nasm.exe` ao lado do `gpt.exe`, o `gpt` passava só o
+  nome `nasm` ao `CreateProcess`, que procura no diretório atual antes do
+  `PATH`, então um `nasm.exe` deixado no diretório do projeto rodava a cada
+  `gpt -o`. Com `-a arm64`, o `as` e o `ld` sempre iam assim. Agora o `gpt`
+  resolve o caminho de cada ferramenta: primeiro o diretório do próprio
+  `gpt`, depois cada entrada do `PATH`, como o manual descreve. No
+  GNU/Linux, o `as` e o `ld` do arm64 também são procurados primeiro ao lado
+  do `gpt`. Uma ferramenta que não existe dá `não foi possível encontrar o
+  nasm.` (ou o nome da ferramenta do binutils).
+- O `ld` lê um argumento começando com `@` como arquivo de opções, mesmo no
+  valor de `-o`: `gpt -a arm64 @aula.gpt` fazia o `ld` ler opções do
+  arquivo `aula`, e um `-plugin` ali executava o código de uma biblioteca na
+  compilação. O `nasm` também lê como opções uma entrada começando com `@`
+  ou `-`, o que um `TMPDIR` relativo podia provocar. Agora o nome de saída e
+  os arquivos temporários começando com `@`, `-`, `=` ou `$SYSROOT` chegam
+  às ferramentas como `./nome`.
+- As dimensões de matriz e o produto delas não tinham limite. Em
+  `matriz[65536][65536]` o produto estourava e a matriz ficava sem espaço,
+  então um índice lido da entrada escrevia sobre a global seguinte, e uma
+  matriz local cujo tamanho em bytes dava a volta (no x86-64,
+  `matriz[536870912]`) sobrepunha seus elementos ao endereço de retorno.
+  Agora os três modos recusam dimensões negativas e matrizes com mais de
+  67108864 elementos (2^26), os backends nativos recusam mais de 1 GiB de
+  globais ou de variáveis de uma função, e um quadro de pilha de uma página
+  ou mais é tocado página a página, para que bata na página de guarda em vez
+  de saltá-la. O interpretador passa a recusar as matrizes maiores que
+  aceitava.
+- No executável x86, cada argumento de `imprima` que chamava uma função sem
+  tipo de retorno deixava a pilha desalinhada em uma posição, e um
+  empilhamento seguinte podia trocar o endereço de retorno da função por um
+  valor lido da entrada. Agora esse argumento é recusado nos três modos
+  (`Argumento 2 da função "imprima" não retorna resultado.`). Antes o
+  interpretador imprimia uma linha vazia.
+- Uma barra invertida seguida de quebra de linha, ou um byte 0x1A cru,
+  dentro de uma string fechava a linha `db` do assembly x86, e o resto
+  do literal virava código NASM: um `%include` ali fazia o `nasm` abrir e
+  ler um arquivo local antes de o `gpt -o` falhar. Agora as aspas e os
+  bytes de controle vão para o NASM como números, e o executável imprime
+  esses literais como o interpretador.
+- Na tradução para C, um inteiro com zeros à esquerda virava octal: `010`
+  valia 8, e `matriz[0100]` era declarada com 64 elementos enquanto a
+  verificação de índices usava 100, então um índice de 64 a 99 escrevia
+  fora da matriz. Agora os zeros à esquerda são descartados, como no
+  interpretador e no executável nativo, e literais como `08` e `09`, que o
+  `gcc` recusava, compilam.
+- A tradução para C copiava o texto dos literais, e o `gcc` com `-std=c11`,
+  `-std=c99` ou `-trigraphs` troca os trigraphs antes de ler os escapes:
+  `"??/"` virava uma barra invertida que escapava a aspa final, e
+  `imprima("??/", "+0, (exit(42),0)); //")` executava `exit(42)`. Agora todo
+  `?` fora de um escape sai como `\?`.
+- Depois de montar, o `gpt -o` dava permissão de execução à saída com
+  `chmod` pelo nome: como root, `gpt -o /dev/null` mudava o `/dev/null` de
+  666 para 777, e como outro usuário o comando falhava. Agora só um arquivo
+  regular recebe a permissão, e `gpt -o /dev/null` funciona. Um link
+  simbólico na saída continua sendo seguido.
+- O depurador guardava cada breakpoint pedido pelo host, repetidos
+  inclusive, e um pedido de remoção para um arquivo desconhecido criava uma
+  entrada, então o host podia fazer o `gpt` crescer sem limite e deixar o
+  programa mais lento a cada comando. Agora um host que define mais de 1000
+  breakpoints ou manda um nome de arquivo com mais de 4096 bytes é
+  desconectado como um que manda uma mensagem malformada.
+- O texto do fonte ia cru para as mensagens de erro, e um literal com
+  `ESC [2J` depois de um `;` faltando limpava o terminal de quem compilava.
+  Agora os caracteres de controle C0 e C1 e o DEL aparecem como `\xNN` nos
+  diagnósticos, nos nomes de arquivo das mensagens e no eco dos comandos
+  desconhecidos do depurador. Letras acentuadas em UTF-8 não mudam, mas um
+  nome de arquivo em Latin-1 no GNU/Linux passa a mostrar os acentos como
+  `\xNN`.
+- Os tarballs Linux da release guardavam o uid e o gid 1001 (`runner`) em
+  cada entrada, e o zip também, para o `unzip -X`, então extrair como root
+  entregava os arquivos à conta local de uid 1001. Agora o tar grava dono e
+  grupo 0 em cada entrada, e o zip não grava mais uid nem gid.
+- O `test/run_test.sh` criava o diretório de trabalho com
+  `mkdir -p ${TMPDIR:-/tmp}/gpt_test_$$`, que aceita um diretório ou link
+  já existente, e outro usuário podia fazer a suíte gravar e executar seus
+  binários num diretório dele. Agora o diretório vem do `mktemp -d`.
 
 ## [1.4.0] - 2026-10-26
 
