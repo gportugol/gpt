@@ -439,6 +439,12 @@ utilidade dessa técnica está no fato de G-Portugol não incorporar mecanismos
 para refinar o controle de laços (como "break" e "continue", encontrados em
 linguagens populares).
 
+Diferente do "for", porém, as expressões de/até são avaliadas uma única vez, na
+entrada do laço e nessa ordem. Se os comandos aninhados mudam uma variável usada
+no "até", o limite continua o calculado na entrada, e uma função chamada nessas
+expressões executa uma vez só. Ao sair do laço, a variável de controle recebe
+esse limite.
+
 ## Funções
 
 Subprogramas em G-Portugol são implementados no modelo de funções, que podem ter
