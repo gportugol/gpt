@@ -1,0 +1,13 @@
+0.5: verdadeiro verdadeiro verdadeiro verdadeiro verdadeiro verdadeiro falso verdadeiro verdadeiro
+-0.5: verdadeiro verdadeiro verdadeiro verdadeiro verdadeiro verdadeiro falso verdadeiro verdadeiro
+0.0: falso falso falso falso falso falso verdadeiro falso falso
+-0.0: falso falso falso falso falso falso verdadeiro falso falso
+1e-300: verdadeiro verdadeiro verdadeiro verdadeiro verdadeiro verdadeiro falso verdadeiro verdadeiro
+inf: verdadeiro verdadeiro verdadeiro verdadeiro verdadeiro verdadeiro falso verdadeiro verdadeiro
+nan: verdadeiro verdadeiro verdadeiro verdadeiro verdadeiro verdadeiro falso verdadeiro verdadeiro
+verdadeiro falso falso verdadeiro
+se 0.25
+enquanto 2
+repita 3
+verdadeiro verdadeiro
+verdadeiro verdadeiro verdadeiro verdadeiro

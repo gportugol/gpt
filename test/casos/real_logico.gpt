@@ -1,0 +1,83 @@
+algoritmo real_logico;
+variáveis
+  b : lógico;
+  v : matriz[1] de lógicos;
+  meio, zero, menos_zero, minimo, infinito, indefinido : real;
+  i : inteiro;
+fim-variáveis
+início
+  meio := 0.5;
+  zero := 0.0;
+  menos_zero := -0.0;
+  minimo := 1.0;
+  para i de 1 até 300 faça
+    minimo := minimo / 10.0;
+  fim-para
+  infinito := 1.0;
+  para i de 1 até 400 faça
+    infinito := infinito * 10.0;
+  fim-para
+  indefinido := infinito - infinito;
+  testa("0.5", meio);
+  testa("-0.5", -meio);
+  testa("0.0", zero);
+  testa("-0.0", menos_zero);
+  testa("1e-300", minimo);
+  testa("inf", infinito);
+  testa("nan", indefinido);
+  imprima(0.5 e verdadeiro, " ", não 0.5, " ", 0.0 ou falso, " ", não 0.0);
+  se 0.25 então
+    imprima("se 0.25");
+  fim-se
+  i := 0;
+  enquanto meio - i * 0.25 faça
+    i := i + 1;
+  fim-enquanto
+  imprima("enquanto ", i);
+  i := 0;
+  repita
+    i := i + 1;
+  até não (0.75 - i * 0.25);
+  imprima("repita ", i);
+  imprima(quarto(), " ", quarto() = verdadeiro);
+  b := 2;
+  v[0] := 'a';
+  imprima(b = verdadeiro, " ", v[0] = verdadeiro, " ", igual(3), " ", cinco() = verdadeiro);
+fim
+
+função testa(nome: literal, x: real)
+  b : lógico;
+  m : matriz[1] de lógicos;
+início
+  b := x;
+  m[0] := x;
+  imprima(nome, ": ", b, " ", b = verdadeiro, " ", m[0], " ", igual(x), " ", logico(x), " ", condicao(x), " ", não x, " ", x e verdadeiro, " ", falso ou x);
+fim
+
+função igual(x: lógico): lógico
+início
+  retorne x = verdadeiro;
+fim
+
+função logico(x: real): lógico
+início
+  retorne x;
+fim
+
+função condicao(x: real): lógico
+início
+  se x então
+    retorne verdadeiro;
+  fim-se
+  retorne falso;
+fim
+
+função quarto(): lógico
+início
+  retorne 0.25;
+fim
+
+função cinco(): lógico
+início
+  retorne 5;
+fim

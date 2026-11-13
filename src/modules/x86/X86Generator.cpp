@@ -85,6 +85,14 @@ int X86Generator::evalType(int e1, int e2, size_t op) {
   return TIPO_NULO;
 }
 
+// Se, enquanto, repita, não, e and ou test the low 32 bits of a value, so a
+// real operand becomes a lógico first.
+void X86Generator::logicalOperand(int etype) {
+  if (etype == TIPO_REAL) {
+    x86.writeRealToLogical();
+  }
+}
+
 void X86Generator::writeBinaryExpr(antlr4::Token *op, int e1, int e2) {
   switch (op->getType()) {
   case PortugolParser::T_KW_OU:
@@ -154,7 +162,15 @@ int X86Generator::binaryChain(Ctx *ctx, int expecting_type, Fn operand) {
     antlr4::Token *optoken =
         static_cast<TerminalNode *>(children[i])->getSymbol();
     ParserRuleContext *rule = static_cast<ParserRuleContext *>(children[i + 1]);
+    bool logical = (optoken->getType() == PortugolParser::T_KW_E) ||
+                   (optoken->getType() == PortugolParser::T_KW_OU);
+    if (logical) {
+      logicalOperand(etype);
+    }
     int e2 = operand(rule, expecting_type);
+    if (logical) {
+      logicalOperand(e2);
+    }
     writeBinaryExpr(optoken, etype, e2);
     evtype = evalType(evtype, SemanticAnalyzer::chainEvalType(stable, rule),
                       optoken->getType());
@@ -367,7 +383,7 @@ void X86Generator::stmSe(PortugolParser::Stm_seContext *ctx) {
 
   x86.writeComment("se: expressao");
 
-  expr(ctx->expr(), TIPO_LOGICO);
+  logicalOperand(expr(ctx->expr(), TIPO_LOGICO));
 
   x86.writeComment("se: resultado");
   x86.writeJumpIfFalse(lbnext);
@@ -395,7 +411,7 @@ void X86Generator::stmEnquanto(PortugolParser::Stm_enquantoContext *ctx) {
   x86.writeLabel(lbenq);
   x86.writeComment("while: expressao");
 
-  expr(ctx->expr(), TIPO_LOGICO);
+  logicalOperand(expr(ctx->expr(), TIPO_LOGICO));
 
   x86.writeComment("while: resultado");
   x86.writeJumpIfFalse(lbfim);
@@ -417,7 +433,7 @@ void X86Generator::stmRepita(PortugolParser::Stm_repitaContext *ctx) {
 
   x86.writeComment("until expressao");
 
-  expr(ctx->expr(), TIPO_LOGICO);
+  logicalOperand(expr(ctx->expr(), TIPO_LOGICO));
 
   x86.writeComment("until resultado");
   x86.writeJumpIfFalse(lbrep);
@@ -544,7 +560,7 @@ int X86Generator::exprUnario(PortugolParser::Expr_unarioContext *ctx,
     etype = element(u->expr_elemento(), expecting_type);
     // nothing
   } else if (auto u = dynamic_cast<PortugolParser::ExprNotContext *>(ctx)) {
-    element(u->expr_elemento(), expecting_type);
+    logicalOperand(element(u->expr_elemento(), expecting_type));
     x86.writeUnaryNot();
     etype = TIPO_LOGICO;
   } else if (auto u = dynamic_cast<PortugolParser::ExprBitNotContext *>(ctx)) {

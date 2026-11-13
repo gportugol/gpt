@@ -179,10 +179,14 @@ static int truncateReal(const string &text) {
   return (int)d;
 }
 
-// An argument or a return value of another type converts as the native and
-// C backends convert it: a real is truncated, and only the text read by
-// leia() is parsed for the type of the slot.
+// A value of another type converts as the native and C backends convert
+// it: a number becomes verdadeiro when it is not zero, another real is
+// truncated, and only the text read by leia() is parsed for the type of the
+// slot.
 static string convertTo(int type, const ExprValue &v) {
+  if (type == TIPO_LOGICO && v.type != TIPO_LITERAL) {
+    return atof(v.value.c_str()) != 0 ? "1" : "0";
+  }
   if (v.type == TIPO_REAL && type != TIPO_REAL) {
     return to_string(truncateReal(v.value));
   }
@@ -760,10 +764,15 @@ void InterpreterEval::checkLValueBounds(LValue &lvalue, int line) {
 
 void InterpreterEval::execAttribution(LValue &lvalue, ExprValue &v) {
   Variable &var = variables.get(lvalue.name);
-  string value = v.type == TIPO_REAL && (var.type == TIPO_INTEIRO ||
-                                         var.type == TIPO_CARACTERE)
-                     ? to_string(truncateReal(v.value))
-                     : castLeiaChar(var, v);
+  string value;
+  if (var.type == TIPO_LOGICO) {
+    value = convertTo(TIPO_LOGICO, v);
+  } else if (v.type == TIPO_REAL &&
+             (var.type == TIPO_INTEIRO || var.type == TIPO_CARACTERE)) {
+    value = to_string(truncateReal(v.value));
+  } else {
+    value = castLeiaChar(var, v);
+  }
 
   if (var.isPrimitive) {
     var.setValue(value);

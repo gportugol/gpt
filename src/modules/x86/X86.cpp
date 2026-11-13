@@ -559,7 +559,10 @@ string X86::source() {
 // Reals travel as the 64 bits of a double in the integer registers and
 // stack slots; the SSE registers are only used while operating on them.
 void X86::writeCast(int e1, int e2) {
-  if ((e1 != TIPO_REAL) && (e2 == TIPO_REAL)) {
+  if ((e2 == TIPO_LOGICO) &&
+      ((e1 == TIPO_REAL) || (e1 == TIPO_INTEIRO) || (e1 == TIPO_CARACTERE))) {
+    writeLogicalOf(e1);
+  } else if ((e1 != TIPO_REAL) && (e2 == TIPO_REAL)) {
     writeTEXT("cvtsi2sd xmm0, eax");
     writeTEXT("movq rax, xmm0");
   } else if ((e1 == TIPO_REAL) && (e2 != TIPO_REAL)) {
@@ -567,6 +570,19 @@ void X86::writeCast(int e1, int e2) {
     writeTEXT("movq xmm0, rax");
     writeTEXT("cvttsd2si eax, xmm0");
   }
+}
+
+// 1 in eax when the value in rax is not zero, else 0. A real is zero when
+// no bit but the sign is set, so -0.0 is falso and a NaN is verdadeiro, as
+// with x != 0 in C.
+void X86::writeLogicalOf(int type) {
+  if (type == TIPO_REAL) {
+    writeTEXT("shl rax, 1");
+  } else {
+    writeTEXT("test eax, eax");
+  }
+  writeTEXT("setnz al");
+  writeTEXT("movzx eax, al");
 }
 
 // Integer values are computed in 32 bits, so the slot gets the sign
@@ -896,6 +912,12 @@ void X86::writeUnaryNot() {
   writeTEXT("cmp ebx, 0");
   writeTEXT("sete al");
 
+  writeTEXT("push rax");
+}
+
+void X86::writeRealToLogical() {
+  writeTEXT("pop rax");
+  writeLogicalOf(TIPO_REAL);
   writeTEXT("push rax");
 }
 

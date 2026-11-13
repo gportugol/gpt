@@ -682,7 +682,7 @@ void Portugol2CTranslator::stmAttr(PortugolParser::Stm_attrContext *ctx) {
   Production e = expr(ctx->expr(), lv.value.first);
 
   stringstream str;
-  str << lv.value.second << " = " << e.second << ";";
+  str << lv.value.second << " = " << convertTo(lv.value.first, e).second << ";";
   if (lv.checks.empty()) {
     writeln(str.str());
   } else {
@@ -748,7 +748,7 @@ Portugol2CTranslator::fcall(PortugolParser::FcallContext *ctx, int expct_type) {
 
   if (ctx->fargs()) {
     for (auto e : ctx->fargs()->expr()) {
-      lp.push_back(expr(e, type));
+      lp.push_back(convertTo(type, expr(e, type)));
       type = f.param.paramType(count++);
     }
   }
@@ -773,7 +773,7 @@ void Portugol2CTranslator::stmRet(PortugolParser::Stm_retContext *ctx) {
 
   Production e;
   if (auto r = dynamic_cast<PortugolParser::RetorneComExprContext *>(ctx)) {
-    e = expr(r->expr(), expecting_type);
+    e = convertTo(expecting_type, expr(r->expr(), expecting_type));
   }
 
   stringstream str;
@@ -892,6 +892,18 @@ void Portugol2CTranslator::stmPara(PortugolParser::Stm_paraContext *ctx) {
     unindent();
     writeln("}");
   }
+}
+
+// A number given to a lógico is verdadeiro when it is not zero, as in the
+// interpreter and the native code; C would truncate a real stored in an int.
+Portugol2CTranslator::Production
+Portugol2CTranslator::convertTo(int type, const Production &e) {
+  if ((type == TIPO_LOGICO) &&
+      ((e.first == TIPO_REAL) || (e.first == TIPO_INTEIRO) ||
+       (e.first == TIPO_CARACTERE))) {
+    return Production(TIPO_LOGICO, "(" + e.second + " != 0)");
+  }
+  return e;
 }
 
 Portugol2CTranslator::Production

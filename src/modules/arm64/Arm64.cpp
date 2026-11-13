@@ -621,7 +621,10 @@ void Arm64::writeElementAddress(const string &name) {
 // Reals travel as the 64 bits of a double in the integer registers and
 // stack slots; the FP registers are only used while operating on them.
 void Arm64::writeCast(int e1, int e2) {
-  if ((e1 != TIPO_REAL) && (e2 == TIPO_REAL)) {
+  if ((e2 == TIPO_LOGICO) &&
+      ((e1 == TIPO_REAL) || (e1 == TIPO_INTEIRO) || (e1 == TIPO_CARACTERE))) {
+    writeLogicalOf(e1);
+  } else if ((e1 != TIPO_REAL) && (e2 == TIPO_REAL)) {
     writeTEXT("scvtf d0, w0");
     writeTEXT("fmov x0, d0");
   } else if ((e1 == TIPO_REAL) && (e2 != TIPO_REAL)) {
@@ -629,6 +632,18 @@ void Arm64::writeCast(int e1, int e2) {
     writeTEXT("fmov d0, x0");
     writeTEXT("fcvtzs w0, d0");
   }
+}
+
+// 1 in w0 when the value in x0 is not zero, else 0. A real is zero when no
+// bit but the sign is set, so -0.0 is falso and a NaN is verdadeiro, as
+// with x != 0 in C.
+void Arm64::writeLogicalOf(int type) {
+  if (type == TIPO_REAL) {
+    writeTEXT("tst x0, #0x7fffffffffffffff");
+  } else {
+    writeTEXT("cmp w0, #0");
+  }
+  writeTEXT("cset w0, ne");
 }
 
 // Integer values are computed in 32 bits, so the slot gets the sign
@@ -893,6 +908,12 @@ void Arm64::writeUnaryNot() {
   writeTEXT("pop x0");
   writeTEXT("cmp w0, #0");
   writeTEXT("cset w0, eq");
+  writeTEXT("push x0");
+}
+
+void Arm64::writeRealToLogical() {
+  writeTEXT("pop x0");
+  writeLogicalOf(TIPO_REAL);
   writeTEXT("push x0");
 }
 

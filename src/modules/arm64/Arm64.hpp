@@ -142,6 +142,7 @@ public:
   void writeModExpr(int line);
   void writeUnaryNeg(int etype);
   void writeUnaryNot();
+  void writeRealToLogical();
   void writeUnaryBitNotExpr();
   void writeLiteralExpr(int type, const string &src);
   void writeIndexCheck(const string &name, int line, int size);
@@ -154,6 +155,7 @@ private:
   string toGasString(const string &str);
   void writeAddress(const string &reg, const string &name);
   void writeElementAddress(const string &name);
+  void writeLogicalOf(int type);
   void writeLoadReals(int e1, int e2);
   void writeOrderExpr(int e1, int e2, const string &intCond,
                       const string &realCond);
