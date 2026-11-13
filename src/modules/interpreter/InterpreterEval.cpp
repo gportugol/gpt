@@ -26,7 +26,9 @@
 #endif
 #include "GPTDisplay.hpp"
 
+#include <climits>
 #include <cmath>
+#include <cstdio>
 
 #ifdef WIN32
 // The headers WIN32_LEAN_AND_MEAN leaves out declare a global byte, ambiguous
@@ -149,12 +151,40 @@ string Variable::castVal(int type, const string &value) {
 
 //------------------------------------------------------------------------
 
+// Values are kept as text, so a real needs enough digits to give back the
+// same double. Six digits, the stream default, come first: they keep the
+// text of every value that already fit in them. A value that fits in 7 to
+// 15 digits comes out of %.15g with the trailing zeros dropped, so the
+// widths in between need no try of their own.
+static string realToText(double d) {
+  static const int widths[] = {6, 15, 16, 17};
+  char buf[32];
+  for (int digits : widths) {
+    snprintf(buf, sizeof(buf), "%.*g", digits, d);
+    if (strtod(buf, NULL) == d) {
+      break;
+    }
+  }
+  return buf;
+}
+
+// The text of a real may be in exponent form, which atoi stops reading at
+// the "e". Out of range and NaN give INT_MIN, as cvttsd2si does in the
+// x86-64 code.
+static int truncateReal(const string &text) {
+  double d = strtod(text.c_str(), NULL);
+  if (!(d > INT_MIN - 1.0 && d < INT_MAX + 1.0)) {
+    return INT_MIN;
+  }
+  return (int)d;
+}
+
 // An argument or a return value of another type converts as the native and
 // C backends convert it: a real is truncated, and only the text read by
 // leia() is parsed for the type of the slot.
 static string convertTo(int type, const ExprValue &v) {
   if (v.type == TIPO_REAL && type != TIPO_REAL) {
-    return to_string(atoi(v.value.c_str()));
+    return to_string(truncateReal(v.value));
   }
   if (v.type != TIPO_LITERAL) {
     return v.value;
@@ -478,7 +508,7 @@ ExprValue InterpreterEval::evaluateMais(ExprValue &left, ExprValue &right) {
 
   stringstream s;
   if ((left.type == TIPO_REAL) || (right.type == TIPO_REAL)) {
-    s << (atof(left.value.c_str()) + atof(right.value.c_str()));
+    s << realToText(atof(left.value.c_str()) + atof(right.value.c_str()));
     v.type = TIPO_REAL;
   } else {
     s << (atoi(left.value.c_str()) + atoi(right.value.c_str()));
@@ -494,7 +524,7 @@ ExprValue InterpreterEval::evaluateMenos(ExprValue &left, ExprValue &right) {
 
   stringstream s;
   if ((left.type == TIPO_REAL) || (right.type == TIPO_REAL)) {
-    s << (atof(left.value.c_str()) - atof(right.value.c_str()));
+    s << realToText(atof(left.value.c_str()) - atof(right.value.c_str()));
     v.type = TIPO_REAL;
   } else {
     s << (atoi(left.value.c_str()) - atoi(right.value.c_str()));
@@ -515,7 +545,7 @@ ExprValue InterpreterEval::evaluateDiv(ExprValue &left, ExprValue &right,
 
   stringstream s;
   if ((left.type == TIPO_REAL) || (right.type == TIPO_REAL)) {
-    s << (atof(left.value.c_str()) / atof(right.value.c_str()));
+    s << realToText(atof(left.value.c_str()) / atof(right.value.c_str()));
     v.type = TIPO_REAL;
   } else {
     int dividend = atoi(left.value.c_str());
@@ -541,7 +571,7 @@ ExprValue InterpreterEval::evaluateMultip(ExprValue &left, ExprValue &right) {
 
   stringstream s;
   if ((left.type == TIPO_REAL) || (right.type == TIPO_REAL)) {
-    s << (atof(left.value.c_str()) * atof(right.value.c_str()));
+    s << realToText(atof(left.value.c_str()) * atof(right.value.c_str()));
     v.type = TIPO_REAL;
   } else {
     s << (atoi(left.value.c_str()) * atoi(right.value.c_str()));
@@ -584,7 +614,7 @@ static int wrapToInt(const string &text) {
 ExprValue InterpreterEval::evaluateUnNeg(ExprValue &v) {
   stringstream s;
   if (v.type == TIPO_REAL) {
-    s << -(atof(v.value.c_str()));
+    s << realToText(-atof(v.value.c_str()));
   } else {
     s << (int)(0u - (unsigned)wrapToInt(v.value));
   }
@@ -596,7 +626,7 @@ ExprValue InterpreterEval::evaluateUnNeg(ExprValue &v) {
 ExprValue InterpreterEval::evaluateUnPos(ExprValue &v) {
   stringstream s;
   if (v.type == TIPO_REAL) {
-    s << +(atof(v.value.c_str()));
+    s << realToText(atof(v.value.c_str()));
   } else {
     s << wrapToInt(v.value);
   }
@@ -730,12 +760,16 @@ void InterpreterEval::checkLValueBounds(LValue &lvalue, int line) {
 
 void InterpreterEval::execAttribution(LValue &lvalue, ExprValue &v) {
   Variable &var = variables.get(lvalue.name);
+  string value = v.type == TIPO_REAL && (var.type == TIPO_INTEIRO ||
+                                         var.type == TIPO_CARACTERE)
+                     ? to_string(truncateReal(v.value))
+                     : castLeiaChar(var, v);
 
   if (var.isPrimitive) {
-    var.setValue(castLeiaChar(var, v));
+    var.setValue(value);
   } else {
     if (var.checkBounds(lvalue.dims)) {
-      var.setValue(lvalue.dims, castLeiaChar(var, v));
+      var.setValue(lvalue.dims, value);
     } else {
       stringstream s;
       s << PACKAGE << ": Erro de execução próximo a linha " << currentLine
@@ -958,7 +992,7 @@ void InterpreterEval::executeImprima(list<ExprValue> &args) {
       cout << (int)atoi((*it).value.c_str());
       break;
     case TIPO_REAL: {
-      float real = (float)atof((*it).value.c_str());
+      double real = atof((*it).value.c_str());
       // The sign of a NaN depends on the processor: x86 sets it on
       // inf - inf, ARM, POWER and the others clear it.
       if (std::isnan(real)) {

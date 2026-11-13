@@ -1,0 +1,69 @@
+algoritmo real_precisao;
+variáveis
+  r : real;
+  i : inteiro;
+  c : caractere;
+  mr : matriz[2] de reais;
+  mi : matriz[2] de inteiros;
+fim-variáveis
+início
+  imprima(1234567.89, " ", 1.115, " ", 0.005 * 1);
+  r := 1000000.0 * 3;
+  i := r;
+  imprima(r, " ", i);
+  i := 1000000.0 * 3;
+  imprima(i);
+  i := 0.00001 * 1;
+  imprima(i);
+  i := -0.00001 * 1;
+  imprima(i);
+  i := -2500000.75 * 1;
+  imprima(i);
+  i := 123456789.9 + 0.0;
+  imprima(i);
+  c := 65.7 * 1;
+  imprima(c);
+  c := 0.00001 * 1;
+  imprima(c + 0);
+  mr[0] := 1234567.89 + 0.0;
+  mr[1] := mr[0] * 100;
+  imprima(mr[0], " ", mr[1]);
+  mi[0] := 1000000.0 * 7;
+  imprima(mi[0]);
+  imprima(fi(1000000.0 * 3), " ", fi(0.00001 * 1), " ", fi(-1234567.5 * 1));
+  imprima(fr(1234567.89), " ", fr(1234567.89 * 1), " ", fr(3.0 * 1000000));
+  imprima(gi(), " ", gr());
+  imprima(fc(66.6 * 1));
+  imprima(1234567.89 * 1 = 1234567.89, " ", 3000000.5 * 1 > 3000000.4 * 1);
+  imprima(1234567.89 + 0.01, " ", 9999999.99 * 1, " ", 10000000.0 / 3);
+  imprima(-1234567.89 * 1, " ", -(1234567.89 * 1), " ", 16777217.0 * 1);
+  imprima(fi(3000000.0 - 0.5), " ", +(1234567.89 * 1));
+  r := leia();
+  i := r * 1000;
+  imprima(r * 3, " ", i, " ", fi(r * 1000));
+fim
+
+função fi(x : inteiro) : inteiro
+início
+  retorne x;
+fim
+
+função fr(x : real) : real
+início
+  retorne x;
+fim
+
+função gi() : inteiro
+início
+  retorne 4000000.0 * 2;
+fim
+
+função gr() : real
+início
+  retorne 1234567.89 * 1;
+fim
+
+função fc(x : caractere) : caractere
+início
+  retorne x;
+fim

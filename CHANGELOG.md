@@ -132,6 +132,12 @@ Este arquivo foi consolidado a partir do ChangeLog histórico (CVS/SVN).
   no lugar da tabulação de `\t` e mostrava um literal vazio devolvido por
   função como texto vazio em vez de `(nulo)`. Agora a saída é igual à da
   tradução para C.
+- O interpretador guardava o resultado de uma conta com reais com 6 dígitos
+  significativos, então `f(1000000.0 * 3)`, com um parâmetro inteiro,
+  recebia 3 (de `3e+06`), e o `imprima` usava precisão simples, mostrando
+  `1234567.89` como `1234567.88`. Agora o interpretador guarda todos os
+  dígitos e converte e imprime os reais como o executável nativo e a
+  tradução para C, e `0.1 + 0.2 = 0.3` passa a dar `falso` também nele.
 - `imprima` mostrava o sinal de um NaN, que depende do processador: o NaN de
   `inf - inf` saía como `-nan` no x86 e como `nan` no ARM. Agora sai como
   `nan` nos três modos e em qualquer processador, e o manual explica como
