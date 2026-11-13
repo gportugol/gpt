@@ -702,7 +702,7 @@ bool InterpreterEval::execBiggerEq(LValue &lv, ExprValue &ate) {
   } else {
     if (var.checkBounds(lv.dims)) {
       string val = var.getValue(lv.dims);
-      return atoi(val.c_str()) <= atoi(ate.value.c_str());
+      return atoi(val.c_str()) >= atoi(ate.value.c_str());
     } else {
       stringstream s;
       s << PACKAGE << ": Erro de execução próximo a linha " << currentLine
