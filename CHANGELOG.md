@@ -92,6 +92,11 @@ Este arquivo foi consolidado a partir do ChangeLog histórico (CVS/SVN).
   interpretador, como `[ax41` no executável e como `[`, BEL e `A` na tradução
   para C, e uma barra invertida no fim da linha virava quebra de linha no
   interpretador, sumia no C e fazia o NASM falhar.
+- Um lógico lido com `leia()` de uma linha vazia ou depois do fim da
+  entrada vale `falso` nos três modos, o valor zero do tipo. Na 1.4.0 só o
+  interpretador dava `falso`, e o executável e a tradução para C davam
+  `verdadeiro`, então `enquanto leia() faça` não terminava no fim da
+  entrada nesses dois modos.
 - Uma matriz passada inteira como argumento precisa ter o mesmo tipo de
   elemento do parâmetro, e não só as mesmas dimensões, e o erro é o de
   dimensão errada (`Argumento 1 da função "f" deve ser do tipo "real[3]".`).
@@ -158,6 +163,14 @@ Este arquivo foi consolidado a partir do ChangeLog histórico (CVS/SVN).
   `inf - inf` saía como `-nan` no x86 e como `nan` no ARM. Agora sai como
   `nan` nos três modos e em qualquer processador, e o manual explica como
   `inf` e `nan` são impressos.
+- O executável nativo só lia um real escrito com dígitos e ponto decimal e
+  não pulava brancos antes de um número: na 1.4.0, `1e3` lido com `leia()`
+  dava `1.00`, `inf`, `nan` e `0x1p3` davam `0.00`, e `\t6` ou `\v5` lido
+  como inteiro dava 0. Agora ele aceita expoente, `inf`, `infinity`, `nan`
+  e a notação hexadecimal do C e pula os brancos de `isspace`, como o
+  interpretador e a tradução para C já faziam. Um real de até 15 dígitos
+  significativos cujo ponto anda no máximo 22 casas dá o mesmo valor que no
+  C; os outros podem diferir nos últimos bits.
 - No executável nativo, `não` tinha o tipo do operando, então
   `imprima(não "abc")` mostrava `(nulo)`, `imprima(não "")` caía com falha
   de segmentação e `imprima(não x)`, com `x` inteiro, mostrava 1 ou 0 em

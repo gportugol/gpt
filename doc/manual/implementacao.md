@@ -463,11 +463,24 @@ modificado.
 | inteiro            | `123 456`     | `123`              |
 | inteiro            | `abc`         | `0`                |
 | inteiro            | `123s`        | `123`              |
+| real               | `2.5`         | `2.50`             |
+| real               | `1.5e3`       | `1500.00`          |
+| real               | `-inf`        | `-inf`             |
+| real               | `0x1p3`       | `8.00`             |
+| real               | `abc`         | `0.00`             |
 | lógico             | `falso`       | `falso`            |
 | lógico             | `0`           | `falso`            |
+| lógico             | linha vazia   | `falso`            |
 | lógico             | `falso 12wtc` | `verdadeiro`       |
 | lógico             | `0 umdois3`   | `verdadeiro`       |
 ```
+
+Os números são lidos como nas funções `atoi` e `atof` da linguagem C: os
+espaços, tabulações e demais caracteres em branco do começo da linha são
+ignorados, e a leitura para no primeiro caractere que não faz parte do número.
+Um real aceita expoente decimal (`1.5e3`), `inf`, `infinity` e `nan`, em
+maiúsculas ou minúsculas, e a notação hexadecimal da linguagem C (`0x1p3`). No
+fim da entrada, um lógico também vale `falso`.
 
 Essa função se comporta de forma excepcional visto que seu tipo de retorno não é
 absoluto (*overloaded*, depende do tipo de *lvalue*) e, no momento, é restrita a
