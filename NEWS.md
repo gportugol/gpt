@@ -10,6 +10,8 @@ foco em funcionalidades e correções relevantes para os usuários.
 - `gpt -o` gera executáveis de 64 bits: ELF64 x86-64 no GNU/Linux e PE32+
   no Windows. Os reais do executável nativo passam a ter precisão dupla e
   saem iguais aos da tradução para C, e qualquer NASM 2.x monta o código.
+- O interpretador guarda os reais com todos os dígitos e os converte e
+  imprime como o executável nativo e a tradução para C.
 - Novo backend AArch64 para GNU/Linux, que gera executáveis com o `as` e o
   `ld` do binutils, e nova opção `-a` para escolher entre `x86-64` e
   `arm64`. Cada release traz também um pacote para Linux aarch64.
