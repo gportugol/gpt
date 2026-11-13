@@ -37,6 +37,9 @@ foco em funcionalidades e correções relevantes para os usuários.
 - Uma função com tipo que termina sem `retorne` devolve o valor zero do tipo
   nos três modos, e o interpretador converte argumentos e valores de retorno
   para o tipo declarado.
+- Um lógico lido de uma linha vazia ou do fim da entrada vale `falso` nos
+  três modos, e o executável nativo lê reais com expoente, `inf` e `nan`
+  como os outros modos.
 - `gpt` recusa uma saída que é um dos arquivos de entrada e, fora do
   Windows, apaga os arquivos temporários quando um sinal interrompe
   `gpt -o`. No Windows, ele deixa de procurar o `nasm` e as ferramentas do

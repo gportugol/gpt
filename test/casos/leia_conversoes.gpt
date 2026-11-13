@@ -1,0 +1,34 @@
+algoritmo leia_conversoes;
+variáveis
+  l : lógico;
+  i : inteiro;
+  r : real;
+fim-variáveis
+início
+  l := leia(); imprima("l=", l);
+  l := leia(); imprima("l=", l);
+  l := leia(); imprima("l=", l);
+  l := leia(); imprima("l=", l);
+  i := leia(); imprima("i=", i);
+  i := leia(); imprima("i=", i);
+  i := leia(); imprima("i=", i);
+  i := leia(); imprima("i=", i);
+  r := leia(); imprima("r=", r);
+  r := leia(); imprima("r=", r);
+  r := leia(); imprima("r=", r);
+  r := leia(); imprima("r=", r);
+  r := leia(); imprima("r=", r);
+  r := leia(); imprima("r=", r);
+  r := leia(); imprima("r=", r);
+  r := leia(); imprima("r=", r);
+  r := leia(); imprima("r=", r);
+  r := leia(); imprima("r=", r);
+  r := leia(); imprima("r=", r);
+  r := leia(); imprima("r=", r);
+  r := leia(); imprima("r=", r);
+  r := leia(); imprima("r=", r);
+  r := leia(); imprima("r=6.02214076e23: ", r = 602214076000000000000000.0);
+  r := leia(); imprima("r=", r);
+  l := leia(); imprima("l=", l);
+  l := leia(); imprima("l=", l);
+fim
