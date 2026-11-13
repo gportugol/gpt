@@ -20,6 +20,28 @@ foco em funcionalidades e correções relevantes para os usuários.
 - A função `arredonda` da biblioteca padrão passa a devolver o valor
   arredondado.
 - Um NaN sai como `nan` nos três modos, em qualquer processador.
+- Programas que cada modo executava de um jeito diferente passam a ser
+  recusados na compilação: escapes além de `\n`, `\r`, `\t`, `\\`, `\"`,
+  `\'` e `\?`, uma chamada de função sem tipo de retorno ou uma matriz sem
+  subscritos onde se espera um valor, e uma matriz de outro tipo de
+  elemento como argumento.
+- Matrizes com dimensão negativa ou com mais de 67108864 elementos e
+  programas com mais de 100 níveis de aninhamento são recusados, em vez de
+  corromper a memória do executável ou derrubar o `gpt`.
+- Uma função com tipo que termina sem `retorne` devolve o valor zero do tipo
+  nos três modos, e o interpretador converte argumentos e valores de retorno
+  para o tipo declarado.
+- `gpt` recusa uma saída que é um dos arquivos de entrada e, fora do
+  Windows, apaga os arquivos temporários quando um sinal interrompe
+  `gpt -o`. No Windows, ele deixa de procurar o `nasm` e as ferramentas do
+  binutils no diretório atual antes do `PATH`.
+- Correções de segurança na tradução para C (trigraphs e inteiros com zeros
+  à esquerda), no assembly x86 (bytes de controle em strings e `imprima`
+  de função sem retorno), nos nomes começando com `@` passados ao `ld`, no
+  `chmod` de `gpt -o`, nos breakpoints do depurador e nos caracteres de
+  controle das mensagens de erro.
+- O `configure` liga as proteções do compilador e do ligador disponíveis
+  (`--disable-hardening` desliga), e os pacotes binários trazem o `COPYING`.
 
 ## 1.4.0 - 2026-10-26
 
