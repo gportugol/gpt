@@ -160,6 +160,11 @@ Este arquivo foi consolidado a partir do ChangeLog histórico (CVS/SVN).
   programa. Agora os três modos devolvem o valor zero do tipo: 0, 0.00,
   `falso`, o caractere de código 0 ou o literal nulo, que `imprima` mostra
   como `(nulo)`.
+- No interpretador, um `para` com um elemento de matriz como variável de
+  controle e `passo` negativo testava o limite ao contrário: `para v[0] de 3
+  até 1 passo -1` não executava o corpo, e `para v[0] de 1 até 3 passo -1`
+  não terminava. O executável nativo e o C já faziam três voltas no primeiro
+  caso e nenhuma no segundo.
 - `imprima(..., leia(), ...)` e um `leia();` sozinho, onde nada indica o
   tipo a ler, leem a linha como literal nos três modos, como o interpretador
   já fazia. Antes a tradução para C lia um inteiro e o passava a um `%s`

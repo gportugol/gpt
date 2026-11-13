@@ -1,0 +1,28 @@
+algoritmo para_elemento_matriz;
+variáveis
+  v : matriz[3] de inteiros;
+  m : matriz[2][3] de inteiros;
+  i : inteiro;
+fim-variáveis
+início
+  para v[0] de 3 até 1 passo -1 faça imprima("desc ", v[0]); fim-para
+  imprima("v[0] apos desc: ", v[0]);
+  para v[0] de 1 até -2 passo -2 faça imprima("passo-2 ", v[0]); fim-para
+  imprima("v[0] apos passo-2: ", v[0]);
+  para v[0] de 1 até 3 passo -1 faça imprima("nao deveria1: ", v[0]); fim-para
+  imprima("v[0] apos vazio desc: ", v[0]);
+  para v[0] de 3 até 1 faça imprima("nao deveria2: ", v[0]); fim-para
+  imprima("v[0] apos vazio asc: ", v[0]);
+  para v[1] de 1 até 3 faça imprima("asc ", v[1]); fim-para
+  imprima("v[1] apos asc: ", v[1]);
+  para m[1][2] de 4 até 2 passo -1 faça imprima("m desc ", m[1][2]); fim-para
+  imprima("m[1][2] apos desc: ", m[1][2]);
+  para m[1][2] de -1 até 2 passo +2 faça imprima("m passo+2 ", m[1][2]); fim-para
+  imprima("m[1][2] apos passo+2: ", m[1][2]);
+  i := 0;
+  para v[i] de 3 até 1 passo -1 faça
+    imprima("v[i] desc ", i, " ", v[0], " ", v[1]);
+    i := 1;
+  fim-para
+  imprima("apos v[i] desc: ", i, " ", v[0], " ", v[1]);
+fim
