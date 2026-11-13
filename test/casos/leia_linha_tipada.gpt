@@ -1,0 +1,21 @@
+algoritmo leia_linha_tipada;
+variáveis
+  c : caractere;
+  l : lógico;
+  r : real;
+  i : inteiro;
+  s : literal;
+fim-variáveis
+início
+  c := leia(); imprima("[", c, "]");
+  c := leia(); imprima("[", c, "]");
+  l := leia(); imprima(l);
+  l := leia(); imprima(l);
+  r := leia(); imprima(r);
+  r := leia(); imprima(r);
+  i := leia(); imprima(i);
+  i := leia(); imprima(i);
+  s := leia(); imprima("[", s, "]");
+  i := leia(); imprima(i);
+  i := leia(); imprima(i);
+fim
