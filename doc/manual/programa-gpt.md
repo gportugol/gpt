@@ -189,14 +189,13 @@ assim, códigos extras são adicionados no arquivo resultante, para, por exemplo
 permitir passagem de matrizes por valor, inicialização automática de variáveis e
 outras abstrações.
 
-A tradução para C é limitada no que diz respeito a nomes e identificadores. É
-possível, por exemplo, declarar uma variável em G-Portugol com o nome de
-`printf`. Ao traduzir para C e tentar compilar o código resultante, o compilador
-pode emitir avisos e erros, visto que `printf` é uma função da biblioteca
-padrão, usada no código C resultante. Da mesma forma, identificadores com
-*underlines* antes ou depois em seus nomes (como `__leia_texto`) devem ser
-evitados, pois muitos identificadores internos utilizam essas convenções de
-nomeação, e seu uso pode acarretar em conflitos durante a tradução.
+Na tradução, cada identificador do algoritmo ganha um prefixo: `v_` nas
+variáveis e parâmetros e `f_` nas funções. Um parâmetro matriz chega à função C
+como `p_` seguido do nome e é copiado para a variável local `v_` de mesmo nome.
+Assim, uma variável ou função chamada `printf`, `start` ou `_LINE__` não colide
+com a biblioteca padrão, com as macros do compilador nem com os nomes internos
+do código gerado, e uma variável local pode ter o nome de uma função que ela
+chama.
 
 ### Interpretação de código
 

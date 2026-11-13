@@ -1,0 +1,67 @@
+algoritmo nomes_c;
+variáveis
+  start : inteiro;
+  main : inteiro;
+  printf : literal;
+  GNU_SOURCE : inteiro;
+  Bool : lógico;
+  IOFBF : real;
+  _func__ : caractere;
+  _STDC__ : inteiro;
+  _int128 : inteiro;
+  m : matriz[2] de inteiros;
+fim-variáveis
+início
+  start := 1;
+  main := 2;
+  printf := "três";
+  GNU_SOURCE := 4;
+  Bool := verdadeiro;
+  IOFBF := 5.5;
+  _func__ := 'z';
+  _STDC__ := 6;
+  _int128 := 7;
+  m[0] := 10;
+  m[1] := 20;
+  imprima(start, " ", main, " ", printf, " ", GNU_SOURCE, " ", Bool, " ", IOFBF);
+  imprima(_func__, " ", _STDC__, " ", _int128);
+  imprima(Exit(1), " ", init(2), " ", fini(3), " ", end(4), " ", edata(5));
+  imprima(le(m, 3), " ", soma(4, m));
+fim
+
+função Exit(a : inteiro) : inteiro
+início
+  retorne a * 10;
+fim
+
+função init(a : inteiro) : inteiro
+início
+  retorne a * 10;
+fim
+
+função fini(a : inteiro) : inteiro
+início
+  retorne a * 10;
+fim
+
+função end(a : inteiro) : inteiro
+início
+  retorne a * 10;
+fim
+
+função edata(a : inteiro) : inteiro
+início
+  retorne a * 10;
+fim
+
+função le(x : matriz[2] de inteiros, _x : inteiro) : inteiro
+início
+  retorne x[0] + x[1] + _x;
+fim
+
+função soma(_m : inteiro, m : matriz[2] de inteiros) : inteiro
+  _LINE : inteiro;
+início
+  _LINE := _m;
+  retorne _LINE + m[1];
+fim

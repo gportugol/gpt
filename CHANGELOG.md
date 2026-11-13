@@ -206,6 +206,14 @@ Este arquivo foi consolidado a partir do ChangeLog histórico (CVS/SVN).
   vinha no tarball do código-fonte. Agora o `COPYING` vai em
   `share/doc/gpt` nos tarballs Linux e em `share/licenses/gpt` no zip do
   Windows.
+- A tradução para C dava a cada identificador do programa o nome `_nome`,
+  que colidia com nomes do C e do sistema: uma função ou global `start`
+  virava o `_start` do crt e o programa não ligava, `_LINE__` e `_FILE__`
+  viravam macros predefinidas, um parâmetro `_x` tinha o mesmo nome de um
+  parâmetro matriz `x` ao lado dele, e um parâmetro ou variável local com o
+  nome de uma função chamada ali escondia a função. Agora variáveis e
+  parâmetros viram `v_nome` e funções `f_nome`, e o manual deixa de
+  desaconselhar nomes como `printf`.
 
 ### Segurança
 

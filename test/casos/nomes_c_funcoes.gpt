@@ -1,0 +1,34 @@
+algoritmo nomes_c_funcoes;
+variáveis
+  _LINE__ : inteiro;
+  _FILE__ : inteiro;
+fim-variáveis
+início
+  _LINE__ := 1;
+  _FILE__ := 2;
+  imprima(_LINE__, " ", _FILE__);
+  imprima(start());
+  imprima(g(3), " ", h());
+fim
+
+função start() : inteiro
+início
+  retorne 7;
+fim
+
+função f(x : inteiro) : inteiro
+início
+  retorne x + 1;
+fim
+
+função g(f : inteiro) : inteiro
+início
+  retorne f(f);
+fim
+
+função h() : inteiro
+  f : inteiro;
+início
+  f := 10;
+  retorne f(f);
+fim
