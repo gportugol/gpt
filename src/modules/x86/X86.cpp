@@ -177,7 +177,8 @@ void X86::init(const string &name) {
   _data << "section .data align=4096\n";
 #endif
   _data << "              data_no equ $\n"
-           "    mem_ptr         dq 0\n"
+           "    mem_ptr         dq mem\n"
+           "    mem_end         dq mem + MEMORY_SIZE\n"
            "    str_true        db 'verdadeiro',0\n"
            "    str_false       db 'falso',0\n"
            "    str_null        db '(nulo)',0\n"

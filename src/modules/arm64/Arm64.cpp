@@ -253,7 +253,8 @@ void Arm64::init(const string &name) {
 
   _data << "    .data\n"
            "    .balign 8\n"
-           "mem_ptr: .quad 0\n"
+           "mem_ptr: .quad mem\n"
+           "mem_end: .quad mem + MEMORY_SIZE\n"
            "str_true: .asciz \"verdadeiro\"\n"
            "str_false: .asciz \"falso\"\n"
            "str_null: .asciz \"(nulo)\"\n"
