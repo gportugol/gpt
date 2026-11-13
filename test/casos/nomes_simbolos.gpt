@@ -1,0 +1,57 @@
+algoritmo nomes_simbolos;
+variáveis
+  _LINE__ : inteiro;
+  _FILE__ : inteiro;
+  _SECT__ : matriz[2] de inteiros;
+  x : inteiro;
+fim-variáveis
+início
+  _LINE__ := 1;
+  _FILE__ := 2;
+  _SECT__[1] := 3;
+  x := 4;
+  imprima(start(), " ", _LINE__, " ", _FILE__, " ", _SECT__[1]);
+  imprima(g(3), " ", h(), " ", m(_SECT__), " ", sombra(), " ", x);
+  imprima(_PASS__(2));
+fim
+
+função start() : inteiro
+início
+  retorne 7;
+fim
+
+função f(x : inteiro) : inteiro
+início
+  retorne x + 1;
+fim
+
+função g(f : inteiro) : inteiro
+início
+  retorne f(f);
+fim
+
+função h() : inteiro
+  f : inteiro;
+  _LINE__ : inteiro;
+início
+  f := 10;
+  _LINE__ := f(f);
+  retorne _LINE__;
+fim
+
+função m(_BITS__ : matriz[2] de inteiros) : inteiro
+início
+  retorne _BITS__[1] * 10;
+fim
+
+função sombra() : inteiro
+  x : inteiro;
+início
+  x := 40;
+  retorne x + 2;
+fim
+
+função _PASS__(n : inteiro) : inteiro
+início
+  retorne n * 3;
+fim

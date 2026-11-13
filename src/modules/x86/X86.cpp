@@ -86,9 +86,8 @@ void X86SubProgram::declareParam(const string &param, int type, int msize) {
           << endl;
     _end << "%undef " << X86::makeID(param) << endl;
   } else {
-    _head << "%define _p$" << X86::makeID(param) << " rbp+" << _param_offset
-          << endl;
-    _end << "%undef _p$" << X86::makeID(param) << endl;
+    _head << "%define p$" << param << " rbp+" << _param_offset << endl;
+    _end << "%undef p$" << param << endl;
     declareLocal(param, msize, false);
     writeMatrixCopyCode(param, type, msize);
   }
@@ -98,7 +97,7 @@ void X86SubProgram::declareParam(const string &param, int type, int msize) {
 void X86SubProgram::writeMatrixCopyCode(const string &param, int type,
                                         int msize) {
   _init << "lea rax, [" << X86::makeID(param) << "]" << endl;
-  _init << "addarg qword [_p$" << X86::makeID(param) << "]" << endl;
+  _init << "addarg qword [p$" << param << "]" << endl;
   _init << "addarg rax" << endl;
   _init << "addarg " << (type == TIPO_LITERAL) << endl;
   _init << "addarg " << (msize * SizeofSlot) << endl;
@@ -117,14 +116,14 @@ void X86SubProgram::writeMatrixInitCode(const string &varname, int size) {
 string X86SubProgram::source() {
   stringstream s;
 
-  if (_name != X86::EntryPoint) {
-    s << X86::makeID(_name) << ":" << endl;
+  if (_name == SymbolTable::GlobalScope) {
+    s << X86::EntryPoint << ":" << endl;
   } else {
-    s << _name << ":" << endl;
+    s << X86::makeFuncID(_name) << ":" << endl;
   }
   s << _head.str();
 
-  if (name() != X86::EntryPoint) {
+  if (_name != SymbolTable::GlobalScope) {
     s << "begin " << (_local_offset - SizeofSlot) << endl;
   }
 
@@ -140,10 +139,14 @@ string X86SubProgram::source() {
 
 string X86::EntryPoint = "start";
 
-// Every identifier x of the program becomes _x, so the names gpt makes up
-// (the pointer slot of a matrix parameter and the string labels) carry a $,
-// which an identifier cannot contain.
-string X86::makeID(const string &str) { return string("_") + str; }
+// A variable x of the program becomes v$x and a function f becomes f$f. An
+// identifier cannot contain a $, so these names cannot meet each other, the
+// runtime labels, the pointer slot p$x of a matrix parameter, the string
+// labels or NASM's __LINE__-style macros, and the %define of a local hides
+// a global of the same name but not a function.
+string X86::makeID(const string &str) { return string("v$") + str; }
+
+string X86::makeFuncID(const string &str) { return string("f$") + str; }
 
 X86::X86(SymbolTable &st) : _stable(st), _globalBytes(0) {}
 
@@ -199,7 +202,7 @@ void X86::writeTEXT(const string &str) {
 void X86::createScope(const string &scope) {
   _currentScope = scope;
   if (scope == SymbolTable::GlobalScope) {
-    _subprograms[scope].init(X86::EntryPoint);
+    _subprograms[scope].init(scope);
   } else {
     Symbol symb = _stable.getSymbol(SymbolTable::GlobalScope, scope, true);
     _subprograms[scope].init(scope, symb.param.symbolList().size());
@@ -326,7 +329,7 @@ void X86::writeCallArg(int etype, int ptype) {
 void X86::writeLeiaCall(const string &fname) { writeTEXT("call " + fname); }
 
 void X86::writeCall(const string &fname, int args) {
-  writeTEXT("call " + X86::makeID(fname));
+  writeTEXT("call " + X86::makeFuncID(fname));
   if (args) {
     stringstream s;
     s << "clargs " << args;

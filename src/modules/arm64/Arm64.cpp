@@ -116,8 +116,8 @@ void Arm64SubProgram::writeMatrixInitCode(int offset, int size) {
 string Arm64SubProgram::source() {
   stringstream s;
 
-  if (_name == Arm64::EntryPoint) {
-    s << _name << ":" << endl;
+  if (_name == SymbolTable::GlobalScope) {
+    s << Arm64::EntryPoint << ":" << endl;
   } else {
     s << Arm64::makeID(_name) << ":" << endl;
     for (list<string>::iterator it = _declared.begin(); it != _declared.end();
@@ -276,7 +276,7 @@ void Arm64::writeTEXT(const string &str) {
 void Arm64::createScope(const string &scope) {
   _currentScope = scope;
   if (scope == SymbolTable::GlobalScope) {
-    _subprograms[scope].init(Arm64::EntryPoint);
+    _subprograms[scope].init(scope);
   } else {
     Symbol symb = _stable.getSymbol(SymbolTable::GlobalScope, scope, true);
     _subprograms[scope].init(scope, symb.param.symbolList().size());
