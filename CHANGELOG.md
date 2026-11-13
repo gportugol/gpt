@@ -152,6 +152,11 @@ Este arquivo foi consolidado a partir do ChangeLog histórico (CVS/SVN).
   ou guardado numa matriz. Agora esses valores são convertidos como no
   executável nativo e no C: um real é truncado, e o texto de `leia()` é lido
   no tipo de destino.
+- No interpretador, um `leia()` usado como condição de `se`, `enquanto` ou
+  `repita` não convertia a linha para lógico, e as entradas `0` e `falso`
+  seguiam o `então`, enquanto o executável nativo e o C as liam como falso.
+  Agora o interpretador converte a linha como numa atribuição a uma variável
+  lógica.
 - Uma função com tipo de retorno que terminava sem executar `retorne`
   devolvia um valor indefinido. O executável nativo devolvia o que estava no
   registrador, e uma função literal podia imprimir a memória num endereço
