@@ -32,6 +32,14 @@ using namespace std;
 using antlr4::ParserRuleContext;
 using antlr4::tree::TerminalNode;
 
+// C reserves file-scope names that begin with "_", so a bare "_" prefix can
+// turn a program identifier into a keyword (_Bool), a predefined macro
+// (__LINE__) or a crt symbol (_start). Functions get a prefix of their own
+// because a local or parameter may share a function's name.
+static string varName(const string &id) { return "v_" + id; }
+static string funcName(const string &id) { return "f_" + id; }
+static string matrixParamName(const string &id) { return "p_" + id; }
+
 Portugol2CTranslator::Portugol2CTranslator(SymbolTable &st)
     : _stable(st), _currentScopeType(-1),
       _currentScope(SymbolTable::GlobalScope), _indexTemps(0) {}
@@ -380,9 +388,7 @@ string Portugol2CTranslator::translateFunctionName(const string &id, int type) {
       return id;
     }
   } else {
-    string ret = "_";
-    ret += id;
-    return ret;
+    return funcName(id);
   }
 }
 
@@ -595,20 +601,20 @@ void Portugol2CTranslator::variaveis(
 
     if (dims.empty()) { // primitivo
       for (auto id : decl->T_IDENTIFICADOR()) {
-        str << translateType(type) << " _" << id->getText() << " = 0;";
+        str << translateType(type) << " " << varName(id->getText()) << " = 0;";
         writeln(str.str());
         str.str("");
       }
     } else { // matriz
       for (auto id : decl->T_IDENTIFICADOR()) {
-        str << translateType(type) << " _" << id->getText();
+        str << translateType(type) << " " << varName(id->getText());
         for (int dim : dims) {
           str << "[" << dim << "]";
         }
         str << ";";
         writeln(str.str());
 
-        init << "matrix_init(_" << id->getText() << ", ";
+        init << "matrix_init(" << varName(id->getText()) << ", ";
         init << "'" << matrixTypeChar(type) << "', ";
 
         int tsize = 1;
@@ -699,7 +705,7 @@ Portugol2CTranslator::lvalue(PortugolParser::LvalueContext *ctx, bool hoist) {
   lv.value.first = symb.type.primitiveType();
   list<int> dims = symb.type.dimensions();
   list<int>::iterator dim = dims.begin();
-  s << "_" << id->getText();
+  s << varName(id->getText());
 
   if (ctx->array_sub()) {
     int line = GPTDisplay::self()->sourceLine((int)id->getLine());
@@ -1158,7 +1164,7 @@ void Portugol2CTranslator::funcDecls(PortugolParser::Func_declsContext *ctx) {
   _currentScopeType = _stable.getSymbol(SymbolTable::GlobalScope, id, true)
                           .type.primitiveType();
   str << translateType(_currentScopeType);
-  str << " _" << id << "(";
+  str << " " << funcName(id) << "(";
 
   if (ctx->fparams()) {
     for (auto param : ctx->fparams()->fparam()) {
@@ -1167,12 +1173,12 @@ void Portugol2CTranslator::funcDecls(PortugolParser::Func_declsContext *ctx) {
       string pid = param->T_IDENTIFICADOR()->getText();
 
       if (dims.empty()) { // primitivo
-        str << comma << translateType(type) << " _" << pid;
+        str << comma << translateType(type) << " " << varName(pid);
         comma = ", ";
       } else { // matriz
         stringstream s;
-        s << comma << translateType(type) << " __" << pid;
-        decl << translateType(type) << " _" << pid;
+        s << comma << translateType(type) << " " << matrixParamName(pid);
+        decl << translateType(type) << " " << varName(pid);
 
         comma = ",";
         for (int dim : dims) {
@@ -1184,7 +1190,8 @@ void Portugol2CTranslator::funcDecls(PortugolParser::Func_declsContext *ctx) {
         addInitStm(decl.str());
         decl.str("");
 
-        cpy << "matrix_cpy(__" << pid << ", _" << pid << ", ";
+        cpy << "matrix_cpy(" << matrixParamName(pid) << ", " << varName(pid)
+            << ", ";
         cpy << "'" << matrixTypeChar(type) << "', ";
 
         int tsize = 1;
