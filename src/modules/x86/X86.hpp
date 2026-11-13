@@ -69,6 +69,7 @@ class X86 : public NativeBackend {
 public:
   static string EntryPoint;
   static string makeID(const string &);
+  static string makeFuncID(const string &);
 
   X86(SymbolTable &);
   ~X86();

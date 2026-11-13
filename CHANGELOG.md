@@ -186,6 +186,13 @@ Este arquivo foi consolidado a partir do ChangeLog histórico (CVS/SVN).
   como endereço. Uma variável global chamada `_str_0` impedia a montagem
   nos dois backends nativos. Os nomes gerados agora levam um `$`, que um
   identificador não pode conter.
+- No executável x86, três tipos de nome impediam a montagem: uma função
+  chamada `start`, uma variável chamada `_LINE__`, `_FILE__` ou outro nome
+  que vira uma macro do NASM, e um parâmetro ou variável local com o nome de
+  uma função chamada na mesma função (`invalid register set size`). Agora o
+  gerador distingue o bloco principal de uma função `start`, e os nomes do
+  assembly x86 levam um `$`: `v$nome` para variáveis e `f$nome` para
+  funções.
 - O executável x86 gravava no arquivo os zeros das variáveis globais: uma
   `matriz[20000000] de inteiros` global gerava um arquivo de 80 MB na 1.4.0
   (160 MB no x86-64). Agora as globais ficam na seção `.bss`, e o mesmo
