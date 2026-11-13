@@ -1,0 +1,81 @@
+algoritmo para_limite;
+variáveis
+  i, j, k : inteiro;
+  v : matriz[3] de inteiros;
+fim-variáveis
+início
+  k := 3;
+  para i de k até k - 2 passo -1 faça
+    imprima("a ", i, " ", k);
+    k := k + 1;
+  fim-para
+  imprima("a fim ", i, " ", k);
+
+  k := 1;
+  para i de 1 até k + 2 faça
+    imprima("b ", i, " ", k);
+    k := k - 1;
+  fim-para
+  imprima("b fim ", i, " ", k);
+
+  para i de val("de", 2) até val("ate", 4) faça
+    imprima("c ", i);
+  fim-para
+  imprima("c fim ", i);
+
+  para i de 5 até val("ate", 1) faça
+    imprima("d ", i);
+  fim-para
+  imprima("d fim ", i);
+
+  para i de 1 até 10 faça
+    imprima("e ", i);
+    se i = 3 então
+      i := 100;
+    fim-se
+  fim-para
+  imprima("e fim ", i);
+
+  k := 2;
+  para v[0] de 0 até k faça
+    imprima("f ", v[0], " ", k);
+    k := k + 5;
+  fim-para
+  imprima("f fim ", v[0], " ", k);
+
+  j := 1;
+  k := 2;
+  para v[j] de 0 até k faça
+    imprima("g ", v[1], " ", v[2], " ", j);
+    j := 2;
+  fim-para
+  imprima("g fim ", v[1], " ", v[2], " ", j);
+
+  k := 10;
+  para i de k até 0 passo -3 faça
+    imprima("h ", i);
+    k := 0;
+  fim-para
+  imprima("h fim ", i);
+
+  k := 3;
+  para i de 1 até k faça
+    para j de i até k faça
+      imprima("n ", i, " ", j, " ", k);
+      k := k - 1;
+    fim-para
+  fim-para
+  imprima("n fim ", i, " ", j, " ", k);
+
+  i := 100;
+  para i de 1 até i + 2 faça
+    imprima("o ", i);
+  fim-para
+  imprima("o fim ", i);
+fim
+
+função val(nome : literal, x : inteiro) : inteiro
+início
+  imprima("[", nome, "]");
+  retorne x;
+fim

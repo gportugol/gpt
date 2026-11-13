@@ -17,6 +17,8 @@ foco em funcionalidades e correções relevantes para os usuários.
   `gpt -o` gera executável x86-64.
 - O lexer e o parser passam a ser gerados pelo ANTLR 4, que substitui o
   ANTLR 2.7.7 no build, e strings aceitam qualquer caractere UTF-8.
+- O `de` e o `até` de um `para` são calculados uma vez, na entrada do laço,
+  nos três modos.
 - A função `arredonda` da biblioteca padrão passa a devolver o valor
   arredondado.
 - Um NaN sai como `nan` nos três modos, em qualquer processador.

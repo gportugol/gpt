@@ -120,6 +120,13 @@ Este arquivo foi consolidado a partir do ChangeLog histórico (CVS/SVN).
   de segmentação acima disso, e uma chamada recursiva dentro de milhares de
   `se` aninhados derrubava o interpretador em vez de parar com a mensagem de
   pilha esgotada. O manual explica como os níveis se somam.
+- O `de` e o `até` de um `para` são calculados uma vez, na entrada do laço,
+  nos três modos, e ao fim do laço a variável de controle fica com esse
+  limite. Antes o interpretador e o C recalculavam o `até` a cada volta, e o
+  executável nativo não, então um limite que dependia de uma variável
+  alterada no corpo dava um número de voltas diferente em cada modo, e `para
+  i de 1 até i + 2` não terminava no interpretador nem no C. O manual
+  descreve a regra.
 
 ### Corrigido
 

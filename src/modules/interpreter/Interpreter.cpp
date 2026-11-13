@@ -259,7 +259,6 @@ void Interpreter::stmPara(PortugolParser::Stm_paraContext *ctx) {
       return;
     }
     interpreter.execPasso(lv, ps);
-    ate = expr(ctx->fim);
   }
 
   // lv deve ter um valor a mais do que até (ou a menos, se loop decrescente).

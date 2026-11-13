@@ -850,22 +850,25 @@ void Portugol2CTranslator::stmPara(PortugolParser::Stm_paraContext *ctx) {
     passo = ctx->passo()->T_INT_LIT()->getText();
   }
 
-  if (!lv.checks.empty()) {
-    writeln("{");
-    indent();
-    writeChecks(lv.checks);
-  }
+  stringstream limit;
+  limit << "gpt_ate" << _indexTemps++;
+
+  writeln("{");
+  indent();
+  writeChecks(lv.checks);
+  writeln(var.second + " = " + de.second + ";");
+  writeln("int " + limit.str() + " = " + ate.second + ";");
   stringstream str;
   if (!haspasso) {
-    str << "for(" << var.second << "=" << de.second << ";" << var.second
-        << "<=" << ate.second << ";" << var.second << "+=" << 1 << ") {";
+    str << "for(;" << var.second << "<=" << limit.str() << ";" << var.second
+        << "+=" << 1 << ") {";
   } else {
     if (crescente) {
-      str << "for(" << var.second << "=" << de.second << ";" << var.second
-          << "<=" << ate.second << ";" << var.second << "+=" << passo << ") {";
+      str << "for(;" << var.second << "<=" << limit.str() << ";" << var.second
+          << "+=" << passo << ") {";
     } else {
-      str << "for(" << var.second << "=" << de.second << ";" << var.second
-          << ">=" << ate.second << ";" << var.second << "-=" << passo << ") {";
+      str << "for(;" << var.second << ">=" << limit.str() << ";" << var.second
+          << "-=" << passo << ") {";
     }
   }
   writeln(str.str());
@@ -875,13 +878,9 @@ void Portugol2CTranslator::stmPara(PortugolParser::Stm_paraContext *ctx) {
 
   unindent();
   writeln("}");
-  str.str("");
-  str << var.second << " = " << ate.second << ";";
-  writeln(str.str());
-  if (!lv.checks.empty()) {
-    unindent();
-    writeln("}");
-  }
+  writeln(var.second + " = " + limit.str() + ";");
+  unindent();
+  writeln("}");
 }
 
 Portugol2CTranslator::Production
