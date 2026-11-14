@@ -16,7 +16,8 @@ Dependências:
 - libantlr4-runtime-dev (runtime C++ do ANTLR 4.x)
 - libpcre2-dev
 - nasm (para gerar executáveis x86-64; em arm64 o `gpt -o` usa o `as` e o
-  `ld` do binutils, que vêm com o `build-essential`)
+  `ld` do binutils, que vêm com o `build-essential`, e no macOS o `cc` do
+  Xcode Command Line Tools)
 - wget
 
 ## Baixar o fonte
@@ -217,10 +218,10 @@ gpt.exe -o olamundo.exe exemplos/olamundo.gpt
 
 O GPT compila no macOS com o clang do Xcode ou do Xcode Command Line Tools
 (`xcode-select --install`) e com os pacotes do [Homebrew](https://brew.sh). O
-CI compila e testa num runner arm64 (Apple Silicon). No macOS o `gpt`
-interpreta (`-i`), traduz para C (`-t`) e grava o assembly (`-s`), mas
-`gpt -o` é recusado: os executáveis gerados são ELF64 e PE32+, que o macOS não
-executa.
+CI compila e testa num runner arm64 (Apple Silicon). Em arm64, `gpt -o` gera
+um executável Mach-O, montado e ligado pelo `cc` desse mesmo compilador. Para
+x86-64 o `gpt -o` é recusado no macOS: os executáveis x86-64 gerados são ELF64
+e PE32+, que o macOS não executa.
 
 ### 1. Instalar dependências no macOS
 
@@ -258,14 +259,21 @@ lançar e capturar uma exceção. No runner do CI (Apple clang 21), a
 "$(brew --prefix)/bin/bash" test/run_test.sh
 ```
 
-A suíte pula o modo nativo e compila a tradução para C com o `gcc` do sistema.
-O macOS não tem o comando `timeout`, então lá a suíte não limita o tempo de
-cada programa.
+Em arm64 a suíte roda os três modos, e compila a tradução para C com o `gcc`
+do sistema. O macOS não tem o comando `timeout`, então lá a suíte não limita o
+tempo de cada programa.
 
 #### Interpretador no macOS
 
 ```shell
 src/gpt -i exemplos/olamundo.gpt
+```
+
+#### Compilador no macOS
+
+```shell
+src/gpt -o olamundo exemplos/olamundo.gpt
+./olamundo
 ```
 
 #### Tradutor para C no macOS

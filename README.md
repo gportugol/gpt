@@ -21,9 +21,9 @@ Se encontram disponíveis atualmente um compilador, tradutor e interpretador par
 a linguagem (GPT) e um ambiente visual simples
 ([GPTEditor](https://github.com/gportugol/gpteditor)) que permite a edição,
 execução e depuração de programas escritos em G-Portugol. O primeiro é
-multi-plataforma e capaz de gerar executáveis para MS Windows e sistemas
-GNU/Linux. Já o segundo está disponível apenas para o ambiente KDE 3.0 do
-GNU/Linux.
+multi-plataforma e capaz de gerar executáveis para MS Windows, sistemas
+GNU/Linux e macOS (Apple Silicon). Já o segundo está disponível apenas para o
+ambiente KDE 3.0 do GNU/Linux.
 
 ## O programa GPT
 

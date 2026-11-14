@@ -70,23 +70,29 @@ if [ -n "$GPT_TEST_ARCH" ]; then
 	GPT_A=(-a "$GPT_TEST_ARCH")
 	read -r -a RUNNER <<<"$GPT_TEST_RUNNER"
 fi
-# gpt -o writes Linux and Windows programs, which macOS does not run, so gpt
-# refuses it there, whatever the architecture.
+# On macOS only the arm64 backend writes a program that runs there, and gpt
+# refuses -o for x86-64.
 SEM_NATIVO="na arquitetura $ARCH"
+ON_MACOS=0
 if [ "$(uname -s)" = Darwin ]; then
-	NATIVE_ARCH=""
-	SEM_NATIVO="no macOS"
+	ON_MACOS=1
+	if [ "$NATIVE_ARCH" != arm64 ]; then
+		NATIVE_ARCH=""
+		SEM_NATIVO="no macOS fora de arm64"
+	fi
 fi
 CAN_EXEC_NATIVE=0
 [ -n "$NATIVE_ARCH" ] && CAN_EXEC_NATIVE=1
 
 # The program gpt -o starts first: nasm, or the binutils assembler, named
-# after the target when it is not the machine's own.
+# after the target when it is not the machine's own, or on macOS the driver
+# of the C compiler.
 case "$NATIVE_ARCH" in
 x86-64) ASSEMBLER=nasm ;;
 arm64)
 	ASSEMBLER=as
 	[ "$ARCH" != aarch64 ] && [ "$ARCH" != arm64 ] && ASSEMBLER=aarch64-linux-gnu-as
+	[ $ON_MACOS -eq 1 ] && ASSEMBLER=cc
 	;;
 esac
 HAVE_ASSEMBLER=0
@@ -274,6 +280,8 @@ if $TIMEOUT "$GPT" "${GPT_A[@]}" -s "$TMP/tester.asm" tester.gpt >/dev/null 2>&1
 		echo "⚠ tester.gpt (-s): montagem pulada (${ASSEMBLER:-montador} não encontrado)"
 	elif if [ "$ASSEMBLER" = nasm ]; then
 		nasm -O1 -fbin -o "$TMP/tester_asm_bin" "$TMP/tester.asm"
+	elif [ "$ASSEMBLER" = cc ]; then
+		cc -arch arm64 -x assembler -c -o "$TMP/tester_asm.o" "$TMP/tester.asm"
 	else
 		"$ASSEMBLER" -o "$TMP/tester_asm.o" "$TMP/tester.asm"
 	fi >"$TMP/tester.nasm" 2>&1; then
@@ -600,6 +608,17 @@ else
 		ok "-o $SEM_NATIVO"
 	else
 		fail "-o $SEM_NATIVO: código $RESULT (esperado: 1 e o diagnóstico do gpt)"
+		echo "$ERRO"
+	fi
+fi
+
+if [ $ON_MACOS -eq 1 ]; then
+	ERRO=$($TIMEOUT "$GPT" -a x86-64 -o "$TMP/recusa.bin" tester.gpt 2>&1 >/dev/null)
+	RESULT=$?
+	if [ $RESULT -eq 1 ] && grep -q "Use -t para traduzir" <<<"$ERRO"; then
+		ok "-a x86-64 -o no macOS"
+	else
+		fail "-a x86-64 -o no macOS: código $RESULT (esperado: 1 e o diagnóstico do gpt)"
 		echo "$ERRO"
 	fi
 fi

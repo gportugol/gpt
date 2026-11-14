@@ -83,13 +83,13 @@ extension gives a binary whose name ends in
 .I .out.exe ,
 so the source is not replaced.
 The generated code is x86-64 (an ELF64 executable on GNU/Linux, a PE32+
-executable on Windows) or arm64 (an ELF64 executable on GNU/Linux), as chosen
-with
+executable on Windows) or arm64 (an ELF64 executable on GNU/Linux, a Mach-O
+executable on macOS), as chosen with
 .BR \-a ;
-on a machine that is neither, or on macOS, which runs none of these programs,
-use
+on a machine that is neither, use
 .B \-t
 and compile the C code with the system compiler.
+On macOS only arm64 gives an executable.
 For x86-64,
 .BR nasm (1)
 builds the executable.
@@ -102,6 +102,9 @@ the cross tools
 .B aarch64-linux-gnu-as
 and
 .BR aarch64-linux-gnu-ld .
+On macOS,
+.BR cc (1)
+from the Xcode Command Line Tools assembles and links the executable.
 On Windows and GNU/Linux these tools are looked up first in the directory of
 .I gpt
 and then in the directories of
@@ -133,7 +136,7 @@ and
 .B x86-64
 (NASM syntax) or
 .B arm64
-(GNU assembler syntax for AArch64).
+(GNU assembler syntax for AArch64 or, on macOS, that of Apple's assembler).
 The default is the architecture of the machine running
 .IR gpt ;
 a 32-bit x86

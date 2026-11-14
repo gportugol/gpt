@@ -153,11 +153,26 @@ string Arm64SubProgram::source() {
 
 ////////--------------------------------------------------------
 
+// On macOS the program starts at the C function main, which the linker
+// knows as _main.
+#ifdef __APPLE__
+string Arm64::EntryPoint = "_main";
+#else
 string Arm64::EntryPoint = "start";
+#endif
 
 // Every identifier x of the program becomes _x, so the string labels carry
-// a $, which an identifier cannot contain.
-string Arm64::makeID(const string &str) { return string("_") + str; }
+// a $, which an identifier cannot contain. On macOS _x is the name of the C
+// function x, and a function of the program called write would take the
+// place of the one of libSystem that the runtime calls, so there the prefix
+// is u$.
+string Arm64::makeID(const string &str) {
+#ifdef __APPLE__
+  return string("u$") + str;
+#else
+  return string("_") + str;
+#endif
+}
 
 // mov takes what a single movz or movn builds; any other value is built 16
 // bits at a time. A w register gets the low 32 bits of value.
@@ -249,7 +264,11 @@ void Arm64::init(const string &name) {
 
   _head << "// algoritmo: " << name << "\n\n";
 
+#ifdef __APPLE__
+#include "arm64_macos.h"
+#else
 #include "arm64_linux.h"
+#endif
 
   _data << "    .data\n"
            "    .balign 8\n"
@@ -598,8 +617,10 @@ string Arm64::source() {
   }
   str << _lib.str();
   str << "\n" << _data.str() << "\n" << _bss.str();
+#ifndef __APPLE__
   // Without this note the linker marks the stack executable.
   str << "\n    .section .note.GNU-stack,\"\",%progbits\n";
+#endif
 
   return str.str();
 }

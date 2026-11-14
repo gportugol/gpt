@@ -12,9 +12,9 @@ principais estão:
 - executar algoritmos.
 
 Na versão atual é possível compilar algoritmos para Windows e GNU/Linux em
-x86-64 e para GNU/Linux em arm64 (AArch64). Também, há suporte apenas para a
-tradução de algoritmos para a linguagem C. O resultado é um código em C 100%
-equivalente ao algoritmo.
+x86-64 e para GNU/Linux e macOS em arm64 (AArch64). Também, há suporte apenas
+para a tradução de algoritmos para a linguagem C. O resultado é um código em C
+100% equivalente ao algoritmo.
 
 É possível, também, executar algoritmos sem gerar código ou arquivos extras, de
 forma interpretada. Também, com a interpretação, é possível depurar passo a
@@ -65,9 +65,9 @@ As opções são comentadas a seguir.
   extensão `.out` (`.exe` no Windows), como `programa.out`. No Windows, um
   fonte com extensão `.exe` gera um executável cujo nome termina em `.out.exe`,
   para que o fonte não seja substituído. O código gerado é x86-64 ou arm64,
-  conforme a opção `-a`; numa máquina que não é nenhuma das duas, ou no macOS,
-  que não executa os programas gerados, use a opção `-t` e compile o código C
-  com o compilador do sistema.
+  conforme a opção `-a`; numa máquina que não é nenhuma das duas, use a opção
+  `-t` e compile o código C com o compilador do sistema. No macOS só o arm64
+  gera executável.
 
 `-t <arquivo>`
 : Traduz o algoritmo para C e salva o código fonte com o nome de `<arquivo>`.
@@ -78,11 +78,12 @@ As opções são comentadas a seguir.
 
 `-a <arq>`
 : Escolhe a arquitetura do código gerado por `-o` e `-s`: `x86-64` (Assembly
-  na sintaxe do NASM) ou `arm64` (Assembly para AArch64 na sintaxe do GNU as).
-  Sem essa opção, vale a arquitetura da máquina que executa o `gpt`; um `gpt`
-  x86 de 32 bits no GNU/Linux usa `x86-64` quando o kernel é de 64 bits. Com a
-  opção, é possível comparar o mesmo algoritmo nas duas arquiteturas com
-  `gpt -a x86-64 -s` e `gpt -a arm64 -s` em qualquer máquina.
+  na sintaxe do NASM) ou `arm64` (Assembly para AArch64 na sintaxe do GNU as
+  ou, no macOS, na do montador da Apple). Sem essa opção, vale a arquitetura
+  da máquina que executa o `gpt`; um `gpt` x86 de 32 bits no GNU/Linux usa
+  `x86-64` quando o kernel é de 64 bits. Com a opção, é possível comparar o
+  mesmo algoritmo nas duas arquiteturas com `gpt -a x86-64 -s` e
+  `gpt -a arm64 -s` em qualquer máquina.
 
 `-i`
 : Executa o algoritmo diretamente, sem compilar ou criar arquivos. Opção
@@ -139,13 +140,14 @@ limite um aninhamento grande demais esgotaria a pilha do próprio GPT.
 O programa GPT é capaz de gerar código executável para a arquitetura x86-64 em
 dois formatos, ELF64 (*Executable and Linkable Format*) no GNU/Linux e PE32+
 (*Portable Executable*) no Microsoft Windows, e para a arquitetura arm64
-(AArch64) em ELF64 no GNU/Linux. Após o processo de análise, o compilador gera
-código em Assembly e o entrega a um montador. No x86-64, o montador é o NASM
-(Netwide Assembler) e o cabeçalho do executável faz parte do próprio Assembly
-gerado, por isso não existe etapa de linkagem nem dependência de bibliotecas: no
-GNU/Linux o programa conversa com o núcleo por `syscall` e no Windows importa
-apenas `kernel32.dll`. No arm64, descrito adiante, o executável é montado e
-ligado pelo `as` e pelo `ld` do binutils. A fase de otimização de código não foi
+(AArch64) em ELF64 no GNU/Linux e em Mach-O no macOS. Após o processo de
+análise, o compilador gera código em Assembly e o entrega a um montador. No
+x86-64, o montador é o NASM (Netwide Assembler) e o cabeçalho do executável faz
+parte do próprio Assembly gerado, por isso não existe etapa de linkagem nem
+dependência de bibliotecas: no GNU/Linux o programa conversa com o núcleo por
+`syscall` e no Windows importa apenas `kernel32.dll`. No arm64, descrito
+adiante, o executável é montado e ligado pelo `as` e pelo `ld` do binutils no
+GNU/Linux e pelo `cc` no macOS. A fase de otimização de código não foi
 implementada.
 
 Os valores `inteiro`, `caractere` e `lógico` ocupam 32 bits, como no
@@ -176,8 +178,18 @@ Numa máquina x86-64, `gpt -a arm64 -o` usa as ferramentas cruzadas
 `binutils-aarch64-linux-gnu` no Debian/Ubuntu), e o executável pode ser
 testado com o `qemu-aarch64`.
 
-O executável gerado só roda na arquitetura para a qual foi gerado; em outras
-arquiteturas, use a opção `-t` e compile o código C com o compilador do
+No macOS em arm64 (Apple Silicon), o GPT gera Assembly para o montador da Apple
+e chama o `cc`, o compilador C do Xcode ou do Xcode Command Line Tools
+(`xcode-select --install`), para montar o programa e ligá-lo num executável
+Mach-O. Ali o programa não faz chamadas de sistema diretas, que a Apple não
+mantém compatíveis entre versões do sistema: ele lê, escreve, pede memória e
+termina pelas funções `read`, `write`, `mmap` e `exit` da `libSystem`, a
+biblioteca C do macOS. O ligador também assina o executável, exigência do
+macOS em Apple Silicon. O `cc` é procurado nos diretórios do `PATH`. No macOS
+não há executável x86-64: `gpt -a x86-64 -o` é recusado.
+
+O executável gerado só roda na arquitetura e no sistema para os quais foi
+gerado; em outros, use a opção `-t` e compile o código C com o compilador do
 sistema.
 
 ### Tradução para a linguagem C

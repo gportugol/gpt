@@ -20,9 +20,9 @@ Currently available are a compiler, translator, and interpreter for the language
 (**GPT**), as well as a simple visual environment
 ([GPTEditor](https://github.com/gportugol/gpteditor)) that allows editing,
 execution, and debugging of programs written in G-Portugol. The first is
-multi-platform and can generate executables for MS Windows and GNU/Linux
-systems, while the second is available only for the KDE 3.0 environment on
-GNU/Linux.
+multi-platform and can generate executables for MS Windows, GNU/Linux
+systems and macOS (Apple Silicon), while the second is available only for the
+KDE 3.0 environment on GNU/Linux.
 
 ## The GPT Program
 
