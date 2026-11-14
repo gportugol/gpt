@@ -432,6 +432,43 @@ static bool runNasm(const string &ofname, const string &asmfile,
                  error);
 }
 
+#ifdef __APPLE__
+// On macOS the driver of the C compiler runs Apple's assembler and linker.
+// It knows where the SDK keeps libSystem, which every program links with,
+// and the linker signs the program, as macOS runs no unsigned arm64 one.
+static const char *const arm64ToolName = "cc (Xcode Command Line Tools)";
+
+static bool runArm64Assembler(const string &objfile, const string &asmfile,
+                              string &error) {
+  string cc = findTool("cc");
+  string out = fileArg(objfile);
+  string in = fileArg(asmfile);
+  const char *argv[] = {cc.c_str(),  "-arch", "arm64", "-x",
+                        "assembler", "-c",    "-o",    out.c_str(),
+                        in.c_str(),  NULL};
+  return runTool(arm64ToolName, argv,
+                 string("não foi possível montar o programa com o ") +
+                     arm64ToolName + ".",
+                 error);
+}
+
+// The object has no extension, and the driver hands a file it does not know
+// to the linker. The driver runs ld as a process of its own, which the signal
+// that stopBuild passes on to the driver does not reach: after a SIGTERM or
+// SIGHUP sent to gpt alone, ld may still write the program.
+static bool runArm64Linker(const string &ofname, const string &objfile,
+                           string &error) {
+  string cc = findTool("cc");
+  string out = fileArg(ofname);
+  string in = fileArg(objfile);
+  const char *argv[] = {cc.c_str(),  "-arch",    "arm64", "-o",
+                        out.c_str(), in.c_str(), NULL};
+  return runTool(arm64ToolName, argv,
+                 string("não foi possível ligar o programa com o ") +
+                     arm64ToolName + ".",
+                 error);
+}
+#else
 // binutils names its cross tools after the target, so on another host the
 // arm64 assembler is aarch64-linux-gnu-as.
 static string arm64Tool(const string &tool) {
@@ -440,6 +477,19 @@ static string arm64Tool(const string &tool) {
 #else
   return "aarch64-linux-gnu-" + tool;
 #endif
+}
+
+static bool runArm64Assembler(const string &objfile, const string &asmfile,
+                              string &error) {
+  string name = arm64Tool("as");
+  string as = findTool(name);
+  string out = fileArg(objfile);
+  string in = fileArg(asmfile);
+  const char *argv[] = {as.c_str(), "-o", out.c_str(), in.c_str(), NULL};
+  return runTool(name + " (binutils)", argv,
+                 "não foi possível montar o programa com o " + name +
+                     " (binutils).",
+                 error);
 }
 
 // ld writes the ELF headers and lays out the segments, aligned for the
@@ -457,6 +507,7 @@ static bool runArm64Linker(const string &ofname, const string &objfile,
                      " (binutils).",
                  error);
 }
+#endif
 
 #ifndef WIN32
 // Same bits as "chmod +x": execute for everyone, except what the umask hides.
@@ -555,12 +606,10 @@ bool GPT::writeTmpFile(const string &content, string &path) {
 #endif
 }
 
-// as writes the object file and ld lays out the executable; the object is
-// removed either way.
+// The assembler writes the object file and the linker lays out the
+// executable; the object is removed either way.
 bool GPT::assembleArm64(const string &ofname, const string &asmfile,
                         string &error) {
-  string name = arm64Tool("as");
-  string as = findTool(name);
   string objfile;
   if (!writeTmpFile("", objfile)) {
     if (!objfile.empty()) {
@@ -569,13 +618,7 @@ bool GPT::assembleArm64(const string &ofname, const string &asmfile,
     error = "erro ao processar arquivo temporário";
     return false;
   }
-  string out = fileArg(objfile);
-  string in = fileArg(asmfile);
-  const char *asArgs[] = {as.c_str(), "-o", out.c_str(), in.c_str(), NULL};
-  bool ok = runTool(name + " (binutils)", asArgs,
-                    "não foi possível montar o programa com o " + name +
-                        " (binutils).",
-                    error) &&
+  bool ok = runArm64Assembler(objfile, asmfile, error) &&
             runArm64Linker(ofname, objfile, error);
   removeTmpFile(objfile);
   return ok;
@@ -813,12 +856,11 @@ bool GPT::compile(const list<string> &ifnames, bool genBinary) {
   }
 #endif
 #ifdef __APPLE__
-  // The backends write ELF and PE programs, which macOS does not run, and
-  // on arm64 the as and ld found there are Apple's, which write Mach-O.
-  if (genBinary) {
+  // The x86-64 backend writes ELF and PE programs, which macOS does not run.
+  if (genBinary && arch != "arm64") {
     s << PACKAGE
-      << ": a geração de executável não tem suporte ao macOS. Use -t para "
-         "traduzir o algoritmo para C."
+      << ": no macOS, a geração de executável só funciona para arm64. Use -t "
+         "para traduzir o algoritmo para C."
       << endl;
     GPTDisplay::self()->showError(s);
     return false;

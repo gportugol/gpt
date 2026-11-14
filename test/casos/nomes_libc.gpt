@@ -1,0 +1,36 @@
+algoritmo nomes_libc;
+variáveis
+  linha : literal;
+  _error : inteiro;
+fim-variáveis
+início
+  linha := leia();
+  _error := 6;
+  imprima(write(1), " ", read(2), " ", mmap(3), " ", exit(4), " ", main(5));
+  imprima(_error, " ", linha);
+fim
+
+função write(n : inteiro) : inteiro
+início
+  retorne n * 10;
+fim
+
+função read(n : inteiro) : inteiro
+início
+  retorne n * 10;
+fim
+
+função mmap(n : inteiro) : inteiro
+início
+  retorne n * 10;
+fim
+
+função exit(n : inteiro) : inteiro
+início
+  retorne n * 10;
+fim
+
+função main(n : inteiro) : inteiro
+início
+  retorne n * 10;
+fim

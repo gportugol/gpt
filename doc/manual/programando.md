@@ -30,7 +30,7 @@ fim
 
 Após salvar o arquivo, digite o seguinte na linha de comando:
 
-- No GNU/Linux:
+- No GNU/Linux e no macOS em Apple Silicon:
 
   ```shell
   gpt -o olamundo olamundo.gpt

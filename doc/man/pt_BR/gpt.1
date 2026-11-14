@@ -88,12 +88,12 @@ gera um executável cujo nome termina em
 .I .out.exe ,
 para que o fonte não seja substituído.
 O código gerado é x86-64 (um executável ELF64 no GNU/Linux, PE32+ no Windows)
-ou arm64 (um executável ELF64 no GNU/Linux), conforme a opção
+ou arm64 (um executável ELF64 no GNU/Linux, Mach-O no macOS), conforme a opção
 .BR \-a ;
-numa máquina que não é nenhuma das duas, ou no macOS, que não executa esses
-programas, use
+numa máquina que não é nenhuma das duas, use
 .B \-t
 e compile o código C com o compilador do sistema.
+No macOS só o arm64 gera executável.
 Para x86-64, o
 .BR nasm (1)
 monta o executável.
@@ -106,6 +106,9 @@ ferramentas cruzadas
 .B aarch64-linux-gnu-as
 e
 .BR aarch64-linux-gnu-ld .
+No macOS, o
+.BR cc (1)
+do Xcode Command Line Tools monta e liga o executável.
 No Windows e no GNU/Linux, essas ferramentas são procuradas primeiro no
 diretório do
 .I gpt
@@ -137,7 +140,7 @@ e
 .B x86-64
 (sintaxe do NASM) ou
 .B arm64
-(sintaxe do GNU as para AArch64).
+(sintaxe do GNU as para AArch64 ou, no macOS, a do montador da Apple).
 O padrão é a arquitetura da máquina que executa o
 .IR gpt ;
 um

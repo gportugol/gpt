@@ -19,11 +19,15 @@ Este arquivo foi consolidado a partir do ChangeLog histórico (CVS/SVN).
 - Cada release publica também `gpt-linux-aarch64.tar.gz`, compilado e
   testado no CI num runner arm64.
 - O `gpt` compila no macOS em arm64 (Apple Silicon), com o clang e os
-  pacotes do Homebrew, e o CI compila e testa nesse sistema. Lá o `gpt`
-  interpreta (`-i`), traduz para C (`-t`) e grava o assembly (`-s`);
-  `gpt -o` é recusado com uma mensagem que indica o `-t`, porque os
-  executáveis gerados são ELF64 e PE32+, que o macOS não executa. O
-  `HACKING.md` descreve as dependências e o build.
+  pacotes do Homebrew, e o CI compila e testa nesse sistema. O `HACKING.md`
+  descreve as dependências e o build.
+- Backend AArch64 para macOS. Num Mac com Apple Silicon, `gpt -o` gera um
+  executável Mach-O: o `gpt` grava o assembly para o montador da Apple e
+  chama o `cc` do Xcode ou do Xcode Command Line Tools para montar e ligar o
+  programa, que usa as funções `read`, `write`, `mmap` e `exit` da
+  `libSystem` no lugar de chamadas de sistema. `gpt -s` grava esse assembly.
+  Para x86-64 não há executável no macOS, e lá `gpt -a x86-64 -o` é recusado
+  com uma mensagem que indica o `-t`.
 - O `configure` acrescenta as flags de proteção que o compilador aceitar:
   `-D_FORTIFY_SOURCE=2` (se o compilador ou o `CPPFLAGS` ainda não definem
   um nível), `-D_GLIBCXX_ASSERTIONS`, `-fstack-protector-strong`,
