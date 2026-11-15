@@ -253,6 +253,14 @@ O `configure` só mantém uma flag de proteção se um programa compilado com el
 lançar e capturar uma exceção. No runner do CI (Apple clang 21), a
 `-mbranch-protection=standard` não passa nesse teste e fica de fora.
 
+Isso basta para uso local, mas o `gpt` assim compilado depende da
+`libpcre2-8.0.dylib` do Homebrew e exige a versão do macOS que o compilou (o
+26, no runner do CI) ou uma mais nova. Para o pacote da release, o job do macOS
+em [.github/workflows/build.yml](.github/workflows/build.yml) compila a PCRE2 e
+o runtime do ANTLR4 como bibliotecas estáticas com
+`MACOSX_DEPLOYMENT_TARGET=11.0`, a primeira versão do macOS para Apple Silicon,
+e liga o `gpt` a elas.
+
 ### 3. Testar no macOS
 
 ```shell

@@ -28,6 +28,14 @@ Este arquivo foi consolidado a partir do ChangeLog histórico (CVS/SVN).
   `libSystem` no lugar de chamadas de sistema. `gpt -s` grava esse assembly.
   Para x86-64 não há executável no macOS, e lá `gpt -a x86-64 -o` é recusado
   com uma mensagem que indica o `-t`.
+- Cada release publica também `gpt-macos-arm64.tar.gz`, compilado e testado
+  no CI num runner macOS arm64. O `gpt` desse pacote roda a partir do macOS
+  11 e não precisa do Homebrew: a PCRE2 e o runtime do ANTLR4 vão ligados
+  estaticamente, com os avisos de licença em `share/doc`. O binário não tem
+  a assinatura de um desenvolvedor da Apple, então o macOS pode recusá-lo
+  se o pacote for baixado pelo navegador, que marca o arquivo com o
+  atributo de quarentena; `xattr -dr com.apple.quarantine` no diretório
+  extraído remove esse atributo.
 - O `configure` acrescenta as flags de proteção que o compilador aceitar:
   `-D_FORTIFY_SOURCE=2` (se o compilador ou o `CPPFLAGS` ainda não definem
   um nível), `-D_GLIBCXX_ASSERTIONS`, `-fstack-protector-strong`,

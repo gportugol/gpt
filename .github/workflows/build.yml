@@ -325,26 +325,55 @@ jobs:
     # macOS has no timeout(1) for the suite to bound each program with, so a
     # test that hangs would hold the runner for the default six hours.
     timeout-minutes: 30
+    env:
+      # The first macOS for Apple Silicon.
+      MACOSX_DEPLOYMENT_TARGET: "11.0"
     steps:
       # The suite uses coproc, which the bash 3.2 of macOS does not have.
       - name: Install Build Dependencies
-        run: >-
-          brew install autoconf automake libtool antlr antlr4-cpp-runtime
-          pcre2 bash
+        run: brew install autoconf automake libtool antlr bash
 
       - name: Checkout Repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      # Homebrew calls the tool antlr and installs the runtime under its own
-      # prefix, where configure does not look.
+      # Homebrew builds its bottles for the macOS that pours them, 26 on this
+      # runner, and the release tarball ships gpt with no Homebrew, so PCRE2
+      # and the ANTLR4 runtime are built here as static libraries for
+      # MACOSX_DEPLOYMENT_TARGET. brew removes that variable from the
+      # environment of its builds, so it only fetches the sources, checked
+      # against its formulas. The runtime then comes from the same Homebrew
+      # as the antlr tool, whose 4.x configure requires it to match.
+      # cmake runs from the source directory because the runtime installs
+      # its LICENSE.txt only when it finds it relative to the current one.
+      - name: Build PCRE2 and ANTLR4 Runtime
+        run: |
+          deps=$RUNNER_TEMP/deps
+          echo "DEPS=$deps" >> "$GITHUB_ENV"
+          brew fetch --build-from-source pcre2 antlr4-cpp-runtime
+          cd "$RUNNER_TEMP"
+          mkdir pcre2 antlr4
+          tar xjf "$(brew --cache --build-from-source pcre2)" \
+            --strip-components=1 -C pcre2
+          (cd pcre2 && ./configure --prefix="$deps" --disable-shared &&
+            make -j"$(sysctl -n hw.ncpu)" install)
+          cd antlr4
+          unzip -q "$(brew --cache --build-from-source antlr4-cpp-runtime)"
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="$deps" -DANTLR_BUILD_SHARED=OFF \
+            -DANTLR_BUILD_CPP_TESTS=OFF
+          cmake --build build -j"$(sysctl -n hw.ncpu)"
+          cmake --install build
+
+      # Homebrew calls the tool antlr. The runner already has the Homebrew
+      # pcre2, whose pcre2-config links its dylib, so DEPS comes first.
       - name: Build GPT Project
         run: |
-          brew_prefix=$(brew --prefix)
           autoreconf -i
-          ./configure --prefix=/usr/local CXXFLAGS="-Wall -Wextra -Werror" \
-            ANTLR4_CMD="$brew_prefix/bin/antlr" \
-            ANTLR4_INC="-isystem $brew_prefix/include/antlr4-runtime" \
-            ANTLR4_LIB="$brew_prefix/lib/libantlr4-runtime.a"
+          PATH="$DEPS/bin:$PATH" ./configure --prefix=/usr/local \
+            CXXFLAGS="-Wall -Wextra -Werror" \
+            ANTLR4_CMD="$(brew --prefix)/bin/antlr" \
+            ANTLR4_INC="-isystem $DEPS/include/antlr4-runtime" \
+            ANTLR4_LIB="$DEPS/lib/libantlr4-runtime.a"
           make -j"$(sysctl -n hw.ncpu)"
 
       # macos-latest is an arm64 runner today; the job name has to stay true
@@ -352,6 +381,45 @@ jobs:
       - name: Check arm64 Binary
         run: test "$(lipo -archs src/gpt)" = arm64
 
+      # The suite runs where Homebrew installed its libraries, so it would not
+      # notice gpt depending on one of them or on a newer macOS again.
+      - name: Check Self-Contained Binary
+        run: |
+          otool -L src/gpt
+          if otool -L src/gpt | tail -n +2 |
+            grep -v -E '^[[:space:]]+/(usr/lib|System/Library)/'; then
+            echo "src/gpt needs a library that the release tarball does" \
+              "not carry" >&2
+            exit 1
+          fi
+          minos=$(vtool -show-build src/gpt | awk '$1 == "minos" {print $2}')
+          if [ "$minos" != "$MACOSX_DEPLOYMENT_TARGET" ]; then
+            echo "src/gpt needs macOS $minos," \
+              "not $MACOSX_DEPLOYMENT_TARGET" >&2
+            exit 1
+          fi
+
       - name: Run Tests
         run: |
           "$(brew --prefix)/bin/bash" test/run_test.sh
+
+      # The licenses of PCRE2 and of the ANTLR4 runtime linked into gpt ask
+      # binary copies to include their notices.
+      - name: Package macOS
+        run: |
+          make install DESTDIR="$PWD/release"
+          # Kept out of doc_DATA so that make install does not add a second
+          # copy of the license to every distribution package.
+          cp COPYING release/usr/local/share/doc/gpt/
+          mkdir -p dist
+          mv release/usr/local/* dist/
+          mkdir -p dist/share/doc/libantlr4-runtime dist/share/doc/pcre2
+          cp "$DEPS/share/doc/libantlr4/LICENSE.txt" \
+            dist/share/doc/libantlr4-runtime/
+          cp "$DEPS/share/doc/pcre2/LICENCE.md" dist/share/doc/pcre2/
+
+      - name: Upload macOS Artifact
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: gpt-macos-arm64
+          path: dist/*
