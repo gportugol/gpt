@@ -105,32 +105,54 @@ AC_ARG_ENABLE([hardening],
      compilacao]),
   [], [enable_hardening=yes])
 
-dnl A flag is kept only when a program with a stack buffer, a fortified call
-dnl and a container links with it and prints nothing: the MinGW linker
-dnl rejects -z, and a flag that only warns, such as a second definition of a
-dnl macro, would still break a -Werror build. The flags go before the user's,
-dnl so a later -fno-stack-protector or -U_FORTIFY_SOURCE still wins.
-AC_DEFUN([GPT_TRY_HARDENING_FLAG], [
-  AC_MSG_CHECKING([whether $CXX accepts $2])
-  gpt_save_flags=$$1
-  $1="$2${$1:+ $$1}"
-  ac_cxx_werror_flag=yes
-  AC_LINK_IFELSE([AC_LANG_SOURCE([[
+dnl A flag is kept only when a program with a stack buffer, a fortified call,
+dnl a container and a caught exception links with it and prints nothing: the
+dnl MinGW linker rejects -z, and a flag that only warns, such as a second
+dnl definition of a macro, would still break a -Werror build. Unless
+dnl cross-compiling, the program must run as well: Apple clang 21 takes
+dnl -mbranch-protection=standard on arm64, and on the macOS runner of the CI
+dnl no exception reached its handler with it. The flags go before the
+dnl user's, so a later -fno-stack-protector or -U_FORTIFY_SOURCE still wins.
+m4_define([GPT_HARDENING_PROGRAM], [AC_LANG_SOURCE([[
 #include <cstdio>
 #include <cstring>
+#include <stdexcept>
 #include <vector>
+static void fail(int count)
+{
+  if (count > 0)
+    throw std::runtime_error("expected");
+}
 int main(int argc, char **argv)
 {
   char buf[64];
   std::snprintf(buf, sizeof buf, "%s", argv[0]);
   std::vector<int> v(argc);
-  return v.empty() ? 1 : (int)std::strlen(buf) + v[0];
+  /* Through a volatile pointer, the call is not inlined into the try. */
+  void (*volatile thrower)(int) = fail;
+  try {
+    thrower((int)std::strlen(buf) + (int)v.size());
+  } catch (const std::runtime_error &) {
+    return 0;
+  }
+  return 1;
 }
-]])],
-    [AC_MSG_RESULT([yes])],
-    [AC_MSG_RESULT([no])
-     $1=$gpt_save_flags])
+]])])
+
+AC_DEFUN([GPT_TRY_HARDENING_FLAG], [
+  AC_MSG_CHECKING([whether $CXX accepts $2])
+  gpt_save_flags=$$1
+  $1="$2${$1:+ $$1}"
+  ac_cxx_werror_flag=yes
+  AC_LINK_IFELSE([GPT_HARDENING_PROGRAM], [gpt_flag_result=yes],
+    [gpt_flag_result=no])
   ac_cxx_werror_flag=
+  if test "$gpt_flag_result" = yes; then
+    AC_RUN_IFELSE([GPT_HARDENING_PROGRAM], [],
+      [gpt_flag_result="no, the program built with it fails"], [:])
+  fi
+  AC_MSG_RESULT([$gpt_flag_result])
+  test "$gpt_flag_result" = yes || $1=$gpt_save_flags
 ])
 
 if test "x$enable_hardening" != xno; then

@@ -86,7 +86,8 @@ The generated code is x86-64 (an ELF64 executable on GNU/Linux, a PE32+
 executable on Windows) or arm64 (an ELF64 executable on GNU/Linux), as chosen
 with
 .BR \-a ;
-on a machine that is neither, use
+on a machine that is neither, or on macOS, which runs none of these programs,
+use
 .B \-t
 and compile the C code with the system compiler.
 For x86-64,

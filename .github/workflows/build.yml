@@ -318,3 +318,40 @@ jobs:
         with:
           name: gpt-windows-x86_64
           path: dist/*
+
+  build-macos-arm64:
+    if: ${{ inputs.target == 'macos' || inputs.target == 'all' }}
+    runs-on: macos-latest
+    # macOS has no timeout(1) for the suite to bound each program with, so a
+    # test that hangs would hold the runner for the default six hours.
+    timeout-minutes: 30
+    steps:
+      # The suite uses coproc, which the bash 3.2 of macOS does not have.
+      - name: Install Build Dependencies
+        run: >-
+          brew install autoconf automake libtool antlr antlr4-cpp-runtime
+          pcre2 bash
+
+      - name: Checkout Repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # Homebrew calls the tool antlr and installs the runtime under its own
+      # prefix, where configure does not look.
+      - name: Build GPT Project
+        run: |
+          brew_prefix=$(brew --prefix)
+          autoreconf -i
+          ./configure --prefix=/usr/local CXXFLAGS="-Wall -Wextra -Werror" \
+            ANTLR4_CMD="$brew_prefix/bin/antlr" \
+            ANTLR4_INC="-isystem $brew_prefix/include/antlr4-runtime" \
+            ANTLR4_LIB="$brew_prefix/lib/libantlr4-runtime.a"
+          make -j"$(sysctl -n hw.ncpu)"
+
+      # macos-latest is an arm64 runner today; the job name has to stay true
+      # if that label ever moves.
+      - name: Check arm64 Binary
+        run: test "$(lipo -archs src/gpt)" = arm64
+
+      - name: Run Tests
+        run: |
+          "$(brew --prefix)/bin/bash" test/run_test.sh

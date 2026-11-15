@@ -18,12 +18,22 @@ Este arquivo foi consolidado a partir do ChangeLog histórico (CVS/SVN).
   descrevem a opção e as ferramentas que cada arquitetura usa.
 - Cada release publica também `gpt-linux-aarch64.tar.gz`, compilado e
   testado no CI num runner arm64.
+- O `gpt` compila no macOS em arm64 (Apple Silicon), com o clang e os
+  pacotes do Homebrew, e o CI compila e testa nesse sistema. Lá o `gpt`
+  interpreta (`-i`), traduz para C (`-t`) e grava o assembly (`-s`);
+  `gpt -o` é recusado com uma mensagem que indica o `-t`, porque os
+  executáveis gerados são ELF64 e PE32+, que o macOS não executa. O
+  `HACKING.md` descreve as dependências e o build.
 - O `configure` acrescenta as flags de proteção que o compilador aceitar:
   `-D_FORTIFY_SOURCE=2` (se o compilador ou o `CPPFLAGS` ainda não definem
   um nível), `-D_GLIBCXX_ASSERTIONS`, `-fstack-protector-strong`,
   `-fstack-clash-protection`, `-fcf-protection` (no arm64,
   `-mbranch-protection=standard`), `-Wl,-z,relro` e `-Wl,-z,now`. As flags
   do usuário vêm depois e prevalecem, e `--disable-hardening` desliga todas.
+  Fora de uma compilação cruzada, a flag só entra se um programa de teste
+  compilado com ela rodar e capturar uma exceção: no runner macOS do CI, o
+  Apple clang 21 aceita a `-mbranch-protection=standard`, mas com ela
+  nenhuma exceção de C++ chega ao seu `catch`.
 
 ### Alterado
 

@@ -65,8 +65,9 @@ As opções são comentadas a seguir.
   extensão `.out` (`.exe` no Windows), como `programa.out`. No Windows, um
   fonte com extensão `.exe` gera um executável cujo nome termina em `.out.exe`,
   para que o fonte não seja substituído. O código gerado é x86-64 ou arm64,
-  conforme a opção `-a`; numa máquina que não é nenhuma das duas, use a opção
-  `-t` e compile o código C com o compilador do sistema.
+  conforme a opção `-a`; numa máquina que não é nenhuma das duas, ou no macOS,
+  que não executa os programas gerados, use a opção `-t` e compile o código C
+  com o compilador do sistema.
 
 `-t <arquivo>`
 : Traduz o algoritmo para C e salva o código fonte com o nome de `<arquivo>`.
