@@ -5,7 +5,7 @@
 G-Portugol é uma implementação em C++ da linguagem didática Portugol. O binário
 `gpt` pode interpretar programas, compilá-los para executáveis x86, gerar
 assembly e traduzir para C. O projeto usa Autotools, ANTLR 4.x e PCRE2, e deve
-continuar compatível com GNU/Linux e Windows/MSYS2.
+continuar compatível com GNU/Linux, Windows/MSYS2 e macOS.
 
 ## Estrutura do repositório
 
@@ -95,8 +95,8 @@ quatro consumidores. Os geradores dependem dos tipos anotados pelo
 - Evite dependências e comandos exclusivos de Linux no código do produto.
 - Teste ou considere os caminhos condicionais de Windows ao mexer em arquivos,
   processos temporários, assembly e flags de compilação.
-- O CI é a referência para os builds Linux e Windows; mantenha `HACKING.md` e
-  os workflows coerentes quando o processo de build mudar.
+- O CI é a referência para os builds Linux, Windows e macOS; mantenha
+  `HACKING.md` e os workflows coerentes quando o processo de build mudar.
 
 ## Antes de concluir
 

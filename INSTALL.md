@@ -69,7 +69,11 @@ um nível), `-D_GLIBCXX_ASSERTIONS`, `-fstack-protector-strong`,
 `-Wl,-z,relro` e `-Wl,-z,now`. Cada flag só entra se o compilador e o linker a
 aceitarem sem nenhum aviso, então as que não se aplicam à plataforma (como as
 `-z` no Windows, a `-fcf-protection` fora de x86 e a `-mbranch-protection`
-fora de arm64) ficam de fora. Para não acrescentar nenhuma delas:
+fora de arm64) ficam de fora. Fora de uma compilação cruzada, o programa de
+teste compilado com a flag também precisa rodar e capturar uma exceção de
+C++: no runner macOS do CI, o Apple clang 21 aceita a
+`-mbranch-protection=standard`, mas com ela nenhuma exceção chega ao seu
+`catch`, e a flag fica de fora. Para não acrescentar nenhuma delas:
 
 ```bash
 ./configure --disable-hardening

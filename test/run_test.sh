@@ -70,6 +70,13 @@ if [ -n "$GPT_TEST_ARCH" ]; then
 	GPT_A=(-a "$GPT_TEST_ARCH")
 	read -r -a RUNNER <<<"$GPT_TEST_RUNNER"
 fi
+# gpt -o writes Linux and Windows programs, which macOS does not run, so gpt
+# refuses it there, whatever the architecture.
+SEM_NATIVO="na arquitetura $ARCH"
+if [ "$(uname -s)" = Darwin ]; then
+	NATIVE_ARCH=""
+	SEM_NATIVO="no macOS"
+fi
 CAN_EXEC_NATIVE=0
 [ -n "$NATIVE_ARCH" ] && CAN_EXEC_NATIVE=1
 
@@ -217,7 +224,7 @@ run_caso() {
 	# binário nativo
 	if ! skip_mode "$base" "nativo"; then
 		if [ $CAN_EXEC_NATIVE -eq 0 ]; then
-			echo "⚠ $name (-o): pulado (gpt recusa -o na arquitetura $ARCH)"
+			echo "⚠ $name (-o): pulado (gpt recusa -o $SEM_NATIVO)"
 		elif $TIMEOUT "$GPT" "${GPT_A[@]}" -o "$TMP/$name.bin" "$src" "${extra[@]}" >"$TMP/$name.o.build" 2>&1; then
 			$TIMEOUT "${RUNNER[@]}" "$TMP/$name.bin" <"$stdin" >"$TMP/$name.o.out" 2>"$TMP/$name.o.err"
 			check "$name (-o)" "$TMP/$name.o.out" $? \
@@ -590,9 +597,9 @@ else
 	ERRO=$($TIMEOUT "$GPT" -o "$TMP/recusa.bin" tester.gpt 2>&1 >/dev/null)
 	RESULT=$?
 	if [ $RESULT -eq 1 ] && grep -q "Use -t para traduzir" <<<"$ERRO"; then
-		ok "-o na arquitetura $ARCH"
+		ok "-o $SEM_NATIVO"
 	else
-		fail "-o na arquitetura $ARCH: código $RESULT (esperado: 1 e o diagnóstico do gpt)"
+		fail "-o $SEM_NATIVO: código $RESULT (esperado: 1 e o diagnóstico do gpt)"
 		echo "$ERRO"
 	fi
 fi
@@ -1254,8 +1261,8 @@ else
 	fail "matriz com 2^26 elementos (-i): código $RESULT (esperado: 0 e 5)"
 	echo "$SAIDA"
 fi
-if [ $CAN_EXEC_NATIVE -eq 0 ]; then
-	echo "⚠ 1 GiB de variáveis (-s): pulado (gpt recusa -s na arquitetura $ARCH)"
+if [ -z "$HOST_ARCH" ] && [ -z "$GPT_TEST_ARCH" ]; then
+	echo "⚠ 1 GiB de variáveis (-s): pulado (sem backend nativo)"
 else
 	for escopo in globais locais; do
 		for extra in "" "c : inteiro;"; do

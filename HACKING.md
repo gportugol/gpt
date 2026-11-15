@@ -2,7 +2,7 @@
 
 Este documento descreve como configurar o ambiente de desenvolvimento local do
 GPT usando as mesmas etapas utilizadas no pipeline do [GitHub
-Actions](.github/workflows/build.yml) para GNU/Linux e Windows.
+Actions](.github/workflows/build.yml) para GNU/Linux, Windows e macOS.
 
 Dependências:
 
@@ -211,6 +211,69 @@ gpt.exe -i exemplos/olamundo.gpt
 ```shell
 gpt.exe -o olamundo.exe exemplos/olamundo.gpt
 ./olamundo.exe
+```
+
+## macOS (Homebrew)
+
+O GPT compila no macOS com o clang do Xcode ou do Xcode Command Line Tools
+(`xcode-select --install`) e com os pacotes do [Homebrew](https://brew.sh). O
+CI compila e testa num runner arm64 (Apple Silicon). No macOS o `gpt`
+interpreta (`-i`), traduz para C (`-t`) e grava o assembly (`-s`), mas
+`gpt -o` é recusado: os executáveis gerados são ELF64 e PE32+, que o macOS não
+executa.
+
+### 1. Instalar dependências no macOS
+
+```shell
+brew install autoconf automake libtool antlr antlr4-cpp-runtime pcre2 bash
+```
+
+O `configure` exige a ferramenta e o runtime C++ do ANTLR4 na mesma versão
+4.x, e os dois pacotes do Homebrew (`antlr` e `antlr4-cpp-runtime`) estavam na
+4.13.2 quando este texto foi escrito. O `bash` é para a suíte de testes, que
+usa `coproc`: o `/bin/bash` do macOS é o 3.2, que não tem esse comando.
+
+### 2. Configurar e compilar no macOS
+
+A ferramenta do Homebrew se chama `antlr`, não `antlr4`, e o runtime fica no
+prefixo do Homebrew (`/opt/homebrew` em Apple Silicon), fora dos diretórios em
+que o `configure` procura, então informe os três:
+
+```shell
+autoreconf -i
+./configure --prefix=/usr/local \
+  ANTLR4_CMD="$(brew --prefix)/bin/antlr" \
+  ANTLR4_INC="-isystem $(brew --prefix)/include/antlr4-runtime" \
+  ANTLR4_LIB="$(brew --prefix)/lib/libantlr4-runtime.a"
+make -j$(sysctl -n hw.ncpu)
+```
+
+O `configure` só mantém uma flag de proteção se um programa compilado com ela
+lançar e capturar uma exceção. No runner do CI (Apple clang 21), a
+`-mbranch-protection=standard` não passa nesse teste e fica de fora.
+
+### 3. Testar no macOS
+
+```shell
+"$(brew --prefix)/bin/bash" test/run_test.sh
+```
+
+A suíte pula o modo nativo e compila a tradução para C com o `gcc` do sistema.
+O macOS não tem o comando `timeout`, então lá a suíte não limita o tempo de
+cada programa.
+
+#### Interpretador no macOS
+
+```shell
+src/gpt -i exemplos/olamundo.gpt
+```
+
+#### Tradutor para C no macOS
+
+```shell
+src/gpt -t olamundo.c exemplos/olamundo.gpt
+cc -o olamundo olamundo.c
+./olamundo
 ```
 
 ## Documentação

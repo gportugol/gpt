@@ -90,7 +90,8 @@ para que o fonte não seja substituído.
 O código gerado é x86-64 (um executável ELF64 no GNU/Linux, PE32+ no Windows)
 ou arm64 (um executável ELF64 no GNU/Linux), conforme a opção
 .BR \-a ;
-numa máquina que não é nenhuma das duas, use
+numa máquina que não é nenhuma das duas, ou no macOS, que não executa esses
+programas, use
 .B \-t
 e compile o código C com o compilador do sistema.
 Para x86-64, o

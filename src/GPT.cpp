@@ -812,6 +812,18 @@ bool GPT::compile(const list<string> &ifnames, bool genBinary) {
     arch = "x86-64";
   }
 #endif
+#ifdef __APPLE__
+  // The backends write ELF and PE programs, which macOS does not run, and
+  // on arm64 the as and ld found there are Apple's, which write Mach-O.
+  if (genBinary) {
+    s << PACKAGE
+      << ": a geração de executável não tem suporte ao macOS. Use -t para "
+         "traduzir o algoritmo para C."
+      << endl;
+    GPTDisplay::self()->showError(s);
+    return false;
+  }
+#endif
   if (arch.empty()) {
     if (genBinary) {
       s << PACKAGE

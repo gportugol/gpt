@@ -13,8 +13,8 @@ melhorias na linguagem e no compilador, testes, exemplos e documentação.
 
 ## Ambiente de desenvolvimento
 
-As dependências e as instruções completas para GNU/Linux e Windows/MSYS2 estão
-em [HACKING.md](HACKING.md). Em GNU/Linux, o fluxo usual é:
+As dependências e as instruções completas para GNU/Linux, Windows/MSYS2 e
+macOS estão em [HACKING.md](HACKING.md). Em GNU/Linux, o fluxo usual é:
 
 ```bash
 git clone https://github.com/gportugol/gpt.git
@@ -45,7 +45,8 @@ artefatos gerados no pull request.
 
 ### Código C++
 
-- O código-fonte deve permanecer compatível com GNU/Linux e Windows/MSYS2.
+- O código-fonte deve permanecer compatível com GNU/Linux, Windows/MSYS2 e
+  macOS.
 - Preserve os avisos de licença/copyright existentes nos arquivos modificados.
 - Use UTF-8 para fontes, exemplos e documentação.
 - A configuração de pre-commit aplica `clang-format` a arquivos C/C++ e verifica
@@ -103,7 +104,8 @@ Na descrição do pull request, informe:
 - limitações de ambiente, se houver, como ausência de ANTLR ou NASM.
 
 Mantenha o pull request focado; separe refatorações não relacionadas. O CI
-executa build e testes em Linux e Windows, além das verificações de pre-commit.
+executa build e testes em Linux, Windows e macOS, além das verificações de
+pre-commit.
 Responda aos comentários de revisão e atualize o patch quando necessário.
 
 ## Licença
