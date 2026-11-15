@@ -17,7 +17,8 @@ foco em funcionalidades e correções relevantes para os usuários.
   `arm64`. Cada release traz também um pacote para Linux aarch64.
 - O `gpt` compila no macOS em arm64 (Apple Silicon), e lá `gpt -o` gera
   executáveis Mach-O com o `cc` do Xcode Command Line Tools. O CI passa a
-  testar nesse sistema.
+  testar nesse sistema, e cada release traz também um pacote para macOS
+  arm64, que roda a partir do macOS 11 sem o Homebrew.
 - Num GNU/Linux i386 sobre kernel de 64 bits, como o i386 do Debian 13,
   `gpt -o` gera executável x86-64.
 - O lexer e o parser passam a ser gerados pelo ANTLR 4, que substitui o
