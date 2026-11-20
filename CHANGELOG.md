@@ -36,6 +36,9 @@ Este arquivo foi consolidado a partir do ChangeLog histórico (CVS/SVN).
   se o pacote for baixado pelo navegador, que marca o arquivo com o
   atributo de quarentena; `xattr -dr com.apple.quarantine` no diretório
   extraído remove esse atributo.
+- O `README.md` passa a mostrar como instalar o `gpt` no macOS com o
+  Homebrew, a partir do tap `gportugol/gpt`, que fica no repositório
+  `gportugol/homebrew-gpt`.
 - O `configure` acrescenta as flags de proteção que o compilador aceitar:
   `-D_FORTIFY_SOURCE=2` (se o compilador ou o `CPPFLAGS` ainda não definem
   um nível), `-D_GLIBCXX_ASSERTIONS`, `-fstack-protector-strong`,
