@@ -58,6 +58,26 @@ you to compile, translate, run, and debug programs written in G-Portugol.
 gpt -i /usr/share/doc/gpt/examples/olamundo.gpt
 ```
 
+## Available on macOS through Homebrew
+
+On macOS, **GPT** can be installed with [Homebrew](https://brew.sh), from the
+[gportugol/gpt](https://github.com/gportugol/homebrew-gpt) tap. No GPT release
+has macOS support yet, so for now the formula builds `master`:
+
+```bash
+brew install --HEAD gportugol/gpt/gpt
+```
+
+The [tap README](https://github.com/gportugol/homebrew-gpt#readme) (in
+Portuguese) shows how to upgrade GPT and what to do if Homebrew asks you to
+trust the tap. On a Mac with Apple Silicon, the installed `gpt` interprets,
+translates to C and generates executables. To run one of the installed
+examples:
+
+```bash
+gpt -i "$(brew --prefix)/share/doc/gpt/examples/olamundo.gpt"
+```
+
 ## G-Portugol Manual
 
 The G-Portugol manual, written in Portuguese, covers the language syntax,
