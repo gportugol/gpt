@@ -5,7 +5,7 @@ Notícias e destaques das versões do **GPT (GPortugol)**.
 Este arquivo apresenta um resumo das principais mudanças de cada versão, com
 foco em funcionalidades e correções relevantes para os usuários.
 
-## Unreleased
+## 2.0.0 - 2026-11-22
 
 - `gpt -o` gera executáveis de 64 bits: ELF64 x86-64 no GNU/Linux e PE32+
   no Windows. Os reais do executável nativo passam a ter precisão dupla e
